@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 
 const registerUser = async (req, res) => {
     try {
-        const { name, email, password, address } = req.body;
+        const { name, email, password, address, phone, city, state, zip, country } = req.body;
 
         // Check if the user already exists
         const existingUser = await User.findOne({ email });
@@ -21,9 +21,15 @@ const registerUser = async (req, res) => {
             email,
             password: hashedPassword,
             address,
+            phone,
+            city,
+            state,
+            zip,
+            country,
         });
 
         await newUser.save();
+
 
         // Generate JWT token
         const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: "1h" });

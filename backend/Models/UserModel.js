@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 
 const AddressSchema = new mongoose.Schema({
-    street: { type: String, required: true },
     city: { type: String, required: true },
     state: { type: String, required: true },
     zip: { type: String, required: true },
@@ -12,7 +11,8 @@ const UserSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    address: { type: AddressSchema, required: true }
-});
+    address: { type: AddressSchema, required: true },
+    phone: { type: String, required: true },
+}, { timestamps: true }); // Use `timestamps` option to automatically handle createdAt and updatedAt
 
 module.exports = mongoose.model("User", UserSchema);

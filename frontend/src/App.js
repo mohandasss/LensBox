@@ -1,15 +1,44 @@
 import './App.css';
-import Navbar from './Components/Navbar';
-import Caruselshapevideo from './Components/CarouselShapeVideo';
+import HomePage from './Page/HomePage';
+import Login from './Components/Login';
+import Register from './Components/Register';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import Loader from './Components/Loader';
 function App() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Caruselshapevideo />
-      </main>
-      
+      <BrowserRouter>
+        <LoadingWrapper>
+          <Routes>
+            <Route path='/' element={<HomePage />} />
+            <Route path='/login' element={<Login />} />
+            <Route path='/register' element={<Register />} />
+          </Routes>
+        </LoadingWrapper>
+      </BrowserRouter>
     </div>
+  );
+}
+
+function LoadingWrapper({ children }) {
+  const [loading, setLoading] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 150); // 1 second
+
+    return () => clearTimeout(timer);
+  }, [location]);
+
+  return (
+    <>
+      {loading && <Loader />}
+      {children}
+    </>
   );
 }
 

@@ -3,6 +3,7 @@ const express = require('express');
 const authRoutes = require("./Routes/AuthRoutes");
 const connectDB = require("./Config/db");
 const dotenv = require("dotenv");
+const cors = require("cors");
 
 dotenv.config();
 
@@ -11,6 +12,11 @@ const app = express();
 
 connectDB();
 
+app.use(cors({
+  origin: 'http://localhost:3000', // Allow only requests from localhost:3000
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow the methods you want
+  credentials: true, // Allow cookies if needed
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

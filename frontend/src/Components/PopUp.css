@@ -1,0 +1,15 @@
+/* Keyframes for slide-in animation */
+@keyframes slideIn {
+    from {
+      right: -100%; /* Start off-screen */
+    }
+    to {
+      right: 20px; /* End position */
+    }
+  }
+  
+  /* Class for the popup */
+  .popup {
+    animation: slideIn 0.5s forwards; /* Add slide-in animation */
+  }
+  
