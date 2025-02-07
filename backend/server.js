@@ -1,8 +1,23 @@
 // Import express module
 const express = require('express');
+const authRoutes = require("./Routes/AuthRoutes");
+const connectDB = require("./Config/db");
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 // Create an Express app
 const app = express();
+
+connectDB();
+
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Route imports
+app.use("/api/auth", authRoutes);
+
 
 // Define a basic route
 app.get('/', (req, res) => {
