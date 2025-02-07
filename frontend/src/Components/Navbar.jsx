@@ -6,7 +6,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo/Brand */}
         <div className="flex items-center">
-          <h1 className="text-xl font-bold text-blue-600">Brand</h1>
+          <h1 className="text-xl font-bold text-blue-600">LensBox</h1>
         </div>
 
         {/* Main Navigation */}
