@@ -11,6 +11,7 @@ const axiosinstance = axios.create({
 const register = async (userData) => {
   try {
     const response = await axiosinstance.post("/register", userData);
+    localStorage.setItem("token", response.data.token);
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -21,7 +22,7 @@ const register = async (userData) => {
     } else {
       console.error("Error setting up request:", error.message);
     }
-    throw error; 
+    throw error;
   }
 };
 
@@ -30,5 +31,25 @@ const login = async (userData) => {
   return response.data;
 };
 
-export default { register, login };
+const verifyToken = async (token) => {
+  try {
+   
+
+    const response = await axiosinstance.get("/check", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+   
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    
+    throw error;
+  }
+};
+
+
+export { register, login, verifyToken };
 

@@ -5,23 +5,19 @@ import Register from './Components/Register';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Loader from './Components/Loader';
+import Aboutpage from './Page/Aboutpage';
+import ContactPage from './Page/ContactPage';
 function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <BrowserRouter>
-        <LoadingWrapper>
-          <Routes>
-            <Route path='/' element={<HomePage />} />
-            <Route path='/login' element={<Login />} />
-            <Route path='/register' element={<Register />} />
-          </Routes>
-        </LoadingWrapper>
+        <AppContent />
       </BrowserRouter>
     </div>
   );
 }
 
-function LoadingWrapper({ children }) {
+function AppContent() {
   const [loading, setLoading] = useState(false);
   const location = useLocation();
 
@@ -29,16 +25,24 @@ function LoadingWrapper({ children }) {
     setLoading(true);
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 150); // 1 second
+    }, 50);
 
     return () => clearTimeout(timer);
   }, [location]);
 
+  if (loading) {
+    return <Loader />;
+  }
+
   return (
-    <>
-      {loading && <Loader />}
-      {children}
-    </>
+    <Routes>
+      <Route path='/' element={<HomePage />} />
+      <Route path='/login' element={<Login />} />
+      <Route path='/register' element={<Register />} />
+      <Route path='/about' element={<Aboutpage />} />
+      <Route path='/contact' element={<ContactPage />} /> 
+      <Route path='/services' element={<ServicesPage />} />
+    </Routes>
   );
 }
 

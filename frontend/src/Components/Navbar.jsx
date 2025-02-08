@@ -1,74 +1,156 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { verifyToken } from "../APIs/AuthAPI";
 
 const Navbar = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const response = await verifyToken(token);
+
+          if (
+            response.success ||
+            response.message === "User is authenticated"
+          ) {
+            setIsAuthenticated(true);
+            console.log(isAuthenticated);
+            console.log(response.user);
+            setUser(response.user);
+          } else {
+            
+
+            setIsAuthenticated(false);
+            setUser(null);
+          }
+        } catch (error) {
+        
+          console.error("Token verification failed:", error);
+          
+          if (error.response && error.response.status === 401) {
+            setIsAuthenticated(false);
+            setUser(null);
+          }
+        }
+      } else {
+        setIsAuthenticated(false);
+        setUser(null);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const handleSignOut = () => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+    setUser(null);
+  };
+
   return (
-    <nav className="navbar bg-white shadow-md px-6 py-4">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        {/* Logo/Brand */}
-        <Link to='/' className="flex items-center">
-          <h1 className="text-xl font-bold text-blue-600">LensBox</h1>
-        </Link>
-
-
-        {/* Main Navigation */}
-        <div className="hidden md:flex items-center">
-          <ul className="flex space-x-8">
-            <Link to='/'>
-            <li><a href="/" className="text-gray-700 hover:text-blue-600 transition-colors">Home</a></li>
-            </Link>
-            <Link to='/about'>
-            <li><a href="/about" className="text-gray-700 hover:text-blue-600 transition-colors">About</a></li>
-            </Link>
-            <Link to='/services'>
-            <li><a href="/services" className="text-gray-700 hover:text-blue-600 transition-colors">Services</a></li>
-            </Link>                       
-            <Link to='/contact'>
-            <li><a href="/contact" className="text-gray-700 hover:text-blue-600 transition-colors">Contact</a></li>
-            </Link>
-          </ul>
-        </div>
-
-
-        {/* Right Side Actions */}
-        <div className="flex items-center space-x-4">
-          {/* Search */}
-          <div className="hidden md:flex">
-            <button className="text-gray-600 hover:text-blue-600 transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Cart */}
-          <button className="text-gray-600 hover:text-blue-600 transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-          </button>
-
-          {/* Auth Buttons */}
-          <div className="hidden md:flex space-x-2">
-            <Link to='/login'>
-              <button className="px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors">Login</button>
-            </Link>
-            <Link to='/register'>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">Sign up</button>
+    <nav className="px-4 bg-transparent">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="flex justify-between items-center h-16">
+          {/* Left side - Logo/Brand */}
+          <div className="flex items-center">
+            <Link to="/" className="text-xl font-bold text-white">
+              LensBox
             </Link>
           </div>
 
 
-          {/* Mobile Menu Button */}
-          <button className="md:hidden text-gray-600 hover:text-blue-600 transition-colors">
-            <Link to='/login'>
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+          {/* Center - Navigation Links */}
+          <div className="hidden md:flex items-center space-x-6">
+            <Link to="/" className="text-white hover:text-gray-600">
+              Home
             </Link>
-          </button>
-        </div>
+            <Link to="/about" className="text-white hover:text-gray-600">
 
+              About
+            </Link>
+            <Link to="/services" className="text-white hover:text-gray-600">
+              Services
+            </Link>
+            <Link to="/contact" className="text-white hover:text-gray-600">
+
+              Contact
+            </Link>
+          </div>
+
+          {/* Right side - Auth Section */}
+          {isAuthenticated ? (
+            <div className="relative">
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 "
+          
+              >
+                <span className="  font-medium text-black  bg-white px-4 py-2 rounded-md">
+                  {user?.name?.charAt(0)}
+                </span>
+              </button>
+
+
+              <div
+                className={`absolute right-0 mt-2 ${
+                  isDropdownOpen ? 'block' : 'hidden'
+                } bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 dark:divide-gray-600`}
+              >
+                <div className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                  <div>{user?.name}</div>
+                  <div className="font-medium truncate">{user?.email}</div>
+                </div>
+                <ul
+                  className="py-2 text-sm text-gray-700 dark:text-gray-200"
+                  aria-labelledby="avatarButton"
+                >
+                  <li>
+                    <Link
+                      to="/dashboard"
+                      className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-white"
+                    >
+                      Dashboard
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/settings"
+                      className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-white"
+                    >
+                      Settings
+                    </Link>
+                  </li>
+                </ul>
+                <div className="py-1">
+                  <button
+                    onClick={handleSignOut}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-white dark:hover:text-white"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center">
+              <Link to="/login" className="text-white border border-white px-4 py-2 rounded-md hover:text-gray-600 mr-4">
+                Login
+              </Link>
+              <Link to="/register" className="text-black bg-white px-4 py-2 rounded-md hover:text-gray-600">
+
+                Register
+              </Link>
+            </div>
+
+
+
+          )}
+        </div>
       </div>
     </nav>
   );

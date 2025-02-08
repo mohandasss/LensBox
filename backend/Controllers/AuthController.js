@@ -32,7 +32,7 @@ const registerUser = async (req, res) => {
 
 
         // Generate JWT token
-        const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
         res.status(201).json({ message: "User registered successfully", token });
     } catch (error) {
@@ -71,8 +71,21 @@ const logoutUser = async (req, res) => {
   res.status(200).json({ message: "User logged out successfully" });
 };
 
+const checkAuth = async (req, res) => {
+  const token = req.headers.authorization;
+  const bearerToken = token.split(" ")[1];
+  console.log(bearerToken);
+  if (!bearerToken) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
 
 
+  const decoded = jwt.verify(bearerToken, process.env.JWT_SECRET);
+  const user = await User.findById(decoded.userId);
+  console.log(user);
+  res.status(200).json({ message: "User is authenticated", user });
 
 
-module.exports = { registerUser, loginUser, logoutUser };
+};
+
+module.exports = { registerUser, loginUser, logoutUser, checkAuth };
