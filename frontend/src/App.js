@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import Loader from './Components/Loader';
 import Aboutpage from './Page/Aboutpage';
 import ContactPage from './Page/ContactPage';
+import ServicesPage from './Page/ServicesPage';
 function App() {
   return (
     <div className="min-h-screen bg-gray-50">
