@@ -1,14 +1,23 @@
 const jwt = require("jsonwebtoken");
 const User = require("../Models/UserModel");
 const authMiddleware = (req, res, next) => {
-  const token = req.headers.authorization;
-  if (!token) {
-    return res.status(401).json({ message: "Unauthorized" });
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "No token provided" });
   }
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  req.userId = decoded.userId;
-  next();
 
+  const token = authHeader.split(" ")[1]; // Extract token
+  console.log("Extracted Token:", token); // Debugging
+
+  try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = decoded; // Store user info in req.user
+      next();
+  } catch (error) {
+      console.error("JWT Verification Error:", error);
+      return res.status(401).json({ message: "Invalid or expired token" });
+  }
 };
 
 const isAdmin = (req, res, next) => {

@@ -8,6 +8,7 @@ import Loader from './Components/Loader';
 import Aboutpage from './Page/Aboutpage';
 import ContactPage from './Page/ContactPage';
 import ServicesPage from './Page/ServicesPage';
+import ProductsPage from './Page/ProductsPage';
 function App() {
   return (
     <div className="min-h-screen bg-gray-50">
@@ -42,7 +43,8 @@ function AppContent() {
       <Route path='/register' element={<Register />} />
       <Route path='/about' element={<Aboutpage />} />
       <Route path='/contact' element={<ContactPage />} /> 
-      <Route path='/services' element={<ServicesPage />} />
+      <Route path='/services' element={<ServicesPage />} /> 
+      <Route path='/products' element={<ProductsPage />} /> 
     </Routes>
   );
 }
