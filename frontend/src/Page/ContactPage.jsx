@@ -24,16 +24,16 @@ const ContactPage = () => {
             <p className="text-white text-sm">We are here to help you</p>
           </div>
 
-          <form className="w-full max-w-lg px-4 bg-white p-8 rounded-lg shadow-xl">
+          <form className="w-full max-w-lg px-4 bg-transparent border border-gray-300 p-8 rounded-lg shadow-xl">
             <div className="mb-4">
               <label
-                className="block text-gray-800 text-sm font-bold mb-2"
+                className="block text-white text-sm font-bold mb-2"
                 htmlFor="email"
               >
                 Email
               </label>
               <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-50"
+                className="shadow appearance-none border border-gray-300 rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-transparent"
                 id="email"
                 type="email"
                 placeholder="Enter your email"
@@ -42,13 +42,13 @@ const ContactPage = () => {
 
             <div className="mb-6">
               <label
-                className="block text-gray-800 text-sm font-bold mb-2"
+                className="block text-white text-sm font-bold mb-2"
                 htmlFor="message"
               >
                 Message
               </label>
               <textarea
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-50 h-32"
+                className="shadow appearance-none border border-gray-300 rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-transparent h-32"
                 id="message"
                 placeholder="Enter your message"
               />
