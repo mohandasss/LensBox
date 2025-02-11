@@ -11,9 +11,12 @@ const axiosinstance = axios.create({
 const getProducts = async () => {
     const response = await axiosinstance.get("/");  
     if (response.data) {
-        localStorage.setItem("products", JSON.stringify(response.data));
+       console.log(response.data);
+       return response.data;
+       
     }
     return response.data;
+
 };
 
 

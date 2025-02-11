@@ -36,7 +36,6 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/subcategories", subCategoryRoutes);
 app.use("/api/brands", brandRoutes);
 
-
 // Define a basic route
 app.get('/', (req, res) => {
   res.send('Hello, world!');
