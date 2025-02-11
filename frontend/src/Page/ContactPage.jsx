@@ -14,8 +14,6 @@ const ContactPage = () => {
 
   return (
     <div className="min-h-screen bg-black">
-      
-
       <Navbar />
       <div className="min-h-screen bg-black">
         <div className="flex flex-col items-center justify-center py-12">
