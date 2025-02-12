@@ -1,9 +1,181 @@
 import React, { useState } from "react";
+// Add fuse.js for fuzzy search
+import Fuse from 'fuse.js';
 
 const PreferenceSearch = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [dateRange, setDateRange] = useState({ start: null, end: null });
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // Add new states for camera model search
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [filteredModels, setFilteredModels] = useState([]);
+
+  // Add new states for location search
+  const [locationSearchTerm, setLocationSearchTerm] = useState('');
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  const [filteredLocations, setFilteredLocations] = useState([]);
+
+  // Example camera models array
+  const cameraModels = [
+    // Sony Mirrorless Cameras
+    "Sony A7 III",
+    "Sony A7 IV",
+    "Sony A7R IV",
+    "Sony A7R V",
+    "Sony A7S III",
+    "Sony A9 II",
+    "Sony A1",
+    "Sony FX3",
+    "Sony ZV-E1",
+    "Sony ZV-E10",
+    "Sony A6400",
+    "Sony A6600",
+  
+    // Canon Mirrorless Cameras
+    "Canon EOS R6 II",
+    "Canon EOS R5",
+    "Canon EOS R3",
+    "Canon EOS R8",
+    "Canon EOS R7",
+    "Canon EOS R10",
+    "Canon EOS R50",
+    "Canon EOS M50 Mark II",
+    "Canon EOS R100",
+  
+    // Canon DSLR Cameras
+    "Canon EOS 90D",
+    "Canon EOS 5D Mark IV",
+    "Canon EOS 6D Mark II",
+    "Canon EOS 1D X Mark III",
+    
+    // Nikon Mirrorless Cameras
+    "Nikon Z9",
+    "Nikon Z8",
+    "Nikon Z7 II",
+    "Nikon Z6 II",
+    "Nikon Z5",
+    "Nikon Z50",
+    "Nikon Zfc",
+    "Nikon Z30",
+  
+    // Nikon DSLR Cameras
+    "Nikon D850",
+    "Nikon D780",
+    "Nikon D750",
+    "Nikon D6",
+    "Nikon D5600",
+    "Nikon D3500",
+  
+    // Fujifilm Cameras
+    "Fujifilm X-T5",
+    "Fujifilm X-T4",
+    "Fujifilm X-H2S",
+    "Fujifilm X-S20",
+    "Fujifilm X100V",
+    "Fujifilm GFX 100S",
+    "Fujifilm GFX 50S II",
+  
+    // Panasonic Cameras
+    "Panasonic Lumix GH6",
+    "Panasonic Lumix S5 II",
+    "Panasonic Lumix G9",
+    "Panasonic Lumix GH5 II",
+    "Panasonic Lumix S1H",
+  
+    // Leica Cameras
+    "Leica M11",
+    "Leica SL2",
+    "Leica Q2",
+    "Leica CL",
+    "Leica M10-R",
+  
+    // OM System / Olympus Cameras
+    "OM System OM-1",
+    "Olympus OM-D E-M1 Mark III",
+    "Olympus PEN-F",
+  
+    // Hasselblad Cameras
+    "Hasselblad X2D 100C",
+    "Hasselblad X1D II 50C",
+  
+    // Ricoh / Pentax Cameras
+    "Ricoh GR III",
+    "Pentax K-3 Mark III",
+  ];
+
+  // Add Indian cities array
+  const indianCities = [
+    // Major Metropolitan Cities
+    "Mumbai, Maharashtra",
+    "Delhi, Delhi",
+    "Bangalore, Karnataka",
+    "Hyderabad, Telangana",
+    "Chennai, Tamil Nadu",
+    "Kolkata, West Bengal",
+    "Pune, Maharashtra",
+    "Ahmedabad, Gujarat",
+
+    // Other Major Cities
+    "Jaipur, Rajasthan",
+    "Lucknow, Uttar Pradesh",
+    "Kanpur, Uttar Pradesh",
+    "Nagpur, Maharashtra",
+    "Indore, Madhya Pradesh",
+    "Thane, Maharashtra",
+    "Bhopal, Madhya Pradesh",
+    "Visakhapatnam, Andhra Pradesh",
+    "Pimpri-Chinchwad, Maharashtra",
+    "Patna, Bihar",
+    "Vadodara, Gujarat",
+    "Ghaziabad, Uttar Pradesh",
+    "Ludhiana, Punjab",
+    "Agra, Uttar Pradesh",
+    "Nashik, Maharashtra",
+    "Faridabad, Haryana",
+    "Meerut, Uttar Pradesh",
+    "Rajkot, Gujarat",
+    "Varanasi, Uttar Pradesh",
+    "Srinagar, Jammu & Kashmir",
+    "Aurangabad, Maharashtra",
+    "Dhanbad, Jharkhand",
+    "Amritsar, Punjab",
+    "Navi Mumbai, Maharashtra",
+    "Allahabad, Uttar Pradesh",
+    "Ranchi, Jharkhand",
+    "Howrah, West Bengal",
+    "Coimbatore, Tamil Nadu",
+    "Jabalpur, Madhya Pradesh",
+    "Gwalior, Madhya Pradesh",
+    "Vijayawada, Andhra Pradesh",
+    "Jodhpur, Rajasthan",
+    "Madurai, Tamil Nadu",
+    "Raipur, Chhattisgarh",
+    "Kochi, Kerala",
+    "Chandigarh, Chandigarh",
+    "Mysore, Karnataka",
+    "Guwahati, Assam",
+    "Thiruvananthapuram, Kerala",
+    "Udaipur, Rajasthan",
+    "Dehradun, Uttarakhand",
+    "Shimla, Himachal Pradesh",
+    "Puducherry, Puducherry",
+    "Bhubaneswar, Odisha",
+    "Mangalore, Karnataka",
+  ];
+
+  // Initialize Fuse for fuzzy search
+  const fuse = new Fuse(cameraModels, {
+    threshold: 0.3,
+    minMatchCharLength: 2,
+  });
+
+  // Initialize Fuse for location search
+  const locationFuse = new Fuse(indianCities, {
+    threshold: 0.3,
+    minMatchCharLength: 2,
+  });
 
   // Update date selection handler for range selection
   const handleDateSelect = (date) => {
@@ -105,28 +277,102 @@ const PreferenceSearch = () => {
     setDateRange({ start: null, end: null, displayValue: '' });
   };
 
+  // Handle input change for camera model search
+  const handleCameraModelSearch = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    
+    if (value.length > 0) {
+      const results = fuse.search(value);
+      setFilteredModels(results.map(result => result.item));
+      setShowSuggestions(true);
+    } else {
+      setFilteredModels([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  // Handle suggestion selection
+  const handleSelectModel = (model) => {
+    setSearchTerm(model);
+    setShowSuggestions(false);
+  };
+
+  // Handle input change for location search
+  const handleLocationSearch = (e) => {
+    const value = e.target.value;
+    setLocationSearchTerm(value);
+    
+    if (value.length > 0) {
+      const results = locationFuse.search(value);
+      setFilteredLocations(results.map(result => result.item));
+      setShowLocationSuggestions(true);
+    } else {
+      setFilteredLocations([]);
+      setShowLocationSuggestions(false);
+    }
+  };
+
+  // Handle location suggestion selection
+  const handleSelectLocation = (location) => {
+    setLocationSearchTerm(location);
+    setShowLocationSuggestions(false);
+  };
+
   return (
     <div className="flex flex-col items-center pt-10 w-full px-4">
       <div className="bg-white shadow-lg rounded-lg p-4 sm:p-7 w-full">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
           {/* Camera Model Input */}
-          <div className="flex-1">
+          <div className="flex-1 relative">
             <p className="text-sm py-2 font-bold text-gray-600">Camera Model</p>
             <input
               type="text"
+              value={searchTerm}
+              onChange={handleCameraModelSearch}
               placeholder="Search camera"
               className="w-full p-2 border rounded-md"
             />
+            {/* Suggestions dropdown */}
+            {showSuggestions && filteredModels.length > 0 && (
+              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+                {filteredModels.map((model, index) => (
+                  <div
+                    key={index}
+                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
+                    onClick={() => handleSelectModel(model)}
+                  >
+                    {model}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Location Input */}
-          <div className="flex-1">
+          {/* Updated Location Input */}
+          <div className="flex-1 relative">
             <p className="text-sm py-2 font-bold text-gray-600">Location</p>
             <input
               type="text"
+              value={locationSearchTerm}
+              onChange={handleLocationSearch}
               placeholder="Search location"
               className="w-full p-2 border rounded-md"
             />
+            {/* Location suggestions dropdown */}
+            {showLocationSuggestions && filteredLocations.length > 0 && (
+              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+                {filteredLocations.map((location, index) => (
+                  <div
+                    key={index}
+                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
+                    onClick={() => handleSelectLocation(location)}
+                  >
+                    {location}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Date Input */}
