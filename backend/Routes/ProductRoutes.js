@@ -1,11 +1,11 @@
 const router = require("express").Router();
 const { addProduct, updateProduct, searchProducts, deleteProduct, getProductById, getAllProducts } = require("../Controllers/ProductController");
 
-const { authMiddleware, isAdmin } = require("../middlewares/AuthMiddleware");
+const { authMiddleware } = require("../middlewares/AuthMiddleware");
 
-router.post("/",  addProduct);
-router.put("/:id", authMiddleware, isAdmin, updateProduct);
-router.delete("/:id", authMiddleware, isAdmin, deleteProduct);
+router.post("/", authMiddleware,  addProduct);
+router.put("/:id", authMiddleware,  updateProduct);
+router.delete("/:id", authMiddleware, deleteProduct);
 router.get("/:id", getProductById);
 router.get("/", getAllProducts);
 

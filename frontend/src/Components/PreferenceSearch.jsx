@@ -182,6 +182,19 @@ const PreferenceSearch = () => {
               </div>
             )}
           </div>
+
+          {/* Search Button */}
+          <div className="flex items-end mt-9">
+            <button
+              className="w-full sm:w-auto px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors h-[42px]"
+              onClick={() => {
+                // Add your search logic here
+                console.log('Search clicked');
+              }}
+            >
+              Search
+            </button>
+          </div>
         </div>
       </div>
     </div>
