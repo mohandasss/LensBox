@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 // Add fuse.js for fuzzy search
 import Fuse from "fuse.js";
+import { searchProducts } from "../APIs/ProductAPI";
 
 const PreferenceSearch = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -324,6 +325,29 @@ const PreferenceSearch = () => {
     setShowLocationSuggestions(false);
   };
 
+  const handleSearch = async () => {
+    // Format the search parameters
+    const searchParams = {
+      cameraModel: searchTerm || null,
+      location: locationSearchTerm || null,
+      dateRange: dateRange.start && dateRange.end ? {
+        startDate: dateRange.start.toISOString().split('T')[0], // Format: YYYY-MM-DD
+        endDate: dateRange.end.toISOString().split('T')[0]
+      } : null
+    };
+
+    // Log the search parameters (replace with your API call)
+    console.log('Search Parameters:', searchParams);
+    
+    
+    try {
+      const response = await searchProducts(searchParams);
+      console.log('Search Response:', response);
+    } catch (error) {
+      console.error('Search failed:', error);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center pt-10 w-full px-4">
       <div className="bg-white shadow-lg rounded-lg p-4 sm:p-7 w-full">
@@ -452,10 +476,7 @@ const PreferenceSearch = () => {
           <div className="flex items-end mt-9">
             <button
               className="w-full sm:w-auto px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors h-[42px]"
-              onClick={() => {
-                // Add your search logic here
-                console.log("Search clicked");
-              }}
+              onClick={handleSearch}
             >
               Search
             </button>
