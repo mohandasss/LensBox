@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 // Add fuse.js for fuzzy search
-import Fuse from 'fuse.js';
+import Fuse from "fuse.js";
 
 const PreferenceSearch = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -8,12 +8,12 @@ const PreferenceSearch = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Add new states for camera model search
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredModels, setFilteredModels] = useState([]);
 
   // Add new states for location search
-  const [locationSearchTerm, setLocationSearchTerm] = useState('');
+  const [locationSearchTerm, setLocationSearchTerm] = useState("");
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [filteredLocations, setFilteredLocations] = useState([]);
 
@@ -32,7 +32,7 @@ const PreferenceSearch = () => {
     "Sony ZV-E10",
     "Sony A6400",
     "Sony A6600",
-  
+
     // Canon Mirrorless Cameras
     "Canon EOS R6 II",
     "Canon EOS R5",
@@ -43,13 +43,13 @@ const PreferenceSearch = () => {
     "Canon EOS R50",
     "Canon EOS M50 Mark II",
     "Canon EOS R100",
-  
+
     // Canon DSLR Cameras
     "Canon EOS 90D",
     "Canon EOS 5D Mark IV",
     "Canon EOS 6D Mark II",
     "Canon EOS 1D X Mark III",
-    
+
     // Nikon Mirrorless Cameras
     "Nikon Z9",
     "Nikon Z8",
@@ -59,7 +59,7 @@ const PreferenceSearch = () => {
     "Nikon Z50",
     "Nikon Zfc",
     "Nikon Z30",
-  
+
     // Nikon DSLR Cameras
     "Nikon D850",
     "Nikon D780",
@@ -67,7 +67,7 @@ const PreferenceSearch = () => {
     "Nikon D6",
     "Nikon D5600",
     "Nikon D3500",
-  
+
     // Fujifilm Cameras
     "Fujifilm X-T5",
     "Fujifilm X-T4",
@@ -76,30 +76,30 @@ const PreferenceSearch = () => {
     "Fujifilm X100V",
     "Fujifilm GFX 100S",
     "Fujifilm GFX 50S II",
-  
+
     // Panasonic Cameras
     "Panasonic Lumix GH6",
     "Panasonic Lumix S5 II",
     "Panasonic Lumix G9",
     "Panasonic Lumix GH5 II",
     "Panasonic Lumix S1H",
-  
+
     // Leica Cameras
     "Leica M11",
     "Leica SL2",
     "Leica Q2",
     "Leica CL",
     "Leica M10-R",
-  
+
     // OM System / Olympus Cameras
     "OM System OM-1",
     "Olympus OM-D E-M1 Mark III",
     "Olympus PEN-F",
-  
+
     // Hasselblad Cameras
     "Hasselblad X2D 100C",
     "Hasselblad X1D II 50C",
-  
+
     // Ricoh / Pentax Cameras
     "Ricoh GR III",
     "Pentax K-3 Mark III",
@@ -232,12 +232,12 @@ const PreferenceSearch = () => {
       const isEndpoint = isRangeEnd(currentDay);
 
       currentMonthDays.push(
-        <div 
+        <div
           key={`current-${day}`}
           className={`
             text-center p-2 cursor-pointer
-            ${inRange ? 'bg-blue-50' : 'hover:bg-blue-100'}
-            ${isEndpoint ? 'bg-blue-500 text-white rounded-full' : ''}
+            ${inRange ? "bg-blue-50" : "hover:bg-blue-100"}
+            ${isEndpoint ? "bg-blue-500 text-white rounded-full" : ""}
           `}
           onClick={() => handleDateSelect(currentDay)}
         >
@@ -251,40 +251,45 @@ const PreferenceSearch = () => {
 
   // Month navigation handlers
   const handlePrevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1)
+    );
   };
 
   const handleNextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1)
+    );
   };
 
   const handleApply = () => {
     setShowDatePicker(false);
     // Format the date range for display
-    const formattedRange = dateRange.start && dateRange.end
-      ? `${dateRange.start.toLocaleDateString()} - ${dateRange.end.toLocaleDateString()}`
-      : dateRange.start
-      ? dateRange.start.toLocaleDateString()
-      : '';
+    const formattedRange =
+      dateRange.start && dateRange.end
+        ? `${dateRange.start.toLocaleDateString()} - ${dateRange.end.toLocaleDateString()}`
+        : dateRange.start
+        ? dateRange.start.toLocaleDateString()
+        : "";
     setDateRange({
       ...dateRange,
-      displayValue: formattedRange
+      displayValue: formattedRange,
     });
   };
 
   const handleCancel = () => {
     setShowDatePicker(false);
-    setDateRange({ start: null, end: null, displayValue: '' });
+    setDateRange({ start: null, end: null, displayValue: "" });
   };
 
   // Handle input change for camera model search
   const handleCameraModelSearch = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
-    
+
     if (value.length > 0) {
       const results = fuse.search(value);
-      setFilteredModels(results.map(result => result.item));
+      setFilteredModels(results.map((result) => result.item));
       setShowSuggestions(true);
     } else {
       setFilteredModels([]);
@@ -302,10 +307,10 @@ const PreferenceSearch = () => {
   const handleLocationSearch = (e) => {
     const value = e.target.value;
     setLocationSearchTerm(value);
-    
+
     if (value.length > 0) {
       const results = locationFuse.search(value);
-      setFilteredLocations(results.map(result => result.item));
+      setFilteredLocations(results.map((result) => result.item));
       setShowLocationSuggestions(true);
     } else {
       setFilteredLocations([]);
@@ -380,27 +385,41 @@ const PreferenceSearch = () => {
             <p className="text-sm py-2 font-bold text-gray-600">Date</p>
             <input
               type="text"
-              value={dateRange.displayValue || ''}
+              value={dateRange.displayValue || ""}
               onClick={() => setShowDatePicker(true)}
               placeholder="Select date range"
               className="w-full p-2 border rounded-md cursor-pointer"
               readOnly
             />
-            
+
             {showDatePicker && (
               <div className="absolute right-0 sm:right-auto top-full mt-2 bg-white shadow-lg rounded-lg p-3 sm:p-4 z-10 w-[calc(100vw-2rem)] sm:w-auto min-w-[280px] max-w-[320px]">
                 <div className="flex justify-between items-center mb-4">
-                  <button className="p-1 hover:bg-gray-100 rounded-full text-lg w-8 h-8 flex items-center justify-center" onClick={handlePrevMonth}>&lt;</button>
+                  <button
+                    className="p-1 hover:bg-gray-100 rounded-full text-lg w-8 h-8 flex items-center justify-center"
+                    onClick={handlePrevMonth}
+                  >
+                    &lt;
+                  </button>
                   <span className="text-sm sm:text-base font-medium">
-                    {currentDate.toLocaleString('default', { month: 'long' })} / {currentDate.getFullYear()}
+                    {currentDate.toLocaleString("default", { month: "long" })} /{" "}
+                    {currentDate.getFullYear()}
                   </span>
-                  <button className="p-1 hover:bg-gray-100 rounded-full text-lg w-8 h-8 flex items-center justify-center" onClick={handleNextMonth}>&gt;</button>
+                  <button
+                    className="p-1 hover:bg-gray-100 rounded-full text-lg w-8 h-8 flex items-center justify-center"
+                    onClick={handleNextMonth}
+                  >
+                    &gt;
+                  </button>
                 </div>
-                
+
                 {/* Calendar header */}
                 <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2">
-                  {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
-                    <div key={day} className="text-center text-gray-600 text-xs sm:text-sm">
+                  {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
+                    <div
+                      key={day}
+                      className="text-center text-gray-600 text-xs sm:text-sm"
+                    >
                       {day}
                     </div>
                   ))}
@@ -410,7 +429,7 @@ const PreferenceSearch = () => {
                 <div className="grid grid-cols-7 gap-1 sm:gap-2">
                   {generateCalendarDays()}
                 </div>
-                
+
                 <div className="flex justify-end gap-2 mt-4">
                   <button
                     onClick={handleCancel}
@@ -435,7 +454,7 @@ const PreferenceSearch = () => {
               className="w-full sm:w-auto px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors h-[42px]"
               onClick={() => {
                 // Add your search logic here
-                console.log('Search clicked');
+                console.log("Search clicked");
               }}
             >
               Search
