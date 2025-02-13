@@ -8,7 +8,7 @@ const axiosinstance = axios.create({
   },
 });
 
-const getProducts = async () => {
+export const getProducts = async () => {
     const response = await axiosinstance.get("/");  
     if (response.data) {
        console.log(response.data);
@@ -19,5 +19,13 @@ const getProducts = async () => {
 
 };
 
+export const searchProducts = async (searchParams) => {
+  const response = await axiosinstance.post("/search", searchParams); 
+  if (response.data) {
+    console.log(response.data);
+    return response.data;
+  }
+  return response.data;
+};
 
-export default getProducts;
+export default { getProducts, searchProducts };

@@ -141,7 +141,8 @@ const getAllProducts = async (req, res) => {
 
 const searchProducts = async (req, res) => {
   try {
-    const { name } = req.query;
+    const { name,location,dateranges } = req.body;
+    console.log(name,location,dateranges);
     const products = await Product.find({
       name: { $regex: name, $options: "i" },
     });
@@ -150,6 +151,9 @@ const searchProducts = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+
 module.exports = {
   addProduct,
   updateProduct,
