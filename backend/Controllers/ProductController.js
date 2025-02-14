@@ -152,7 +152,16 @@ const searchProducts = async (req, res) => {
   }
 };
 
-
+const getProductByCategory = async (req, res) => {
+  try {
+    const { category } = req.params;
+    const { location, dateranges } = req.body;
+    const products = await Product.find({ category });
+    res.status(200).json({ message: "Products found", products });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 module.exports = {
   addProduct,
@@ -161,4 +170,5 @@ module.exports = {
   searchProducts,
   getProductById,
   getAllProducts,
+  getProductByCategory,
 };
