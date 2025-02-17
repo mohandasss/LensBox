@@ -1,0 +1,16 @@
+.product-details-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.product-image {
+  background-color: #f8f8f8;
+  border-radius: 
+} 
