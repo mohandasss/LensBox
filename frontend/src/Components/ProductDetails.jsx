@@ -6,16 +6,26 @@ const ProductDetails = ({ product }) => {
     Array.isArray(product.image) ? product.image[0] : product.image
   );
   const [badgeColor] = useState(
-    ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-pink-500', 'bg-indigo-500', 'bg-teal-500']
-    [Math.floor(Math.random() * 6)]
+    [
+      "bg-blue-500",
+      "bg-green-500",
+      "bg-purple-500",
+      "bg-pink-500",
+      "bg-indigo-500",
+      "bg-teal-500",
+    ][Math.floor(Math.random() * 6)]
   );
-  
-  const [categoryname, setCategoryname] = useState(null);
-  useEffect(() => async () => {
-    const {category} = await getCategoriesById(product.category);
-    setCategoryname(category.name);
-  }, [product]);
 
+  const [categoryname, setCategoryname] = useState(null);
+  useEffect(
+    () => async () => {
+      const { category } = await getCategoriesById(product.category);
+      setCategoryname(category.name);
+    },
+    [product]
+  );
+
+  
   return (
     <div className="bg-white">
       <div className="container mx-auto px-4 py-8">
@@ -46,13 +56,17 @@ const ProductDetails = ({ product }) => {
           {/* Product Details */}
           <div className="w-full md:w-1/2 px-4">
             <h2 className="text-3xl font-bold mb-2">{product.name}</h2>
-            <span className={`inline-block px-3 py-1 text-sm font-semibold rounded-full text-white ${badgeColor}`}>
-              {categoryname || 'N/A'}
+            <span
+              className={`inline-block px-3 py-1 text-sm font-semibold rounded-full text-white ${badgeColor}`}
+            >
+              {categoryname || "N/A"}
             </span>
             <div className="mb-4">
               <span className="text-2xl font-bold mr-2">${product.price}</span>
               {product.originalPrice && (
-                <span className="text-gray-500 line-through">${product.originalPrice}</span>
+                <span className="text-gray-500 line-through">
+                  {product.originalPrice}
+                </span>
               )}
             </div>
 
@@ -80,27 +94,39 @@ const ProductDetails = ({ product }) => {
 
             {/* Color Selection */}
             <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-2">Color:</h3>
-              <div className="flex space-x-2">
-                <button className="w-8 h-8 bg-black rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"></button>
-                <button className="w-8 h-8 bg-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300"></button>
-                <button className="w-8 h-8 bg-blue-500 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"></button>
-              </div>
+              <span
+                className={`inline-block px-3 py-1 text-sm font-semibold rounded-full ${
+                  product.stock < 10
+                    ? "bg-red-500 text-white"
+                    : product.stock < 20
+                    ? "bg-yellow-500 text-black"
+                    : "bg-green-500 text-white"
+                }`}
+              >
+                {product.stock} units left
+              </span>
             </div>
 
             {/* Quantity */}
             <div className="mb-6">
-              <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="quantity"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Quantity:
               </label>
-              <input
-                type="number"
+              <select
                 id="quantity"
                 name="quantity"
-                min="1"
+                className="w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                 defaultValue="1"
-                className="w-12 text-center rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-              />
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                  <option key={num} value={num}>
+                    {num}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Action Buttons */}
@@ -144,12 +170,14 @@ const ProductDetails = ({ product }) => {
             {/* Key Features */}
             <div>
               <h3 className="text-lg font-semibold mb-2">Key Features:</h3>
-              <ul className="list-disc list-inside text-gray-700">
-                <li>Category: {product.category}</li>
-                <li>Size: {product.size}</li>
-                <li>Stock: {product.stock} units</li>
-                <li>Seller: {product.seller}</li>
-              </ul>
+              {
+                product.features.map((feature, index) => (
+                  <p key={index} className="text-gray-700 mb-2">
+                    {feature}
+                  </p>
+                ))
+              }
+              
             </div>
           </div>
         </div>
