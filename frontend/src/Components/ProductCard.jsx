@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaStar } from "react-icons/fa"; // Make sure to install react-icons
+import { Link } from "react-router-dom";
 
 const ProductCard = ({ product }) => {
   // Add state for current image index
@@ -28,6 +29,7 @@ const ProductCard = ({ product }) => {
 
   return (
     <div className="w-full bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
+      <Link to={`/product/${product._id}`}>
       <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden">
         {Array.isArray(product.image) ? (
           product.image.map((img, index) => (
@@ -88,7 +90,8 @@ const ProductCard = ({ product }) => {
             Rent Now
           </button>
         </div>
-      </div>
+        </div>
+        </Link>
     </div>
   );
 };

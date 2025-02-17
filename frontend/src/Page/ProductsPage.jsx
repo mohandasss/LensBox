@@ -4,13 +4,14 @@ import Footer from "../Components/Footer";
 import PreferenceSearch from "../Components/PreferenceSearch";
 import ProductCard from "../Components/ProductCard";
 import { useState, useEffect } from "react";
-import getProducts from "../APIs/ProductAPI";
+import {getProducts} from "../APIs/ProductAPI";
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
   useEffect(() => {
     const fetchProducts = async () => {
       const { products } = await getProducts();
+      console.log(products);
       setProducts(products);
     };
     fetchProducts();
@@ -30,7 +31,7 @@ const ProductsPage = () => {
             <h1 className="text-3xl sm:text-4xl font-bold text-white mb-8">Products</h1>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {products.map((product) => (
-                <ProductCard key={product._id} product={product} />
+                    <ProductCard key={product._id} product={product} />
               ))}
             </div>
           </div>

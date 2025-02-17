@@ -28,4 +28,13 @@ export const searchProducts = async (searchParams) => {
   return response.data;
 };
 
-export default { getProducts, searchProducts };
+export const getProduct = async (id) => {
+  const response = await axiosinstance.get(`/${id}`);
+  if (response.data) {
+    console.log(response.data);
+    return response.data;
+  }
+  return response.data;
+};
+
+export default { getProducts, searchProducts, getProduct };
