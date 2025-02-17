@@ -1,12 +1,13 @@
 const mongoose = require("mongoose");
 
-const CategorySchema = new mongoose.Schema({
-    
+const CategorySchema = new mongoose.Schema(
+  {
+    _id: { type: mongoose.Schema.Types.ObjectId, required: true }, // Allow manual ID
     name: { type: String, required: true },
-    description: { type: String, required: true },
-    image: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now },
-}, { timestamps: true });
+  },
+  { timestamps: true }
+);
 
-module.exports = mongoose.model("Category", CategorySchema);
+const Category = mongoose.model("Category", CategorySchema);
+
+module.exports = Category;
