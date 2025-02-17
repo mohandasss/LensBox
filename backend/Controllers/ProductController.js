@@ -3,13 +3,13 @@ const cloudinary = require("../Config/cloudanary");
 
 const addProduct = async (req, res) => {
   try {
-    const { name, price, description, category, stock, seller } = req.body;
+    const { name, price, description, category, stock, seller, features } = req.body;
 
     // 🛑 Validate Required Fields
-    if (!name || !price) {
+    if (!name || !price || !description || !category || !stock || !seller || !features) {
       return res
         .status(400)
-        .json({ error: "Name and Price are required fields." });
+        .json({ error: "All fields are required." });
     }
 
     // 🛑 Check If Image File Exists
@@ -37,6 +37,7 @@ const addProduct = async (req, res) => {
       category,
       stock,
       seller,
+      features,
       image: uploadedImages, // Store array of image URLs
     });
 
@@ -52,7 +53,7 @@ const addProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   try {
-    const { name, price, description, category, stock } = req.body;
+    const { name, price, description, category, stock, features } = req.body;
     const product = await Product.findById(req.params.id);
 
     if (!product) {
@@ -64,6 +65,8 @@ const updateProduct = async (req, res) => {
     product.description = description || product.description;
     product.category = category || product.category;
     product.stock = stock || product.stock;
+    product.features = features || product.features;
+
 
     if (req.files && req.files.image) {
       // ✅ Ensure product.image exists and is a string
