@@ -9,6 +9,9 @@ import Aboutpage from './Page/Aboutpage';
 import ContactPage from './Page/ContactPage';
 import ServicesPage from './Page/ServicesPage';
 import ProductsPage from './Page/ProductsPage';
+import FormPage from './Page/FormPage';
+import ServiceMotor from './Page/ServiceMotor';
+import ProductDetailsPage from './Page/ProductDetailsPage';
 function App() {
   return (
     <div className="min-h-screen bg-gray-50">
@@ -45,6 +48,9 @@ function AppContent() {
       <Route path='/contact' element={<ContactPage />} /> 
       <Route path='/services' element={<ServicesPage />} /> 
       <Route path='/products' element={<ProductsPage />} /> 
+      <Route path='/form' element={<FormPage />} /> 
+      <Route path='/product/:id' element={<ProductDetailsPage />} />
+      <Route path='/service-motor' element={<ServiceMotor />} /> 
     </Routes>
   );
 }
