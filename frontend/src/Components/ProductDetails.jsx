@@ -62,7 +62,7 @@ const ProductDetails = ({ product }) => {
               {categoryname || "N/A"}
             </span>
             <div className="mb-4">
-              <span className="text-2xl font-bold mr-2">${product.price}</span>
+              <span className="text-2xl font-bold mr-2">₹{product.price}</span>
               {product.originalPrice && (
                 <span className="text-gray-500 line-through">
                   {product.originalPrice}
