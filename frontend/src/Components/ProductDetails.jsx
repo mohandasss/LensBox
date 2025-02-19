@@ -32,22 +32,25 @@ const ProductDetails = ({ product }) => {
         <div className="flex flex-wrap -mx-4">
           {/* Product Images */}
           <div className="w-full md:w-1/2 px-4 mb-8">
-            <img
-              src={selectedImage}
-              alt={product.name}
-              className="w-full h-auto rounded-lg shadow-md mb-4"
-              id="mainImage"
-            />
+            <div className="aspect-square w-full mb-4 rounded-lg shadow-md overflow-hidden">
+              <img
+                src={selectedImage}
+                alt={product.name}
+                className="w-full h-full object-cover"
+                id="mainImage"
+              />
+            </div>
             {Array.isArray(product.image) && (
               <div className="flex gap-4 py-4 justify-center overflow-x-auto">
                 {product.image.map((img, index) => (
-                  <img
-                    key={index}
-                    src={img}
-                    alt={`${product.name} view ${index + 1}`}
-                    className="size-16 sm:size-20 object-cover rounded-md cursor-pointer opacity-60 hover:opacity-100 transition duration-300"
-                    onClick={() => setSelectedImage(img)}
-                  />
+                  <div key={index} className="aspect-square size-16 sm:size-20 rounded-md overflow-hidden">
+                    <img
+                      src={img}
+                      alt={`${product.name} view ${index + 1}`}
+                      className="w-full h-full object-cover cursor-pointer opacity-60 hover:opacity-100 transition duration-300"
+                      onClick={() => setSelectedImage(img)}
+                    />
+                  </div>
                 ))}
               </div>
             )}
@@ -170,15 +173,18 @@ const ProductDetails = ({ product }) => {
             {/* Key Features */}
             <div>
               <h3 className="text-lg font-semibold mb-2">Key Features:</h3>
-              {
-                product.features.map((feature, index) => (
-                  <p key={index} className="text-gray-700 mb-2">
-                    {feature}
-                  </p>
-                ))
-              }
-              
+              <ul className="list-disc list-inside space-y-2">
+                {product.features
+                  .join(", ")
+                  .split(",")
+                  .map((feature, index) => (
+                    <li key={index} className="text-gray-700">
+                      {feature.trim().replace(/"/g, '')} {/* Remove quotes and extra spaces */}
+                    </li>
+                  ))}
+              </ul>
             </div>
+
           </div>
         </div>
       </div>
