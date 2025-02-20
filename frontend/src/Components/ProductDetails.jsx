@@ -28,11 +28,11 @@ const ProductDetails = ({ product }) => {
   
   return (
     <div className="bg-white">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-12">
         <div className="flex flex-wrap -mx-4">
-          {/* Product Images */}
+          {/* Product Images - added more shadow and smoother hover effects */}
           <div className="w-full md:w-1/2 px-4 mb-8">
-            <div className="aspect-square w-full mb-4 rounded-lg shadow-md overflow-hidden">
+            <div className="aspect-square w-full mb-6 rounded-xl shadow-lg overflow-hidden transition duration-300 hover:shadow-xl">
               <img
                 src={selectedImage}
                 alt={product.name}
@@ -41,13 +41,18 @@ const ProductDetails = ({ product }) => {
               />
             </div>
             {Array.isArray(product.image) && (
-              <div className="flex gap-4 py-4 justify-center overflow-x-auto">
+              <div className="flex gap-6 py-4 justify-center overflow-x-auto">
                 {product.image.map((img, index) => (
-                  <div key={index} className="aspect-square size-16 sm:size-20 rounded-md overflow-hidden">
+                  <div 
+                    key={index} 
+                    className={`aspect-square size-16 sm:size-20 rounded-lg overflow-hidden shadow-md transition duration-300 ${
+                      selectedImage === img ? 'ring-2 ring-indigo-600' : ''
+                    }`}
+                  >
                     <img
                       src={img}
                       alt={`${product.name} view ${index + 1}`}
-                      className="w-full h-full object-cover cursor-pointer opacity-60 hover:opacity-100 transition duration-300"
+                      className="w-full h-full object-cover cursor-pointer opacity-75 hover:opacity-100 transition duration-300"
                       onClick={() => setSelectedImage(img)}
                     />
                   </div>
@@ -56,32 +61,32 @@ const ProductDetails = ({ product }) => {
             )}
           </div>
 
-          {/* Product Details */}
+          {/* Product Details - improved spacing and typography */}
           <div className="w-full md:w-1/2 px-4">
-            <h2 className="text-3xl font-bold mb-2">{product.name}</h2>
+            <h2 className="text-3xl font-bold mb-4 text-gray-800">{product.name}</h2>
             <span
-              className={`inline-block px-3 py-1 text-sm font-semibold rounded-full text-white ${badgeColor}`}
+              className={`inline-block px-4 py-1.5 text-sm font-semibold rounded-full text-white ${badgeColor} mb-6`}
             >
               {categoryname || "N/A"}
             </span>
-            <div className="mb-4">
-              <span className="text-2xl font-bold mr-2">₹{product.price}</span>
+            <div className="mb-6">
+              <span className="text-3xl font-bold mr-3 text-gray-900">₹{product.price}</span>
               {product.originalPrice && (
-                <span className="text-gray-500 line-through">
-                  {product.originalPrice}
+                <span className="text-lg text-gray-500 line-through">
+                  ₹{product.originalPrice}
                 </span>
               )}
             </div>
 
-            {/* Rating Stars */}
-            <div className="flex items-center mb-4">
+            {/* Rating Stars - improved alignment and spacing */}
+            <div className="flex items-center mb-6">
               {[...Array(5)].map((_, index) => (
                 <svg
                   key={index}
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
                   fill="currentColor"
-                  className="size-6 text-yellow-500"
+                  className="size-5 text-yellow-400"
                 >
                   <path
                     fillRule="evenodd"
@@ -90,38 +95,38 @@ const ProductDetails = ({ product }) => {
                   />
                 </svg>
               ))}
-              <span className="ml-2 text-gray-600">4.5 (120 reviews)</span>
+              <span className="ml-2 text-gray-600 text-sm">4.5 (120 reviews)</span>
             </div>
 
-            <p className="text-gray-700 mb-6">{product.description}</p>
+            <p className="text-gray-700 mb-8 leading-relaxed">{product.description}</p>
 
-            {/* Color Selection */}
-            <div className="mb-6">
+            {/* Stock indicator - improved styling */}
+            <div className="mb-8">
               <span
-                className={`inline-block px-3 py-1 text-sm font-semibold rounded-full ${
+                className={`inline-block px-4 py-1.5 text-sm font-semibold rounded-full ${
                   product.stock < 10
-                    ? "bg-red-500 text-white"
+                    ? "bg-red-100 text-red-700"
                     : product.stock < 20
-                    ? "bg-yellow-500 text-black"
-                    : "bg-green-500 text-white"
+                    ? "bg-yellow-100 text-yellow-700"
+                    : "bg-green-100 text-green-700"
                 }`}
               >
                 {product.stock} units left
               </span>
             </div>
 
-            {/* Quantity */}
-            <div className="mb-6">
+            {/* Quantity - improved select styling */}
+            <div className="mb-8">
               <label
                 htmlFor="quantity"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-gray-700 mb-2"
               >
                 Quantity:
               </label>
               <select
                 id="quantity"
                 name="quantity"
-                className="w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="w-24 rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50"
                 defaultValue="1"
               >
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
@@ -132,16 +137,16 @@ const ProductDetails = ({ product }) => {
               </select>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex space-x-4 mb-6">
-              <button className="bg-indigo-600 flex gap-2 items-center text-white px-6 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+            {/* Action Buttons - improved styling and hover effects */}
+            <div className="flex space-x-4 mb-8">
+              <button className="bg-indigo-600 flex-1 flex gap-2 items-center justify-center text-white px-8 py-3 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition duration-300">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth="1.5"
                   stroke="currentColor"
-                  className="size-6"
+                  className="size-5"
                 >
                   <path
                     strokeLinecap="round"
@@ -151,14 +156,14 @@ const ProductDetails = ({ product }) => {
                 </svg>
                 Add to Cart
               </button>
-              <button className="bg-gray-200 flex gap-2 items-center text-gray-800 px-6 py-2 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+              <button className="bg-gray-100 flex gap-2 items-center justify-center text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition duration-300">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth="1.5"
                   stroke="currentColor"
-                  className="size-6"
+                  className="size-5"
                 >
                   <path
                     strokeLinecap="round"
@@ -170,21 +175,23 @@ const ProductDetails = ({ product }) => {
               </button>
             </div>
 
-            {/* Key Features */}
+            {/* Key Features - improved list styling */}
             <div>
-              <h3 className="text-lg font-semibold mb-2">Key Features:</h3>
-              <ul className="list-disc list-inside space-y-2">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">Key Features:</h3>
+              <ul className="list-none space-y-3">
                 {product.features
                   .join(", ")
                   .split(",")
                   .map((feature, index) => (
-                    <li key={index} className="text-gray-700">
-                      {feature.trim().replace(/"/g, '')} {/* Remove quotes and extra spaces */}
+                    <li key={index} className="flex items-center text-gray-700">
+                      <svg className="size-5 text-indigo-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      {feature.trim().replace(/"/g, '')}
                     </li>
                   ))}
               </ul>
             </div>
-
           </div>
         </div>
       </div>
