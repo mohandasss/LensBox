@@ -27,8 +27,13 @@ const register = async (userData) => {
 };
 
 const login = async (userData) => {
-  const response = await axiosinstance.post("/login", userData);
-  return response.data;
+  try {
+    const response = await axiosinstance.post("/login", userData);
+    localStorage.setItem("token", response.data.token);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 const verifyToken = async (token) => {

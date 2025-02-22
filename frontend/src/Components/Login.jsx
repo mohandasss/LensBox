@@ -1,8 +1,29 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { FaGoogle, FaApple, FaFacebook } from "react-icons/fa";
-
+import { login } from "../APIs/AuthAPI";
 const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const response = await login({ email, password });
+      console.log(response);
+      navigate("/");
+    } catch (error) {
+      setError(error.response.data.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+
+  const navigate = useNavigate();
   return (
     <div className="flex justify-center items-center h-screen bg-gradient-to-r from-blue-500 to-purple-600">
       <div className="w-full max-w-md bg-white shadow-lg rounded-lg p-8">
@@ -10,7 +31,7 @@ const Login = () => {
         <p className="text-center mb-8 font-medium text-gray-700">
           Enter your details to sign in to your account
         </p>
-        <form>
+        <form onSubmit={handleLogin}>
           <div className="mb-6">
             <label
               htmlFor="email"
@@ -19,6 +40,8 @@ const Login = () => {
               Email
             </label>
             <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               type="email"
               id="email"
               className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -32,6 +55,8 @@ const Login = () => {
               Password
             </label>
             <input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               type="password"
               id="password"
               className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
