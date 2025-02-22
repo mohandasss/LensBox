@@ -37,4 +37,13 @@ export const getProduct = async (id) => {
   return response.data;
 };
 
-export default { getProducts, searchProducts, getProduct };
+export const getProductsByCategory = async (category) => {
+  const response = await axiosinstance.get(`/category/${category}`);
+  console.log(response.data);
+  if (response.data) {
+    console.log(response.data);
+    return response.data;
+  }
+  return response.data;
+};
+export default { getProducts, searchProducts, getProduct, getProductsByCategory };
