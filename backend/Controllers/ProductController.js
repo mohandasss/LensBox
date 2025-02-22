@@ -6,7 +6,7 @@ const cloudinary = require("../Config/cloudanary");
 const categorymappedwithid = {
   camera: "507f1f77bcf86cd799439011",
   lens: "507f1f77bcf86cd799439012",
-  accessories: "507f1f77bcf86cd799439013",}
+  equipment: "507f1f77bcf86cd799439013",}
   
 const addProduct = async (req, res) => {
   try {

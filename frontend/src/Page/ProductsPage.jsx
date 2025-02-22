@@ -69,10 +69,10 @@ const ProductsPage = () => {
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="bg-gray-900 text-white px-4 py-2 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:bg-gray-800 transition-all duration-200 shadow-md"
             >
-              <option value="all">All Products</option>
-              <option value="camera">Camera</option>
-              <option value="lens">Lens</option>
-              <option value="equipment">Equipment</option>
+              <option value="all">🌍 All Products</option>
+              <option value="camera">📷 Camera</option>
+              <option value="lens">🔍 Lens</option>
+              <option value="equipment">⚙️ Equipment</option>/
             </select>
           </div>
 
