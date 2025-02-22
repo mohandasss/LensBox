@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { verifyToken } from "../APIs/AuthAPI";
-
+import { GiEvilLove } from "react-icons/gi";
+import { FaOpencart } from "react-icons/fa";
 const Navbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
@@ -24,15 +25,12 @@ const Navbar = () => {
             console.log(response.user);
             setUser(response.user);
           } else {
-            
-
             setIsAuthenticated(false);
             setUser(null);
           }
         } catch (error) {
-        
           console.error("Token verification failed:", error);
-          
+
           if (error.response && error.response.status === 401) {
             setIsAuthenticated(false);
             setUser(null);
@@ -48,7 +46,7 @@ const Navbar = () => {
   }, []);
 
   const handleSignOut = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     setIsAuthenticated(false);
     setUser(null);
   };
@@ -110,19 +108,37 @@ const Navbar = () => {
           {/* Right side - Auth Section (Desktop) */}
           <div className="hidden md:block">
             {isAuthenticated ? (
-              <div className="relative">
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              <div className="relative flex items-center gap-4">
+                <Link
+                  to="/wishlist"
+                  className="text-white hover:text-gray-600"
+                  title="Wishlist"
+                >
+                  <span className="text-white hover:text-gray-600">
+                    <GiEvilLove className="text-2xl text-red-500" />
+                  </span>
+                </Link>
+                <Link
+                  to="/cart"
+                  className="text-white hover:text-gray-600"
+                  title="Cart"
+                >
+                  <span className="text-white hover:text-gray-600">
+                    <FaOpencart className="text-2xl text-yellow-500" />
+                  </span>
+                </Link>
+                <Link
+                  to="/profile"
                   className="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 "
                 >
                   <span className="  font-medium text-black  bg-white px-4 py-2 rounded-md">
                     {user?.name?.charAt(0)}
                   </span>
-                </button>
+                </Link>
 
                 <div
                   className={`absolute right-0 mt-2 ${
-                    isDropdownOpen ? 'block' : 'hidden'
+                    isDropdownOpen ? "block" : "hidden"
                   } bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 dark:divide-gray-600`}
                 >
                   <div className="px-4 py-3 text-sm text-gray-900 dark:text-white">
@@ -162,10 +178,16 @@ const Navbar = () => {
               </div>
             ) : (
               <div className="flex items-center">
-                <Link to="/login" className="text-white border border-white px-4 py-2 rounded-md hover:text-gray-600 mr-4">
+                <Link
+                  to="/login"
+                  className="text-white border border-white px-4 py-2 rounded-md hover:text-gray-600 mr-4"
+                >
                   Login
                 </Link>
-                <Link to="/register" className="text-black bg-white px-4 py-2 rounded-md hover:text-gray-600">
+                <Link
+                  to="/register"
+                  className="text-black bg-white px-4 py-2 rounded-md hover:text-gray-600"
+                >
                   Register
                 </Link>
               </div>
@@ -176,7 +198,7 @@ const Navbar = () => {
         {/* Mobile menu */}
         <div
           className={`${
-            isMobileMenuOpen ? 'block' : 'hidden'
+            isMobileMenuOpen ? "block" : "hidden"
           } md:hidden bg-white rounded-lg mt-2 shadow-lg absolute left-0 right-0 z-50`}
         >
           <div className="px-2 pt-2 pb-3 space-y-1">
@@ -211,7 +233,7 @@ const Navbar = () => {
               Contact
             </Link>
           </div>
-          
+
           {/* Mobile Auth Section */}
           <div className="px-2 pt-2 pb-3 border-t border-gray-200">
             {isAuthenticated ? (
