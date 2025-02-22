@@ -6,5 +6,6 @@ router.delete("/:id", deleteCategory);
 router.get("/:id", getCategoryById);
 router.get("/", getAllCategories);
 
+
 module.exports = router;
 

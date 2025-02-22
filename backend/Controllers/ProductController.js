@@ -1,6 +1,13 @@
 const Product = require("../Models/Products");
 const cloudinary = require("../Config/cloudanary");
 
+
+
+const categorymappedwithid = {
+  camera: "507f1f77bcf86cd799439011",
+  lens: "507f1f77bcf86cd799439012",
+  accessories: "507f1f77bcf86cd799439013",}
+  
 const addProduct = async (req, res) => {
   try {
     const { name, price, description, category, stock, seller, features } = req.body;
@@ -166,6 +173,20 @@ const getProductByCategory = async (req, res) => {
   }
 };
 
+const getProductsByCategory = async (req, res) => {
+  try {
+    const category = req.params.categoryId;
+    console.log(category);
+    const categoryId = categorymappedwithid[category];
+    const products = await Product.find({ category: categoryId });  
+    res.status(200).json({ message: "Products found", products });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+
 module.exports = {
   addProduct,
   updateProduct,
@@ -173,5 +194,6 @@ module.exports = {
   searchProducts,
   getProductById,
   getAllProducts,
-  getProductByCategory,
+  getProductsByCategory,
+
 };
