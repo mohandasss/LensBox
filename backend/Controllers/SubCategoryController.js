@@ -23,6 +23,11 @@ const deleteSubCategory = async (req, res) => {
     res.status(200).json({ message: "SubCategory deleted successfully", subCategory });
 }
 
+const getSubCategoriesByCategory = async (req, res) => {
+    const category = req.params.categoryId;
+    const subCategories = await SubCategory.find({ category });
+    res.status(200).json({ message: "SubCategories found", subCategories });
+}
 
 
-module.exports = { addSubCategory, updateSubCategory, deleteSubCategory  };
+module.exports = {  getSubCategoriesByCategory, addSubCategory, updateSubCategory, deleteSubCategory  };
