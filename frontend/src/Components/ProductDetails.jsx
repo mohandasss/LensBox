@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getCategoriesById } from "../APIs/CategoryAPI";
-
+import { addToCart } from "../APIs/CartAPI";
 const ProductDetails = ({ product }) => {
   const [selectedImage, setSelectedImage] = useState(
     Array.isArray(product.image) ? product.image[0] : product.image
@@ -15,6 +15,16 @@ const ProductDetails = ({ product }) => {
       "bg-teal-500",
     ][Math.floor(Math.random() * 6)]
   );
+
+  
+  
+  const addToCarthandler = async (product, quantity) => {
+    console.log(product, quantity);
+   
+
+  };
+
+
 
   const [categoryname, setCategoryname] = useState(null);
   useEffect(
@@ -100,7 +110,7 @@ const ProductDetails = ({ product }) => {
 
             <p className="text-gray-700 mb-8 leading-relaxed">{product.description}</p>
 
-            {/* Stock indicator - improved styling */}
+            
             <div className="mb-8">
               <span
                 className={`inline-block px-4 py-1.5 text-sm font-semibold rounded-full ${
@@ -130,7 +140,7 @@ const ProductDetails = ({ product }) => {
                 defaultValue="1"
               >
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                  <option key={num} value={num}>
+                  <option onClick={() => addToCarthandler(product, num)} key={num} value={num}>
                     {num}
                   </option>
                 ))}
@@ -139,7 +149,7 @@ const ProductDetails = ({ product }) => {
 
             {/* Action Buttons - improved styling and hover effects */}
             <div className="flex space-x-4 mb-8">
-              <button className="bg-indigo-600 flex-1 flex gap-2 items-center justify-center text-white px-8 py-3 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition duration-300">
+              <button onClick={() => addToCarthandler(product)} className="bg-indigo-600 flex-1 flex gap-2 items-center justify-center text-white px-8 py-3 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition duration-300">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"

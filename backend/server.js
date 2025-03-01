@@ -8,7 +8,7 @@ const categoryRoutes = require("./Routes/CategoryRoutes.js");
 const subCategoryRoutes = require("./Routes/SubCategoryRoutes.js");
 const brandRoutes = require("./Routes/BrandRoutes.js");
 const fileUpload = require("express-fileupload");
-
+const cartRoutes = require("./Routes/CartRoutes");
 dotenv.config();
 const app = express();
 
@@ -41,7 +41,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/subcategories", subCategoryRoutes);
 app.use("/api/brands", brandRoutes);
-
+app.use("/api/cart", cartRoutes);
 // Basic Route
 app.get("/", (req, res) => {
   res.send("Hello, world!");
