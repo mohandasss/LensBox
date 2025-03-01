@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { getCategoriesById } from "../APIs/CategoryAPI";
 import { addToCart } from "../APIs/CartAPI";
+
+import { verifyToken } from "../APIs/AuthAPI";
 const ProductDetails = ({ product }) => {
   const [selectedImage, setSelectedImage] = useState(
     Array.isArray(product.image) ? product.image[0] : product.image
   );
+  const [quantity, setQuantity] = useState(1);
   const [badgeColor] = useState(
     [
       "bg-blue-500",
@@ -16,15 +19,17 @@ const ProductDetails = ({ product }) => {
     ][Math.floor(Math.random() * 6)]
   );
 
-  
-  
-  const addToCarthandler = async (product, quantity) => {
-    console.log(product, quantity);
-   
-
+  const addToCarthandler = async (product) => {
+    try {
+        const {user} =await verifyToken(localStorage.getItem("token"))
+        
+        
+      const addedtocart = await addToCart(product._id, quantity, user._id);
+      console.log(addedtocart);
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
+    }
   };
-
-
 
   const [categoryname, setCategoryname] = useState(null);
   useEffect(
@@ -35,7 +40,6 @@ const ProductDetails = ({ product }) => {
     [product]
   );
 
-  
   return (
     <div className="bg-white">
       <div className="container mx-auto px-4 py-12">
@@ -53,10 +57,10 @@ const ProductDetails = ({ product }) => {
             {Array.isArray(product.image) && (
               <div className="flex gap-6 py-4 justify-center overflow-x-auto">
                 {product.image.map((img, index) => (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
                     className={`aspect-square size-16 sm:size-20 rounded-lg overflow-hidden shadow-md transition duration-300 ${
-                      selectedImage === img ? 'ring-2 ring-indigo-600' : ''
+                      selectedImage === img ? "ring-2 ring-indigo-600" : ""
                     }`}
                   >
                     <img
@@ -73,14 +77,18 @@ const ProductDetails = ({ product }) => {
 
           {/* Product Details - improved spacing and typography */}
           <div className="w-full md:w-1/2 px-4">
-            <h2 className="text-3xl font-bold mb-4 text-gray-800">{product.name}</h2>
+            <h2 className="text-3xl font-bold mb-4 text-gray-800">
+              {product.name}
+            </h2>
             <span
               className={`inline-block px-4 py-1.5 text-sm font-semibold rounded-full text-white ${badgeColor} mb-6`}
             >
               {categoryname || "N/A"}
             </span>
             <div className="mb-6">
-              <span className="text-3xl font-bold mr-3 text-gray-900">₹{product.price}</span>
+              <span className="text-3xl font-bold mr-3 text-gray-900">
+                ₹{product.price}
+              </span>
               {product.originalPrice && (
                 <span className="text-lg text-gray-500 line-through">
                   ₹{product.originalPrice}
@@ -105,12 +113,15 @@ const ProductDetails = ({ product }) => {
                   />
                 </svg>
               ))}
-              <span className="ml-2 text-gray-600 text-sm">4.5 (120 reviews)</span>
+              <span className="ml-2 text-gray-600 text-sm">
+                4.5 (120 reviews)
+              </span>
             </div>
 
-            <p className="text-gray-700 mb-8 leading-relaxed">{product.description}</p>
+            <p className="text-gray-700 mb-8 leading-relaxed">
+              {product.description}
+            </p>
 
-            
             <div className="mb-8">
               <span
                 className={`inline-block px-4 py-1.5 text-sm font-semibold rounded-full ${
@@ -137,10 +148,11 @@ const ProductDetails = ({ product }) => {
                 id="quantity"
                 name="quantity"
                 className="w-24 rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50"
-                defaultValue="1"
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
               >
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                  <option onClick={() => addToCarthandler(product, num)} key={num} value={num}>
+                  <option key={num} value={num}>
                     {num}
                   </option>
                 ))}
@@ -149,7 +161,10 @@ const ProductDetails = ({ product }) => {
 
             {/* Action Buttons - improved styling and hover effects */}
             <div className="flex space-x-4 mb-8">
-              <button onClick={() => addToCarthandler(product)} className="bg-indigo-600 flex-1 flex gap-2 items-center justify-center text-white px-8 py-3 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition duration-300">
+              <button
+                onClick={() => addToCarthandler(product)}
+                className="bg-indigo-600 flex-1 flex gap-2 items-center justify-center text-white px-8 py-3 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition duration-300"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -187,17 +202,27 @@ const ProductDetails = ({ product }) => {
 
             {/* Key Features - improved list styling */}
             <div>
-              <h3 className="text-lg font-semibold mb-4 text-gray-800">Key Features:</h3>
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                Key Features:
+              </h3>
               <ul className="list-none space-y-3">
                 {product.features
                   .join(", ")
                   .split(",")
                   .map((feature, index) => (
                     <li key={index} className="flex items-center text-gray-700">
-                      <svg className="size-5 text-indigo-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      <svg
+                        className="size-5 text-indigo-500 mr-2"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
                       </svg>
-                      {feature.trim().replace(/"/g, '')}
+                      {feature.trim().replace(/"/g, "")}
                     </li>
                   ))}
               </ul>
