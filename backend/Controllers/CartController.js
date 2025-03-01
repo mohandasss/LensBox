@@ -24,8 +24,8 @@ const addToCart = async (req, res) => {
 };
 const getCart = async (req, res) => {   
     try {
-        const { userId } = req.params;  // FIXED: req.params instead of req.param
-        console.log(`User ID: ${userId}`); // FIXED: Better logging
+        const { userId } = req.params;  
+      
 
         if (!userId) {
             return res.status(400).json({ message: "User ID is required" });
