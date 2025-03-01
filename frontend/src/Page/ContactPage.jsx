@@ -27,6 +27,7 @@ const ContactPage = () => {
             <label className="block text-sm font-semibold mb-1" htmlFor="email">
               Email
             </label>
+            
             <input
               className="w-full p-3 rounded-md bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               id="email"
