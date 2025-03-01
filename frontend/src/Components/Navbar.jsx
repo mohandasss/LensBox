@@ -21,8 +21,7 @@ const Navbar = () => {
             response.message === "User is authenticated"
           ) {
             setIsAuthenticated(true);
-            console.log(isAuthenticated);
-            console.log(response.user);
+            
             setUser(response.user);
           } else {
             setIsAuthenticated(false);

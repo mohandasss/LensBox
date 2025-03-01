@@ -152,7 +152,7 @@ const getAllProducts = async (req, res) => {
 const searchProducts = async (req, res) => {
   try {
     const { name,location,dateranges } = req.body;
-    console.log(name,location,dateranges);
+  
     const products = await Product.find({
       name: { $regex: name, $options: "i" },
     });
@@ -176,7 +176,7 @@ const getProductByCategory = async (req, res) => {
 const getProductsByCategory = async (req, res) => {
   try {
     const category = req.params.categoryId;
-    console.log(category);
+    
     const categoryId = categorymappedwithid[category];
     const products = await Product.find({ category: categoryId });  
     res.status(200).json({ message: "Products found", products });

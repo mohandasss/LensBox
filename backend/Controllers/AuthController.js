@@ -59,7 +59,7 @@ res.status(200).json({ message: "User logged in successfully", user, token });
 const checkAuth = async (req, res) => {
   const token = req.headers.authorization;
   const bearerToken = token.split(" ")[1];
-  console.log(bearerToken);
+  
   if (!bearerToken) {
     return res.status(401).json({ message: "Unauthorized" });
   }
@@ -67,7 +67,7 @@ const checkAuth = async (req, res) => {
 
   const decoded = jwt.verify(bearerToken, process.env.JWT_SECRET);
   const user = await User.findById(decoded.userId);
-  console.log(user);
+  
   res.status(200).json({ message: "User is authenticated", user });
 
 
