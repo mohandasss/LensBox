@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaGoogle, FaApple, FaFacebook } from "react-icons/fa";
 import { login } from "../APIs/AuthAPI";
 import React, { useRef, useEffect, useState } from "react";
-
+import Navbar from "./Navbar";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -57,6 +57,8 @@ const Login = () => {
 
   const navigate = useNavigate();
   return (
+    <div className="min-h-screen bg-black">
+      <Navbar/>
     <div className="relative w-full h-screen overflow-hidden">
       {/* 🔁 Background Video */}
       <video
@@ -149,6 +151,7 @@ const Login = () => {
           </form>
         </div>
       </div>
+    </div>
     </div>
   );
 };

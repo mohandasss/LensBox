@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaGoogle, FaApple, FaFacebook } from "react-icons/fa";
 import { register } from "../APIs/AuthAPI";
 import PopUp from "../Components/PopUp";
+import Navbar from "./Navbar";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -94,6 +95,8 @@ const videoRef = useRef(null);
   };
 
   return (
+    <div className="min-h-screen bg-black">
+      <Navbar/>
    <div className="relative w-full h-screen overflow-hidden">
       {/* Background Video */}
       <video
@@ -178,6 +181,7 @@ const videoRef = useRef(null);
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 };
