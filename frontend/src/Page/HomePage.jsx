@@ -4,6 +4,7 @@ import Caruselshapevideo from "../Components/CarouselShapeVideo";
 import PreferenceSearch from "../Components/PreferenceSearch";
 import Footer from "../Components/Footer";
 import { Link } from "react-router-dom";
+import ChatButton from "../Components/ChatButton";
 const HomePage = () => {
   const brands = [
     {
@@ -153,6 +154,7 @@ const HomePage = () => {
         </div>
       </div>
       <Footer />
+      <ChatButton />
     </div>
   );
 };
