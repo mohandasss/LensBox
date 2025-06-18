@@ -6,5 +6,10 @@
   "faq_delivery": "Yes, we deliver across major cities. Check your area at checkout.",
   "faq_late_return": "Late returns incur ₹200 per day late fee.",
   "rental_policy": "You can rent from 1 to 30 days. Long-term discounts available.",
-  "unrelated": "I can assist only with rental-related queries at the moment."
+  "unrelated": "I can assist only with rental-related queries at the moment.",
+  "casual_greeting": "Hi there! 👋 How can I help you today with camera rentals?",
+  "polite": "You're welcome! Let me know if you need anything else.",
+  "casual_reply": "Got it!",
+  "casual_exit": "Take care! Ping me anytime. 😊",
+  "abusive": "Let's keep this respectful. I'm here to help with rentals."
 }

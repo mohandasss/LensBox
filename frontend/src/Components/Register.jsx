@@ -141,14 +141,14 @@ const videoRef = useRef(null);
             </div>
 
             <div className="flex justify-center">
-              <button type="submit" className="w-full md:w-1/2 py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition duration-300 mb-4">
+              <button type="submit" className="w-full md:w-1/2 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition duration-300 mb-4">
                 Register
               </button>
             </div>
 
             <p className="text-center text-gray-700 text-sm">
               Already have an account?{" "}
-              <Link to="/login" className="text-green-500 hover:underline font-medium">
+              <Link to="/login" className="text-blue-600 hover:underline font-medium">
                 Sign in
               </Link>
             </p>

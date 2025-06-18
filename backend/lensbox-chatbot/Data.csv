@@ -49,3 +49,100 @@ What if I lose the memory card?,faq_damage
 Can I extend my rental mid-shoot?,rental_policy
 How do I know if the lens is clean?,faq_damage
 I need gear for an indoor product shoot,gear_suggestion
+hello,casual_greeting
+hi there,casual_greeting
+hey,casual_greeting
+good morning,casual_greeting
+good evening,casual_greeting
+howdy,casual_greeting
+yo,casual_greeting
+what's up,casual_greeting
+hello lensbox,casual_greeting
+hey assistant,casual_greeting
+thank you,polite
+thanks a lot,polite
+thank you so much,polite
+appreciate it,polite
+grateful,polite
+that's helpful,polite
+cool,casual_reply
+okay,casual_reply
+ok cool,casual_reply
+sounds good,casual_reply
+nice,casual_reply
+great,casual_reply
+sure,casual_reply
+alright,casual_reply
+no worries,casual_reply
+awesome,casual_reply
+fine,casual_reply
+bruh,casual_reply
+k,casual_reply
+kk,casual_reply
+lmao,casual_reply
+lol,casual_reply
+nah,casual_reply
+meh,casual_reply
+idk,casual_reply
+whatever,casual_reply
+why tho,casual_reply
+shut up,abusive
+you suck,abusive
+f**k this,abusive
+this is sh*t,abusive
+are you dumb?,abusive
+what the hell?,abusive
+damn you,abusive
+idiot,abusive
+stupid bot,abusive
+you’re useless,abusive
+you are trash,abusive
+die,abusive
+get lost,abusive
+i hate you,abusive
+bastard,abusive
+waste of time,abusive
+go to hell,abusive
+nothing,unrelated
+nvm,unrelated
+nevermind,unrelated
+leave me alone,unrelated
+just checking,unrelated
+don't care,unrelated
+i don't know,unrelated
+who are you?,unrelated
+bye,casual_exit
+see ya,casual_exit
+catch you later,casual_exit
+talk later,casual_exit
+goodbye,casual_exit
+peace,casual_exit
+cya,casual_exit
+gtg,casual_exit
+gotta go,casual_exit
+take care,casual_exit
+no thanks,casual_reply
+not now,casual_reply
+maybe later,casual_reply
+i'll ask later,casual_reply
+just looking,unrelated
+scrolling around,unrelated
+i’m bored,unrelated
+yo what's this?,unrelated
+test,unrelated
+testing,unrelated
+is this thing working?,unrelated
+can you dance?,unrelated
+do you love me?,unrelated
+tell me a joke,unrelated
+who made you?,unrelated
+sing for me,unrelated
+open google,unrelated
+open youtube,unrelated
+launch instagram,unrelated
+order pizza,unrelated
+book uber,unrelated
+how old are you?,unrelated
+what's your name?,unrelated
+are you real?,unrelated
+this is awesome,casual_reply

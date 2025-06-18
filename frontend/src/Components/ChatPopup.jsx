@@ -8,53 +8,72 @@ const ChatPopup = ({ onClose }) => {
   const [input, setInput] = useState("");
   const chatRef = useRef();
 
-  const displayTypingEffect = (text) => {
-    let i = 0;
-    const interval = setInterval(() => {
-      setMessages((prev) => {
-        const last = prev[prev.length - 1];
-        const updatedBotMsg = {
-          ...last,
-          text: last.text + text[i],
-        };
-        return [...prev.slice(0, -1), updatedBotMsg];
-      });
+  const displayTypingEffect = (fullText) => {
+  let index = 0;
 
-      i++;
-      if (i >= text.length) clearInterval(interval);
-    }, 25); // typing speed
-  };
+  const type = () => {
+    setMessages((prev) => {
+      const last = prev[prev.length - 1];
 
-  const sendMessage = async () => {
-    if (!input.trim()) return;
+      if (!last || last.from !== "bot") return prev;
 
-    const userMsg = { from: "user", text: input };
-    setMessages((prev) => [...prev, userMsg]);
+      const updated = {
+        ...last,
+       text: last.text + (fullText[index] || "")
 
-    try {
-      const response = await fetch("http://localhost:5000/chatbot", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ message: input }),
-      });
+      };
 
-      const data = await response.json();
+      return [...prev.slice(0, -1), updated];
+    });
 
-      // Add empty bot message first
-      setMessages((prev) => [...prev, { from: "bot", text: "" }]);
-      displayTypingEffect(data.response);
-    } catch (error) {
-      console.error("Chatbot error:", error);
-      setMessages((prev) => [
-        ...prev,
-        { from: "bot", text: "Oops, something went wrong." },
-      ]);
+    index++;
+    if (index < fullText.length) {
+      setTimeout(type, 25); // typing speed
     }
-
-    setInput("");
   };
+
+  type();
+};
+
+
+const sendBotMessage = (text) => {
+  setMessages((prev) => [...prev, { from: "bot", text: "" }]);
+  setTimeout(() => displayTypingEffect(text), 50);
+};
+
+const sendMessage = async () => {
+  if (!input.trim()) return;
+
+  const userMsg = { from: "user", text: input };
+  setMessages((prev) => [...prev, userMsg]);
+
+  try {
+    const response = await fetch("http://127.0.0.1:5000/chatbot", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message: input }),
+    });
+
+    const data = await response.json();
+    console.log("Intent:", data.intent);
+    console.log("Response:", data.response);
+
+    sendBotMessage(data.response);
+
+  } catch (error) {
+    console.error("Chatbot error:", error);
+    setMessages((prev) => [
+      ...prev,
+      { from: "bot", text: "Oops, something went wrong." },
+    ]);
+  }
+
+  setInput("");
+};
+
+
 
   useEffect(() => {
     chatRef.current?.scrollIntoView({ behavior: "smooth" });
