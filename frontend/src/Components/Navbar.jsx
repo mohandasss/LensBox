@@ -8,6 +8,7 @@ const Navbar = () => {
   const [user, setUser] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSeller, setIsSeller] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -21,23 +22,30 @@ const Navbar = () => {
             response.message === "User is authenticated"
           ) {
             setIsAuthenticated(true);
-            
             setUser(response.user);
+
+            if (response.user.role === "seller") {
+              setIsSeller(true); // ✅ Set true if seller
+            } else {
+              setIsSeller(false);
+            }
           } else {
             setIsAuthenticated(false);
             setUser(null);
+            setIsSeller(false);
           }
         } catch (error) {
           console.error("Token verification failed:", error);
-
           if (error.response && error.response.status === 401) {
             setIsAuthenticated(false);
             setUser(null);
+            setIsSeller(false);
           }
         }
       } else {
         setIsAuthenticated(false);
         setUser(null);
+        setIsSeller(false);
       }
     };
 
@@ -102,6 +110,15 @@ const Navbar = () => {
             <Link to="/contact" className="text-white hover:text-gray-600">
               Contact
             </Link>
+
+            {isSeller && (
+              <Link
+                to="/seller/panel"
+                className="text-yellow-400 hover:text-yellow-600 font-semibold"
+              >
+                Panel
+              </Link>
+            )}
           </div>
 
           {/* Right side - Auth Section (Desktop) */}

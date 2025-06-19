@@ -14,7 +14,6 @@ const UserSchema = new mongoose.Schema({
     address: { type: AddressSchema, required: true },
     role: { type: String, enum: ['user', 'seller'], default: 'user' },
     phone: { type: String, required: true },
-}, { timestamps: true }); // Use `timestamps` option to automatically handle createdAt and updatedAt
- // Use `timestamps` option to automatically handle createdAt and updatedAt
+}, { timestamps: true }); 
 
 module.exports = mongoose.model("User", UserSchema);

@@ -36,27 +36,51 @@ const login = async (userData) => {
   }
 };
 
+  
+const updateUser = async (token, updatedData) => {
+  try {
+    const response = await axiosinstance.put("/updateprofile", updatedData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+const deleteUser = async (userId) => {
+  try {
+    const response = await axiosinstance.delete(`/deleteuser/${userId}`);
+    return response;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+
+
+
+
+
 const verifyToken = async (token) => {
   try {
-
-    
-   
-
     const response = await axiosinstance.get("/check", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
 
-   
     return response.data;
   } catch (error) {
     console.log(error);
-    
+
     throw error;
   }
 };
 
-
-export { register, login, verifyToken };
-
+export { register, login, updateUser, deleteUser, verifyToken };

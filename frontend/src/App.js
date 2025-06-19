@@ -13,6 +13,7 @@ import FormPage from './Page/FormPage';
 import ServiceMotor from './Page/ServiceMotor';
 import ProductDetailsPage from './Page/ProductDetailsPage';
 import CartPage from './Page/CartPage';
+import ProfilePage from './Page/ProfilePage';
 function App() {
   return (
     <div className="min-h-screen bg-gray-50">
@@ -51,6 +52,8 @@ function AppContent() {
       <Route path='/products' element={<ProductsPage />} /> 
       <Route path='/Cart' element={<CartPage />} /> 
       <Route path='/form' element={<FormPage />} /> 
+      <Route path='/profile' element={<ProfilePage />} /> 
+
       
       <Route path='/product/:id' element={<ProductDetailsPage />} />
       <Route path='/service-motor' element={<ServiceMotor />} /> 
