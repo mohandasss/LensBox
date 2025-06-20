@@ -7,7 +7,5 @@ router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.get("/check", authMiddleware, checkAuth);
 router.put("/updateprofile", authMiddleware, updateUser);
-
 router.delete("/deleteuser/:userId", deleteUser);
-
 module.exports = router;
