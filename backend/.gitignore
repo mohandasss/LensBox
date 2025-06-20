@@ -1,49 +1,18 @@
-# =======================
-# Node.js related ignores
-# =======================
+# Node.js dependencies
 node_modules/
-npm-debug.log*
-yarn-error.log*
-package-lock.json
+npm-debug.log
+yarn-error.log
 
-# =======================
-# Environment & Secrets
-# =======================
+# Environment variables
 .env
-*.env.*
 
-# =======================
-# Python related ignores
-# =======================
-__pycache__/
-*.py[cod]
-*.pyo
-
-# =======================
-# Chatbot Data & AI Files
-# =======================
-Data.csv
-responses.json
-
-# =======================
 # Logs
-# =======================
 logs/
 *.log
 
-# =======================
-# OS & Editor junk
-# =======================
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
-*.swp
-*.swo
+# Python cache
+__pycache__/
 
-# =======================
-# Optional build artifacts
-# =======================
-dist/
-build/
-.cache/
+# Data files
+*.csv
+responses.json
