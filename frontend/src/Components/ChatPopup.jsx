@@ -8,8 +8,8 @@ const ChatPopup = ({ onClose }) => {
   const chatRef = useRef();
 
   const displayTypingEffect = (fullText) => {
-  let index = 0; // Start from index 1 to skip the dummy character (e.g., "_")
-  const actualText = fullText; // The dummy will be stripped before setting
+  let index = 0; 
+  const actualText = fullText; 
 
   const type = () => {
     setMessages((prev) => {

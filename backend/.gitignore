@@ -1,18 +1,22 @@
-# Node.js dependencies
-node_modules/
-npm-debug.log
-yarn-error.log
+# IDE & system
+.idea/
+LensBox.git/
 
-# Environment variables
-.env
+# Node & npm
+node_modules/
+package-lock.json
 
 # Logs
 logs/
 *.log
 
-# Python cache
-__pycache__/
+# Env
+.env
 
-# Data files
-*.csv
-responses.json
+# Python caches
+__pycache__/
+*.pyc
+
+# App data
+lensbox-chatbot/responses.json
+lensbox-chatbot/Data.csv
