@@ -1,0 +1,370 @@
+text,label
+Where is my order?,order_status  
+Can you tell me my order status?,order_status  
+Is my parcel shipped?,order_status  
+I haven’t received my product yet.,order_status  
+Track my order please.,order_status  
+Any update on my delivery?,order_status  
+When will my order arrive?,order_status  
+My delivery is late!,order_status  
+Did you dispatch my item?,order_status  
+I ordered last week, still nothing!,order_status  
+
+Is this product available?,product_availability  
+Do you have this frame in stock?,product_availability  
+Is the blue one still available?,product_availability  
+I want round specs — do you have them?,product_availability  
+Do you have lens for power -2.5?,product_availability  
+Is the premium black model in stock?,product_availability  
+Are those retro frames available?,product_availability  
+Are these limited editions still there?,product_availability  
+Can I get this in my size?,product_availability  
+Do you have more color options?,product_availability  
+
+Can I return my order?,return_policy  
+What’s your return policy?,return_policy  
+Do you allow product exchanges?,return_policy  
+How long do I have to return?,return_policy  
+What if I receive the wrong product?,return_policy  
+Is return shipping free?,return_policy  
+Can I return used sunglasses?,return_policy  
+Are returns accepted without box?,return_policy  
+Will I get a refund for returns?,return_policy  
+How long does refund take?,return_policy  
+
+How much is the shipping?,shipping_info  
+Do you offer free shipping?,shipping_info  
+What are your delivery charges?,shipping_info  
+Is shipping included in the price?,shipping_info  
+Do you ship all over India?,shipping_info  
+How many days for delivery?,shipping_info  
+Do you deliver on weekends?,shipping_info  
+Which courier do you use?,shipping_info  
+Is express shipping available?,shipping_info  
+Do you offer international shipping?,shipping_info  
+
+Do you accept UPI?,payment_methods  
+What are the payment options?,payment_methods  
+Can I use net banking?,payment_methods  
+Is Cash on Delivery available?,payment_methods  
+Do you support Paytm or PhonePe?,payment_methods  
+Can I pay with credit card?,payment_methods  
+Is payment secure on your site?,payment_methods  
+Do you accept EMI?,payment_methods  
+Do you offer any discounts on prepaid orders?,payment_methods  
+Can I split payment across 2 cards?,payment_methods  
+
+This site is amazing!,greeting_feedback  
+Thanks for the great service!,greeting_feedback  
+You guys are doing great!,greeting_feedback  
+Really loved the packaging!,greeting_feedback  
+Impressive quality!,greeting_feedback  
+I’ll shop again for sure!,greeting_feedback  
+Loved the collection!,greeting_feedback  
+Your UI is super clean!,greeting_feedback  
+My friend recommended you, good job!,greeting_feedback  
+Great pricing and fast delivery!,greeting_feedback  
+
+Hi there!,greeting  
+Hey!,greeting  
+Hello team!,greeting  
+Good morning!,greeting  
+Good evening!,greeting  
+What's up?,greeting  
+Anyone there?,greeting  
+Can someone help me?,greeting  
+Yo, help please!,greeting  
+Hey LensBox!,greeting  
+
+Your service sucks!,abusive  
+You people are useless!,abusive  
+What kind of crap service is this?,abusive  
+I hate this store!,abusive  
+You guys are scammers!,abusive  
+Totally disappointed with you!,abusive  
+Worst customer support ever!,abusive  
+You guys are dumb!,abusive  
+Are you idiots or what?,abusive  
+F*** your delivery!,abusive  
+
+Cancel my order now!,order_cancellation  
+I want to cancel my order.,order_cancellation  
+How do I cancel a product?,order_cancellation  
+Can I cancel it before it ships?,order_cancellation  
+Please cancel order #12345.,order_cancellation  
+Cancel my lens order today.,order_cancellation  
+Cancel that blue frame.,order_cancellation  
+Change my mind — cancel it!,order_cancellation  
+Can I reverse my purchase?,order_cancellation  
+Don’t send it, I want to cancel.,order_cancellation  
+Is this lens suitable for night driving?,product_query
+Do these glasses have UV protection?,product_query
+Can I wear these frames with prescription lenses?,product_query
+How flexible is the temple of this frame?,product_query
+Do you sell clip-on sunglasses?,product_query
+Can I customize lens power for each eye?,product_query
+Is the frame too tight for wide faces?,product_query
+I want eco-friendly specs, do you have any?,product_query
+Do these have anti-reflective coating?,product_query
+Can I use these for biking?,product_query
+
+Where’s my package bro?,order_status
+Delivery is taking too long!,order_status
+Any tracking link for my order?,order_status
+I think my order got lost?,order_status
+Still no delivery after 5 days!,order_status
+My friend got his order, I didn’t!,order_status
+Who’s the courier partner?,order_status
+Why hasn’t the delivery guy called yet?,order_status
+Package not received even after status says delivered!,order_status
+Why is my order stuck at the hub?,order_status
+
+I want to exchange these glasses,exchange_request
+Can I change my frame after delivery?,exchange_request
+These glasses don’t fit well, want another,exchange_request
+I picked the wrong color. Can I exchange?,exchange_request
+Want to replace with another model,exchange_request
+How to return this and get another?,exchange_request
+My lens prescription changed, need new ones,exchange_request
+These aren’t what I expected. Can I switch?,exchange_request
+The size is off. Can I exchange?,exchange_request
+Can I return and re-order?,exchange_request
+
+The item is broken. Help!,damaged_product
+I received a cracked lens,damaged_product
+Glasses arrived in bad condition,damaged_product
+There’s a scratch on the frame,damaged_product
+Packaging was torn and item is faulty,damaged_product
+Lenses came loose,damaged_product
+Left side hinge is broken,damaged_product
+Screw missing in one leg of specs,damaged_product
+The glasses don't sit straight,damaged_product
+This is clearly a used product!,damaged_product
+
+How to clean these lenses?,how_to
+Can I use any cloth to clean?,how_to
+What’s the best way to store them?,how_to
+How to adjust nose pads?,how_to
+Can I tighten loose screws at home?,how_to
+How often should I change lenses?,how_to
+How to read my prescription?,how_to
+How do I measure my PD?,how_to
+How to choose the right frame size?,how_to
+Any tips for keeping specs safe?,how_to
+
+Can I cancel my order after it’s shipped?,order_cancel
+I changed my mind. Cancel please,order_cancel
+Order placed by mistake. Cancel it!,order_cancel
+Cancel and refund now,order_cancel
+How long does cancellation take?,order_cancel
+Do I get full refund after cancel?,order_cancel
+Can I stop the shipment?,order_cancel
+Want to change delivery address. Cancel it!,order_cancel
+Placed 2 orders. Cancel one please.,order_cancel
+Need to reorder correctly. Cancel old one.,order_cancel
+
+Yo this site is lit!,compliment
+Damn, your collection is fire 🔥,compliment
+Sick UI bro, love the vibes!,compliment
+This was smooth af,compliment
+The specs quality is amazing!,compliment
+Got my order and I love it!,compliment
+LensBox is my go-to now!,compliment
+That try-on feature is dope!,compliment
+Bro y’all are killing it!,compliment
+My fam loved the glasses, thanks!,compliment
+
+Wtf is this?,abusive
+Why the hell isn’t anything working?,abusive
+You guys are useless!,abusive
+Dumb bot can’t even answer?,abusive
+This is bullshit!,abusive
+Are you stupid or what?,abusive
+Worst service ever!,abusive
+Useless AI trash,abusive
+Fix your damn site!,abusive
+Screw this, never coming back!,abusive
+
+Hey, can I talk to a human?,human_request
+Is there a support number?,human_request
+Connect me to real customer care, please,human_request
+This bot isn’t helping. Need a person.,human_request
+Need urgent help. Talk to agent?,human_request
+Do you have a live chat?,human_request
+I wanna speak to a rep,human_request
+Support team available?,human_request
+Can someone call me?,human_request
+Human please!,human_request
+
+Do you deliver to Kerala?,shipping_query
+Any extra charges for express delivery?,shipping_query
+Can I change delivery address?,shipping_query
+Do you deliver internationally?,shipping_query
+How long does shipping take?,shipping_query
+Is delivery free?,shipping_query
+Do you ship via Bluedart?,shipping_query
+Can I schedule delivery time?,shipping_query
+My pin code isn’t working?,shipping_query
+Can I get it delivered to office?,shipping_query
+
+Do you have EMI options?,payment_query
+COD available?,payment_query
+Why is my payment failing?,payment_query
+Can I pay via UPI?,payment_query
+Do you accept credit card?,payment_query
+What payment modes do you support?,payment_query
+Any discounts available?,payment_query
+Do you have wallet cashback?,payment_query
+How do I apply a promo code?,payment_query
+Is GST invoice available?,payment_query
+What do you sell here?,general_info
+Is this a glasses website?,general_info
+Is this for prescription lenses or fashion only?,general_info
+What is LensBox exactly?,general_info
+Are you guys like Lenskart?,general_info
+How is this different from other eyewear sites?,general_info
+Do you make custom glasses?,general_info
+Is this only for online orders?,general_info
+Can I try before buying?,general_info
+Is this only for India?,general_info
+How do I place an order here?,how_to_order
+What’s the step-by-step process to order?,how_to_order
+Where do I enter my eye power?,how_to_order
+Do I need a prescription to order?,how_to_order
+Can I upload my eye report?,how_to_order
+Where do I choose lens type?,how_to_order
+Is it possible to order without logging in?,how_to_order
+Do I need to sign up to buy?,how_to_order
+How do I reorder something I liked?,how_to_order
+Can I order just frames without lenses?,how_to_order
+Can you explain how the virtual try-on works?,feature_query
+How do I use the camera try-on feature?,feature_query
+Is the AI try-on accurate?,feature_query
+Why isn’t the try-on loading for me?,feature_query
+Can I try with a photo?,feature_query
+Does try-on work on mobile?,feature_query
+Does it work with prescription lenses too?,feature_query
+Can I use the try-on if I wear specs already?,feature_query
+Can I try different color options on camera?,feature_query
+Is this site safe to enter payment info?,security_query
+Is my data protected?,security_query
+Do you store my prescription?,security_query
+Is your site encrypted?,security_query
+Will I get spammed after signing up?,security_query
+Is my phone number shared?,security_query
+Do you have any security certifications?,security_query
+How do I delete my account?,security_query
+Can I browse without logging in?,security_query
+Where do you ship?,shipping_query
+Do you deliver in remote areas?,shipping_query
+Can I check delivery for my pin code?,shipping_query
+How fast can you deliver?,shipping_query
+Which courier do you use?,shipping_query
+Do you deliver to hostels or PGs?,shipping_query
+Can you deliver to office address?,shipping_query
+Is one-day delivery available?,shipping_query
+What are your delivery charges?,shipping_query
+What’s your return policy?,returns
+Can I return after opening the box?,returns
+Do you pick up returned items?,returns
+How long does refund take?,returns
+Will I get full refund?,returns
+Can I return just the lenses?,returns
+I received wrong item, can I return?,returns
+Do I need original packaging for return?,returns
+What is your return window?,returns
+Are these glasses unisex?,product_query
+Do you have kids' glasses?,product_query
+What is the size of these frames?,product_query
+Are these made in India?,product_query
+What material are these glasses made of?,product_query
+Do these frames bend easily?,product_query
+Can I get transition lenses here?,product_query
+Do you sell blue light filter glasses?,product_query
+Do these have anti-glare?,product_query
+Are the lenses scratch resistant?,product_query
+Are there discounts for first orders?,pricing_query
+Any student offers?,pricing_query
+Where do I apply promo code?,pricing_query
+Do prices include tax?,pricing_query
+Is there any festive sale?,pricing_query
+Can I get cashback on UPI?,pricing_query
+Why is GST added later?,pricing_query
+Do you have coupons?,pricing_query
+Are prices negotiable?,pricing_query
+Can I save my favorite glasses?,account_features
+How to build a wishlist?,account_features
+Will I get notifications for discounts?,account_features
+Can I track price drops?,account_features
+Do I get order updates on SMS?,account_features
+How do I reset my password?,account_features
+Can I change my email later?,account_features
+How do I manage addresses?,account_features
+Can I see my past orders?,account_features
+How do I contact you?,support_query
+Is there a customer care number?,support_query
+Can I talk on WhatsApp?,support_query
+Do you have store locations?,support_query
+Can I visit your office?,support_query
+Any live chat option?,support_query
+Where can I send complaints?,support_query
+What are your support hours?,support_query
+Are these real customer reviews?,trust_query
+Where are reviews posted?,trust_query
+Can I trust your products?,trust_query
+Are your ratings genuine?,trust_query
+Do you post fake reviews?,trust_query
+Can I leave a review?,trust_query
+Why don’t some items have reviews?,trust_query
+Is this brand certified?,trust_query
+Where is LensBox registered?,trust_query
+I’ve never heard of you, are you new?,general_info
+Do you work with opticians?,general_info
+Can I walk in for eye test?,general_info
+Is there an app for LensBox?,general_info
+How old is your company?,general_info
+Who is behind LensBox?,general_info
+Do you guys sell contact lenses?,product_query
+Are lens powers customizable?,product_query
+Can I buy frame + lens together?,product_query
+What’s the best glasses for computer?,product_query
+Can you make bifocals?,product_query
+Are these suitable for office use?,product_query
+Do you sell zero power blue light glasses?,product_query
+Do you have cat-eye frames?,product_query
+Any trendy models for girls?,product_query
+Which are your most lightweight glasses?,product_query
+Are these okay for daily wear?,product_query
+Will these cause headaches?,product_query
+Is it okay to wear all day?,product_query
+Do lenses have water-repellent coating?,product_query
+Are frames skin-friendly?,product_query
+Is this suitable for kids under 10?,product_query
+Are these good for outdoor use?,product_query
+Can I get polarized lenses here?,product_query
+Will these work in snow or sunlight?,product_query
+Can I order multiple specs together?,how_to_order
+Can I save cart for later?,how_to_order
+Can I gift these?,how_to_order
+Can I add a message while gifting?,how_to_order
+Do you offer gift packaging?,how_to_order
+What happens if I enter wrong power?,error_handling
+Can I edit order after payment?,error_handling
+I added wrong address, help!,error_handling
+I picked wrong color by mistake,error_handling
+My order got stuck while paying,error_handling
+I didn’t get confirmation mail,error_handling
+Cart got emptied after refresh,error_handling
+Do I get invoice on mail?,invoice
+Can I download my bill?,invoice
+Is there a printed bill inside box?,invoice
+Do you send invoice with GST?,invoice
+Can I get bulk invoice?,invoice
+How to buy glasses for parents?,user_guidance
+I want to buy stylish specs for myself,user_guidance
+Can you recommend glasses based on face shape?,user_guidance
+Which frame suits oval face?,user_guidance
+Which color frame looks formal?,user_guidance
+I wear helmet — which specs suit me?,user_guidance
+Which are best glasses for teens?,user_guidance
+I use screen a lot. What should I get?,user_guidance
