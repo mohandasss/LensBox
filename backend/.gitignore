@@ -1,22 +1,23 @@
-# IDE & system
-.idea/
-LensBox.git/
-
-# Node & npm
+# Node
 node_modules/
-package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
 
 # Logs
 logs/
 *.log
 
-# Env
-.env
+# Editor
+.idea/
 
-# Python caches
+# Pycache from Python chatbot
 __pycache__/
 *.pyc
 
-# App data
-lensbox-chatbot/responses.json
-lensbox-chatbot/Data.csv
+# Optional
+package-lock.json
+LensBox.git/
