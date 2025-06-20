@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
 
 const ChatPopup = ({ onClose }) => {
   const [messages, setMessages] = useState([
@@ -9,71 +8,66 @@ const ChatPopup = ({ onClose }) => {
   const chatRef = useRef();
 
   const displayTypingEffect = (fullText) => {
-  let index = 0;
+  let index = 0; // Start from index 1 to skip the dummy character (e.g., "_")
+  const actualText = fullText; // The dummy will be stripped before setting
 
   const type = () => {
     setMessages((prev) => {
       const last = prev[prev.length - 1];
-
       if (!last || last.from !== "bot") return prev;
 
       const updated = {
         ...last,
-       text: last.text + (fullText[index] || "")
-
+        text: last.text + actualText.charAt(index),
       };
 
       return [...prev.slice(0, -1), updated];
     });
 
     index++;
-    if (index < fullText.length) {
-      setTimeout(type, 25); // typing speed
+    if (index < actualText.length) {
+      setTimeout(type, 25);
     }
   };
 
   type();
 };
 
-
 const sendBotMessage = (text) => {
+  const modifiedText = "_" + text; // Add dummy underscore character
   setMessages((prev) => [...prev, { from: "bot", text: "" }]);
-  setTimeout(() => displayTypingEffect(text), 50);
-};
-
-const sendMessage = async () => {
-  if (!input.trim()) return;
-
-  const userMsg = { from: "user", text: input };
-  setMessages((prev) => [...prev, userMsg]);
-
-  try {
-    const response = await fetch("http://127.0.0.1:5000/chatbot", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ message: input }),
-    });
-
-    const data = await response.json();
-    console.log("Intent:", data.intent);
-    console.log("Response:", data.response);
-
-    sendBotMessage(data.response);
-
-  } catch (error) {
-    console.error("Chatbot error:", error);
-    setMessages((prev) => [
-      ...prev,
-      { from: "bot", text: "Oops, something went wrong." },
-    ]);
-  }
-
-  setInput("");
+  displayTypingEffect(modifiedText);
 };
 
 
+  const sendMessage = async () => {
+    if (!input.trim()) return;
+
+    const userMsg = { from: "user", text: input };
+    setMessages((prev) => [...prev, userMsg]);
+
+    try {
+      const response = await fetch("http://127.0.0.1:5000/chatbot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input }),
+      });
+
+      const data = await response.json();
+      console.log("Intent:", data.intent);
+      console.log("Response:", data.response);
+
+      sendBotMessage(data.response);
+    } catch (error) {
+      console.error("Chatbot error:", error);
+      setMessages((prev) => [
+        ...prev,
+        { from: "bot", text: "Oops, something went wrong." },
+      ]);
+    }
+
+    setInput("");
+  };
 
   useEffect(() => {
     chatRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -90,11 +84,8 @@ const sendMessage = async () => {
 
       <div className="flex-1 p-4 space-y-3 overflow-y-auto max-h-[500px] bg-gray-100">
         {messages.map((msg, idx) => (
-          <motion.div
+          <div
             key={idx}
-            initial={{ opacity: 0, x: msg.from === "user" ? 50 : -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
             className={`text-sm px-4 py-2 rounded-lg max-w-[75%] break-words ${
               msg.from === "user"
                 ? "bg-blue-600 text-white ml-auto"
@@ -102,7 +93,7 @@ const sendMessage = async () => {
             }`}
           >
             {msg.text}
-          </motion.div>
+          </div>
         ))}
         <div ref={chatRef}></div>
       </div>

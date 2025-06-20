@@ -36,7 +36,6 @@ const login = async (userData) => {
   }
 };
 
-  
 const updateUser = async (token, updatedData) => {
   try {
     const response = await axiosinstance.put("/updateprofile", updatedData, {
@@ -61,11 +60,6 @@ const deleteUser = async (userId) => {
     throw error;
   }
 };
-
-
-
-
-
 
 const verifyToken = async (token) => {
   try {
