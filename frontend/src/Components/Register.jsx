@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Upload, User, X, Eye, EyeOff, Mail, Lock, Phone, MapPin, Globe } from "lucide-react";
-
+import { Link } from "react-router-dom";
 const Register = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -329,6 +329,7 @@ const Register = () => {
               </div>
 
               {/* Login Link */}
+              <Link to="/login">
               <div className="text-center pt-4">
                 <p className="text-gray-600">
                   Already have an account?{" "}
@@ -336,7 +337,7 @@ const Register = () => {
                     Sign in
                   </button>
                 </p>
-              </div>
+              </div></Link>
 
               {/* Social Login */}
               <div className="relative">
