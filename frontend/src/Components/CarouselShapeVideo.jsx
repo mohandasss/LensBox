@@ -8,9 +8,11 @@ const Caruselshapevideo = () => {
           <video
             autoPlay
             loop
+            muted
+            playsInline
             className="w-full h-full object-cover"
-            src="https://res.cloudinary.com/dk5gtjb3k/video/upload/v1738910251/videoplayback_p8o62d.webm"
-          ></video>
+            src="https://res.cloudinary.com/dk5gtjb3k/video/upload/v1750592654/videoplayback_p8o62d_kemhoz.mp4"
+          />
         </div>
       </div>
     </div>

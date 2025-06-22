@@ -9,6 +9,7 @@ const subCategoryRoutes = require("./Routes/SubCategoryRoutes.js");
 const brandRoutes = require("./Routes/BrandRoutes.js");
 const fileUpload = require("express-fileupload");
 const cartRoutes = require("./Routes/CartRoutes");
+const chatRoute = require("./Routes/ChatRoutes");
 dotenv.config();
 const app = express();
 
@@ -36,6 +37,7 @@ app.use(
 );
 
 // Route Imports
+app.use('/api', chatRoute); 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);

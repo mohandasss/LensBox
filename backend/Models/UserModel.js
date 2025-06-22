@@ -14,6 +14,8 @@ const UserSchema = new mongoose.Schema({
     address: { type: AddressSchema, required: true },
     role: { type: String, enum: ['user', 'seller'], default: 'user' },
     phone: { type: String, required: true },
-}, { timestamps: true }); 
+    profilePic: { type: String }, // Cloudinary image URL
+}, { timestamps: true });
+
 
 module.exports = mongoose.model("User", UserSchema);

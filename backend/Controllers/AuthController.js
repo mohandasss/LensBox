@@ -4,31 +4,47 @@ const bcrypt = require("bcrypt");
 
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, address, phone, city, state, zip, role, country } =
-      req.body;
+    const {
+      name,
+      email,
+      password,
+      phone,
+      city,
+      state,
+      zip,
+      country,
+      role,
+      image, // base64 or image URL
+    } = req.body;
 
-    // Check if the user already exists
+    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    // Hash password before saving
+    // Upload image to Cloudinary
+    const result = await cloudinary.uploader.upload(image, {
+      folder: "user_profiles",
+    });
+
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create a new user
+    // Create user
     const newUser = new User({
       name,
       email,
       password: hashedPassword,
-      address,
       phone,
-      country,
-      city,
-      state,
-      zip,
-      role
-      
+      role,
+      address: {
+        city,
+        state,
+        zip,
+        country,
+      },
+      profilePic: result.secure_url,
     });
 
     await newUser.save();
@@ -40,34 +56,48 @@ const registerUser = async (req, res) => {
 
     res.status(201).json({ message: "User registered successfully", token });
   } catch (error) {
-    console.error(error);
+    console.error("Register error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
 
+
 const updateUser = async (req, res) => {
   try {
-    const userId = req.user.userId; // Extracted from token via middleware
+    const userId = req.user.userId;
+
     const {
       name,
-      address,
       phone,
-      country,
       city,
       state,
       zip,
+      country,
+      image, // optional
     } = req.body;
 
+    let profilePic;
+    if (image) {
+      const result = await cloudinary.uploader.upload(image, {
+        folder: "user_profiles",
+      });
+      profilePic = result.secure_url;
+    }
+
+    // Build updated fields object
     const updatedFields = {
       ...(name && { name }),
-      ...(address && { address }),
       ...(phone && { phone }),
-      ...(country && { country }),
-      ...(city && { city }),
-      ...(state && { state }),
-      ...(zip && { zip }),
+      ...(profilePic && { profilePic }),
+      address: {
+        ...(city && { city }),
+        ...(state && { state }),
+        ...(zip && { zip }),
+        ...(country && { country }),
+      },
     };
 
+    // Ensure nested address gets properly updated
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $set: updatedFields },
@@ -87,6 +117,7 @@ const updateUser = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 
 
