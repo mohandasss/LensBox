@@ -1,8 +1,12 @@
 const User = require("../Models/UserModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const cloudinary = require("../Config/cloudanary");
+
 
 const registerUser = async (req, res) => {
+  console.log(req.body);
+  
   try {
     const {
       name,
@@ -14,52 +18,76 @@ const registerUser = async (req, res) => {
       zip,
       country,
       role,
-      image, // base64 or image URL
     } = req.body;
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "Email already registered" });
+    // 🛑 Validate Required Fields
+    if (!name || !email || !password || !phone || !city || !state || !zip || !country) {
+      return res.status(400).json({ error: "All fields are required." });
     }
 
-    // Upload image to Cloudinary
-    const result = await cloudinary.uploader.upload(image, {
-      folder: "user_profiles",
+    // 🛑 Check If Image File Exists
+    if (!req.files || !req.files.image) {
+      return res.status(400).json({ error: "Profile image is required." });
+    }
+    
+    
+    const imageFile = req.files.image;
+
+    // 🔍 Check if User Already Exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already registered." });
+    }
+
+    // ☁️ Upload Image to Cloudinary
+    const uploadedResponse = await cloudinary.uploader.upload(imageFile.tempFilePath, {
+      folder: "profilePictures",
     });
 
-    // Hash the password
+    // 🔒 Hash Password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // ✅ Save New User to MongoDB
     const newUser = new User({
       name,
       email,
       password: hashedPassword,
       phone,
-      role,
+      role: role || 'user',
       address: {
         city,
         state,
         zip,
         country,
       },
-      profilePic: result.secure_url,
+      profilePic: uploadedResponse.secure_url,
     });
 
     await newUser.save();
 
-    // Generate JWT token
+    // 🔐 Generate JWT Token
     const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
 
-    res.status(201).json({ message: "User registered successfully", token });
+    res.status(201).json({
+      message: "User registered successfully",
+      token,
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        profilePic: newUser.profilePic,
+      },
+    });
   } catch (error) {
-    console.error("Register error:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Error registering user:", error);
+    res.status(500).json({ message: "Server error", error });
   }
 };
+
+
 
 
 const updateUser = async (req, res) => {
@@ -73,7 +101,7 @@ const updateUser = async (req, res) => {
       state,
       zip,
       country,
-      image, // optional
+      image, 
     } = req.body;
 
     let profilePic;

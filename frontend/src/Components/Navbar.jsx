@@ -11,12 +11,15 @@ const Navbar = () => {
   const [isSeller, setIsSeller] = useState(false);
 
   useEffect(() => {
+    console.log(user);
+    
     const checkAuth = async () => {
       const token = localStorage.getItem("token");
       if (token) {
         try {
           const response = await verifyToken(token);
-
+          console.log(response.user.profilePic);
+          
           if (
             response.success ||
             response.message === "User is authenticated"
@@ -144,13 +147,16 @@ const Navbar = () => {
                   </span>
                 </Link>
                 <Link
-                  to="/profile"
-                  className="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 "
-                >
-                  <span className="  font-medium text-black  bg-white px-4 py-2 rounded-md">
-                    {user?.name?.charAt(0)}
-                  </span>
-                </Link>
+  to="/profile"
+  className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-gray-300 dark:ring-gray-500"
+>
+  <img
+    src={user?.profilePic}
+    alt="Profile"
+    className="w-full h-full object-cover"
+  />
+</Link>
+
 
                 <div
                   className={`absolute right-0 mt-2 ${

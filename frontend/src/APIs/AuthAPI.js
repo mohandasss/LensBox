@@ -8,9 +8,15 @@ const axiosinstance = axios.create({
   },
 });
 
-const register = async (userData) => {
+const register = async (submissionData) => {
   try {
-    const response = await axiosinstance.post("/register", userData);
+    const response = await axiosinstance.post("/register", submissionData,{
+       headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    console.log(response);
+    
     localStorage.setItem("token", response.data.token);
     return response.data;
   } catch (error) {

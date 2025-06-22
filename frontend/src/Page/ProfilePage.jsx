@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { verifyToken, updateUser, deleteUser } from "../APIs/AuthAPI"; // Your provided verifyToken function
+import Navbar from "../Components/Navbar";
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
@@ -15,6 +16,7 @@ const ProfilePage = () => {
     country: "",
   });
 
+
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem("token");
@@ -25,7 +27,7 @@ const ProfilePage = () => {
 
         setUser(user);
 
-        const nameSplit = user.name.split(" ");
+       
         setFormData({
           name: user.name, // <-- full name
           email: user.email,
@@ -37,18 +39,41 @@ const ProfilePage = () => {
           zip: user.address?.zip || "",
           country: user.address?.country || "",
         });
+       
+        
       } catch (err) {
         console.error("Auth failed:", err);
       }
     };
+    
+    
 
     fetchUser();
+    
+    
   }, []);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const { name, value } = e.target;
 
+  if (name.startsWith("address.")) {
+    const addressField = name.split(".")[1];
+    setFormData((prev) => ({
+      ...prev,
+      address: {
+        ...prev.address,
+        [addressField]: value,
+      },
+    }));
+  } else {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+};
+;
+console.log(formData);
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) setAvatarPreview(URL.createObjectURL(file));
@@ -121,19 +146,37 @@ const ProfilePage = () => {
 
   if (!user) return <div className="text-white p-6">Loading...</div>;
   return (
-    <div className="bg-gray-950 min-h-screen text-white py-10 px-4">
-      <div className="max-w-4xl mx-auto bg-gray-900 rounded-2xl p-8 shadow-xl">
-        <h2 className="text-3xl font-semibold mb-8 text-white">
+    <div className="relative bg-black min-h-screen overflow-hidden">
+  {/* Video Background */}
+  <video
+    autoPlay
+    loop
+    muted
+    playsInline
+    className="absolute inset-0 w-full h-full object-cover opacity-30 z-0"
+  >
+    <source src="https://res.cloudinary.com/dk5gtjb3k/video/upload/v1750603314/videoplayback_2_cojfkx.webm" type="video/webm" />
+    Your browser does not support the video tag.
+  </video>
+
+  {/* Content Overlay */}
+  <div className="relative z-10">
+    <Navbar />
+
+    <div className="min-h-screen text-white py-10 px-4 flex items-center justify-center">
+      <div className="w-full max-w-4xl bg-white rounded-2xl p-8 shadow-2xl">
+        <h2 className="text-3xl font-semibold mb-8 text-black text-center">
           Personal Information
         </h2>
 
+        {/* Avatar and Upload */}
         <div className="flex items-center gap-6 mb-8">
           <img
-            src={avatarPreview || "https://i.pravatar.cc/100"}
+            src={user?.profilePic || "https://i.pravatar.cc/100"}
             alt="Avatar"
-            className="w-24 h-24 rounded-full object-cover border-2 border-indigo-500"
+            className="w-24 h-24 rounded-full object-cover border-2 border-indigo-500 shadow"
           />
-          <label className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded cursor-pointer">
+          <label className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded cursor-pointer transition">
             Change Avatar
             <input
               type="file"
@@ -141,26 +184,26 @@ const ProfilePage = () => {
               className="hidden"
             />
           </label>
-          <p className="text-sm text-gray-400">JPG, PNG, max 1MB</p>
+          <p className="text-sm text-gray-500">JPG, PNG, max 1MB</p>
         </div>
 
+        {/* Form Inputs */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {[
             ["Full Name", "name", formData.name],
-
             ["Email", "email", formData.email, true],
             ["Username", "username", formData.username, true],
             ["Phone", "phone", formData.phone],
             ["Timezone", "timezone", formData.timezone],
-            ["City", "city", formData.city],
-            ["State", "state", formData.state],
-            ["ZIP", "zip", formData.zip],
-            ["Country", "country", formData.country],
+            ["City", "address.city", formData.address?.city],
+            ["State", "address.state", formData.address?.state],
+            ["ZIP", "address.zip", formData.address?.zip],
+            ["Country", "address.country", formData.address?.country],
           ].map(([label, name, value, disabled]) => (
             <div key={name} className="flex flex-col">
-              <label className="text-sm text-gray-400 mb-1">{label}</label>
+              <label className="text-sm text-gray-700 mb-1">{label}</label>
               <input
-                className={`bg-gray-800 text-white rounded px-3 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                className={`bg-gray-100 text-black rounded px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
                   disabled ? "opacity-60 cursor-not-allowed" : ""
                 }`}
                 name={name}
@@ -173,7 +216,8 @@ const ProfilePage = () => {
           ))}
         </div>
 
-        <div className="flex flex-wrap gap-4">
+        {/* Buttons */}
+        <div className="flex flex-wrap gap-4 justify-end">
           <button
             onClick={handleSave}
             className="bg-indigo-600 hover:bg-indigo-500 px-6 py-2 rounded-lg text-white font-medium shadow"
@@ -182,19 +226,23 @@ const ProfilePage = () => {
           </button>
           <button
             onClick={handleLogout}
-            className="bg-gray-700 hover:bg-gray-600 px-6 py-2 rounded-lg text-white font-medium shadow"
+            className="bg-gray-600 hover:bg-gray-500 px-6 py-2 rounded-lg text-white font-medium shadow"
           >
             Sign Out
           </button>
           <button
             onClick={handleDeleteAccount}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition font-medium shadow"
           >
             Delete Account
           </button>
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+     
   );
 };
 
