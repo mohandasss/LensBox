@@ -137,27 +137,7 @@ const ProductDetails = ({ product }) => {
             </div>
 
             {/* Quantity - improved select styling */}
-            <div className="mb-8">
-              <label
-                htmlFor="quantity"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Quantity:
-              </label>
-              <select
-                id="quantity"
-                name="quantity"
-                className="w-24 rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:ring-opacity-50"
-                value={quantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
-              >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                  <option key={num} value={num}>
-                    {num}
-                  </option>
-                ))}
-              </select>
-            </div>
+            
 
             {/* Action Buttons - improved styling and hover effects */}
             <div className="flex space-x-4 mb-8">

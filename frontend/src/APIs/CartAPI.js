@@ -41,13 +41,27 @@ export const RemoveCartItem = async (userId, productId) => {
   return response.data;
 }
 
-export const updateCartItem = async (cartId, productId, quantity) => {
-  console.log(cartId, productId, quantity);
-  const response = await axiosInstance.put(`/${cartId}/${productId}`, {
-    quantity,
-  });
-  console.log(response.data);
-  return response.data; 
-}
+export const updateCartItem = async (userId, productId, quantity) => {
+  try {
+    console.log('Updating cart item:', { userId, productId, quantity });
+    
+    if (!userId || !productId || quantity == null) {
+      throw new Error('Missing required fields for cart update');
+    }
+
+    const response = await axiosInstance.put(`/${userId}/${productId}`, {
+      quantity: Number(quantity)
+    });
+    
+    console.log('Update cart response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating cart item:', {
+      error: error.response?.data || error.message,
+      status: error.response?.status
+    });
+    throw error;
+  }
+};
 
 

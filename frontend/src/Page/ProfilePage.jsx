@@ -26,6 +26,8 @@ const ProfilePage = () => {
         const { user } = await verifyToken(token);
 
         setUser(user);
+        console.log(user);
+        
 
         setFormData({
           name: user.name, // <-- full name
@@ -33,10 +35,10 @@ const ProfilePage = () => {
           username: user.email.split("@")[0],
           timezone: "Pacific Standard Time",
           phone: user.phone || "",
-          city: user?.city || "",
-          state: user.address?.state || "",
-          zip: user.address?.zip || "",
-          country: user.address?.country || "",
+          city: user?.address?.city || "",
+          state: user?.address?.state || "",
+          zip: user?.address?.zip || "",
+          country: user?.address?.country || "",
         });
       } catch (err) {
         console.error("Auth failed:", err);

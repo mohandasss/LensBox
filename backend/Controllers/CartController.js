@@ -3,7 +3,7 @@ const Cart = require("../Models/Cart");
 const addToCart = async (req, res) => {
     try {
         const { productId, quantity, userId } = req.body;
-
+        
         if (!userId || !productId || !quantity) {
             return res.status(400).json({ message: "Missing required fields" });
         }
@@ -39,13 +39,37 @@ const getCart = async (req, res) => {
     }
 };
 
+   const updateCart = async (req, res) => {
+    try {
+        const { userId, productId } = req.params;
+        const { quantity } = req.body;
+
+        if (!userId || !productId || quantity == null) {
+            return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        const cartItem = await Cart.findOne({ userId, productId });
+
+        if (!cartItem) {
+            return res.status(404).json({ message: "Cart item not found" });
+        }
+
+        cartItem.quantity = quantity;
+        await cartItem.save();
+
+        res.status(200).json({ message: "Cart item updated successfully", cartItem });
+    } catch (error) {
+        res.status(500).json({ message: "Error updating cart item", error });
+    }
+};
 
 const deleteCartItem = async (req, res) => {
     try {
         const { userId, productId } = req.params;
 
         const cartItem = await Cart.findOneAndDelete({ userId, productId });
-
+        console.log(cartItem);
+        
         if (!cartItem) {
             return res.status(404).json({ message: "Cart item not found" });
         }
@@ -61,4 +85,4 @@ const deleteCartItem = async (req, res) => {
 
 
 
-module.exports = { addToCart, getCart, deleteCartItem };
+module.exports = { addToCart,updateCart, getCart, deleteCartItem };

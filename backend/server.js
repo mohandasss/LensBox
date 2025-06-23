@@ -1,17 +1,19 @@
 const express = require("express");
-const authRoutes = require("./Routes/AuthRoutes");
-const connectDB = require("./Config/db");
+const authRoutes = require("./Routes/AuthRoutes.js");
+const connectDB = require("./Config/db.js");
 const dotenv = require("dotenv");
 const cors = require("cors");
-const productRoutes = require("./Routes/ProductRoutes");
+const productRoutes = require("./Routes/ProductRoutes.js");
 const categoryRoutes = require("./Routes/CategoryRoutes.js");
 const subCategoryRoutes = require("./Routes/SubCategoryRoutes.js");
 const brandRoutes = require("./Routes/BrandRoutes.js");
 const fileUpload = require("express-fileupload");
-const cartRoutes = require("./Routes/CartRoutes");
-const chatRoute = require("./Routes/ChatRoutes");
+const cartRoutes = require("./Routes/CartRoutes.js");
+const chatRoute = require("./Routes/ChatRoutes.js");
+const checkout  = require ("./Routes/checkout.js");
 dotenv.config();
-require('./Config/passport');
+
+require('./Config/passport.js');
 const googleLoginRoutes = require('./Routes/googleLogin.js');
 
 const passport = require('passport');
@@ -58,6 +60,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/subcategories", subCategoryRoutes);
 app.use("/api/brands", brandRoutes);
 app.use("/api/cart", cartRoutes);
+app.use('/api/checkout', checkout);
 // Basic Route
 app.get("/", (req, res) => {
   res.send("Hello, world!");
