@@ -2,6 +2,7 @@ import React from 'react';
 
 const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
   return (
+    
     <div className="p-6 flex border-b border-gray-200">
       <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
         <img
@@ -9,6 +10,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
           alt={item.productId.name}
           className="h-full w-full object-cover object-center"
         />
+        
       </div>
       <div className="ml-6 flex-1 flex flex-col">
         <div>
@@ -48,7 +50,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
           <button 
             type="button" 
             className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
-            onClick={() => onRemove(item._id)}
+            onClick={() => onRemove(item.productId._id)}
           >
             Remove
           </button>

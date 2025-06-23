@@ -195,10 +195,10 @@ console.log(formData);
             ["Username", "username", formData.username, true],
             ["Phone", "phone", formData.phone],
             ["Timezone", "timezone", formData.timezone],
-            ["City", "address.city", formData.address?.city],
-            ["State", "address.state", formData.address?.state],
-            ["ZIP", "address.zip", formData.address?.zip],
-            ["Country", "address.country", formData.address?.country],
+            ["City", "address.city", formData.city],
+            ["State", "address.state", formData?.state],
+            ["ZIP", "address.zip", formData?.zip],
+            ["Country", "address.country", formData?.country],
           ].map(([label, name, value, disabled]) => (
             <div key={name} className="flex flex-col">
               <label className="text-sm text-gray-700 mb-1">{label}</label>

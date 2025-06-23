@@ -4,7 +4,7 @@ import Footer from "../Components/Footer";
 import CartItem from "../Components/CartItems";
 import { verifyToken } from "../APIs/AuthAPI";
 import { getCart, updateCartItem, RemoveCartItem  } from "../APIs/CartAPI";
-import {Link} from "react-router-dom";
+import {Await, Link} from "react-router-dom";
 const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,13 +61,19 @@ const CartPage = () => {
   };
 
   // Handle item removal
-  const handleRemoveItem = async (itemId) => {
+  const handleRemoveItem = async (productId) => {
     try {
+       const token = localStorage.getItem("token");
+        const {user} = await verifyToken(token)
+      console.log(productId,user._id);
+       const  newres  =  await RemoveCartItem(user._id,productId);
+       console.log(newres);
+       
       // Optimistic update
-      setCartItems(cartItems.filter(item => item._id !== itemId));
-      
+      setCartItems(cartItems.filter(item =>item.productId_id  !== productId));
+      fetchCart();
       // API call to remove
-      await RemoveCartItem(itemId);
+      
     } catch (err) {
       console.error("Error removing item:", err);
       // Revert on error

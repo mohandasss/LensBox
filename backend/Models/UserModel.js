@@ -14,7 +14,7 @@ const UserSchema = new mongoose.Schema({
     address: { type: AddressSchema, required: true },
     role: { type: String, enum: ['user', 'seller'], default: 'user' },
     phone: { type: String, required: true },
-    profilePic: { type: String }, // Cloudinary image URL
+    profilePic: { type: String }, 
 }, { timestamps: true });
 
 
