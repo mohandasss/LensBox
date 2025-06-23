@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { FaGoogle, FaApple, FaFacebook } from "react-icons/fa";
 import {
   Upload,
   User,
@@ -36,7 +36,7 @@ const Register = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const videoRef = useRef(null);
-const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const handleImageUpload = (file) => {
     if (!file) return;
@@ -121,11 +121,10 @@ const navigate = useNavigate();
           country: "",
           phone: "",
         });
-setTimeout(() => {
-    navigate("/");
-  }, 2000); // 2 seconds delay so user sees the success popup
+        setTimeout(() => {
+          navigate("/");
+        }, 2000); // 2 seconds delay so user sees the success popup
         setImagePreview("");
-        
       } else {
         setPopupMessage("Registration failed. Please try again.");
         setShowPopup(true);
@@ -336,6 +335,24 @@ setTimeout(() => {
               </p>
             </div>
           </form>
+          <div className="flex justify-center space-x-6 mb-6">
+            {/* Google Login - External Redirect */}
+            <Link to="http://localhost:5000/api/auth/google">
+              <button className="p-3 rounded-full border border-gray-300 hover:bg-gray-100 transition duration-300">
+                <FaGoogle className="text-red-500" />
+              </button>
+            </Link>
+
+            {/* Apple Button */}
+                <button className="p-3 rounded-full border border-gray-300 hover:bg-gray-100 transition duration-300">
+              <FaApple className="text-black" />
+            </button>
+
+            {/* Facebook Button */}
+            <button className="p-3 rounded-full border border-gray-300 hover:bg-gray-100 transition duration-300">
+              <FaFacebook className="text-blue-600" />
+            </button>
+          </div>
         </div>
       </div>
 

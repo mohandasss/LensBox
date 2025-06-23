@@ -62,7 +62,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="px-4 bg-transparent">
+    <nav className="  px-4 bg-transparent">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Left side - Logo/Brand */}

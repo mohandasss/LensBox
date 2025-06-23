@@ -11,6 +11,11 @@ const fileUpload = require("express-fileupload");
 const cartRoutes = require("./Routes/CartRoutes");
 const chatRoute = require("./Routes/ChatRoutes");
 dotenv.config();
+require('./Config/passport');
+const googleLoginRoutes = require('./Routes/googleLogin.js');
+
+const passport = require('passport');
+const session = require('express-session');
 const app = express();
 
 // Connect to MongoDB
@@ -36,7 +41,16 @@ app.use(
   })
 );
 
+
+app.use(session({
+  secret: 'someSecret',
+  resave: false,
+  saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 // Route Imports
+app.use('/api/auth', googleLoginRoutes);
 app.use('/api', chatRoute); 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);

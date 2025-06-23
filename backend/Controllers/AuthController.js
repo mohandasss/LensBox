@@ -2,6 +2,74 @@ const User = require("../Models/UserModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const cloudinary = require("../Config/cloudanary");
+const axios = require("axios");
+
+
+const googleCallback = async (req, res) => {
+  const code = req.query.code;
+
+  if (!code) return res.status(400).json({ message: "Code not found in URL" });
+
+  try {
+    // 1. Exchange code for tokens
+    const tokenRes = await axios.post("https://oauth2.googleapis.com/token", {
+      code,
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      redirect_uri: "http://localhost:5000/api/auth/google/callback",
+      grant_type: "authorization_code",
+    });
+
+    const { access_token } = tokenRes.data;
+
+    // 2. Get user info from Google
+    const userInfo = await axios.get(
+      "https://www.googleapis.com/oauth2/v3/userinfo",
+      {
+        headers: { Authorization: `Bearer ${access_token}` },
+      }
+    );
+
+    const { email, name, picture } = userInfo.data;
+
+    // 3. Check if user exists
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = new User({
+        name,
+        email,
+        password: "google_oauth_dummy",
+        profilePic: picture,
+        phone: "",
+        address: {
+          city: "",
+          state: "",
+          zip: "",
+          country: "",
+        },
+      });
+
+      await user.save();
+    }
+
+    // 4. Generate JWT
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    // 5. Redirect to frontend with token (or return JSON)
+    res.redirect(`http://localhost:3000?token=${token}`);
+    // Or: res.json({ token, user });
+
+  } catch (err) {
+    console.error("Google OAuth Error:", err.response?.data || err);
+    res.status(500).json({ message: "OAuth failed", error: err.message });
+  }
+};
+
+
+
 
 
 const registerUser = async (req, res) => {
@@ -97,14 +165,16 @@ const updateUser = async (req, res) => {
     const {
       name,
       phone,
-      city,
-      state,
-      zip,
-      country,
-      image, 
+      image,
+      address = {}
     } = req.body;
 
+    const { city, state, zip, country } = address;
+
+    console.log("Received Data:", req.body);
+
     let profilePic;
+
     if (image) {
       const result = await cloudinary.uploader.upload(image, {
         folder: "user_profiles",
@@ -112,24 +182,25 @@ const updateUser = async (req, res) => {
       profilePic = result.secure_url;
     }
 
-    // Build updated fields object
-    const updatedFields = {
-      ...(name && { name }),
-      ...(phone && { phone }),
-      ...(profilePic && { profilePic }),
-      address: {
-        ...(city && { city }),
-        ...(state && { state }),
-        ...(zip && { zip }),
-        ...(country && { country }),
-      },
-    };
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (phone) updateData.phone = phone;
+    if (profilePic) updateData.profilePic = profilePic;
 
-    // Ensure nested address gets properly updated
+    if (city || state || zip || country) {
+      updateData.address = {};
+      if (city) updateData.address.city = city;
+      if (state) updateData.address.state = state;
+      if (zip) updateData.address.zip = zip;
+      if (country) updateData.address.country = country;
+    }
+
+    console.log("Update Object:", updateData);
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { $set: updatedFields },
-      { new: true }
+      { $set: updateData },
+      { new: true, runValidators: true }
     ).select("-password");
 
     if (!updatedUser) {
@@ -140,11 +211,14 @@ const updateUser = async (req, res) => {
       message: "Profile updated successfully",
       user: updatedUser,
     });
+
   } catch (err) {
     console.error("Update error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
 
 
 
@@ -198,4 +272,4 @@ const deleteUser = async (req, res) => {
 
 
 
-module.exports = { registerUser,updateUser, loginUser, deleteUser, checkAuth };
+module.exports = {googleCallback , registerUser,updateUser, loginUser, deleteUser, checkAuth };

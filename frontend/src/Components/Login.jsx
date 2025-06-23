@@ -58,100 +58,108 @@ const Login = () => {
   const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-black">
-      <Navbar/>
-    <div className="relative w-full h-screen overflow-hidden">
-      {/* 🔁 Background Video */}
-      <video
-        ref={videoRef}
-        muted
-        className="absolute top-0 left-0 w-full h-full object-cover z-0"
-        playsInline
-      >
-        <source
-          src="https://res.cloudinary.com/dk5gtjb3k/video/upload/v1750170682/mvpxxk2fdmzwyzgxp7kz.mp4"
-          type="video/mp4"
-        />
-      </video>
+      <Navbar />
+      <div className="relative w-full h-screen overflow-hidden">
+        {/* 🔁 Background Video */}
+        <video
+          ref={videoRef}
+          muted
+          className="absolute top-0 left-0 w-full h-full object-cover z-0"
+          playsInline
+        >
+          <source
+            src="https://res.cloudinary.com/dk5gtjb3k/video/upload/v1750170682/mvpxxk2fdmzwyzgxp7kz.mp4"
+            type="video/mp4"
+          />
+        </video>
 
-      {/* 🔲 Dark Overlay */}
-      <div className="absolute top-0 left-0 w-full h-full bg-black/60 z-10" />
+        {/* 🔲 Dark Overlay */}
+        <div className="absolute top-0 left-0 w-full h-full bg-black/60 z-10" />
 
-      {/* 📦 Login Card */}
-      <div className="relative z-20 flex justify-center items-center h-full px-4">
-        <div className="w-full max-w-md bg-white shadow-2xl rounded-lg p-8">
-          <h2 className="text-4xl font-extrabold text-center mb-4 text-gray-800">
-            Login
-          </h2>
-          <p className="text-center mb-8 font-medium text-gray-700">
-            Enter your details to sign in to your account
-          </p>
-
-          <form onSubmit={handleLogin}>
-            <div className="mb-6">
-              <label
-                htmlFor="email"
-                className="block mb-2 font-medium text-gray-700"
-              >
-                Email
-              </label>
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                type="email"
-                id="email"
-                className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div className="mb-6">
-              <label
-                htmlFor="password"
-                className="block mb-2 font-medium text-gray-700"
-              >
-                Password
-              </label>
-              <input
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                type="password"
-                id="password"
-                className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full p-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition duration-300 mb-6"
-            >
-              Sign in
-            </button>
-
-            <div className="text-center mb-6 text-gray-600">
-              — Or Sign in with —
-            </div>
-
-            <div className="flex justify-center space-x-6 mb-6">
-              <button className="p-3 rounded-full border border-gray-300 hover:bg-gray-100 transition duration-300">
-                <FaGoogle className="text-red-500" />
-              </button>
-              <button className="p-3 rounded-full border border-gray-300 hover:bg-gray-100 transition duration-300">
-                <FaApple className="text-black" />
-              </button>
-              <button className="p-3 rounded-full border border-gray-300 hover:bg-gray-100 transition duration-300">
-                <FaFacebook className="text-blue-600" />
-              </button>
-            </div>
-
-            <p className="text-center text-gray-700">
-              Don&apos;t have an account?{" "}
-              <Link to="/register" className="text-blue-500 hover:underline">
-                Register Now
-              </Link>
+        {/* 📦 Login Card */}
+        <div className="relative z-20 flex justify-center items-center h-full px-4">
+          <div className="w-full max-w-md bg-white shadow-2xl rounded-lg p-8">
+            <h2 className="text-4xl font-extrabold text-center mb-4 text-gray-800">
+              Login
+            </h2>
+            <p className="text-center mb-8 font-medium text-gray-700">
+              Enter your details to sign in to your account
             </p>
-          </form>
+
+            <form onSubmit={handleLogin}>
+              <div className="mb-6">
+                <label
+                  htmlFor="email"
+                  className="block mb-2 font-medium text-gray-700"
+                >
+                  Email
+                </label>
+                <input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  type="email"
+                  id="email"
+                  className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="mb-6">
+                <label
+                  htmlFor="password"
+                  className="block mb-2 font-medium text-gray-700"
+                >
+                  Password
+                </label>
+                <input
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  type="password"
+                  id="password"
+                  className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full p-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition duration-300 mb-6"
+              >
+                Sign in
+              </button>
+
+              <div className="text-center mb-6 text-gray-600">
+                — Or Sign in with —
+              </div>
+
+              
+
+              <p className="text-center text-gray-700">
+                Don&apos;t have an account?{" "}
+                <Link to="/register" className="text-blue-500 hover:underline">
+                  Register Now
+                </Link>
+              </p>
+            </form>
+            <div className="flex justify-center space-x-6 mb-6">
+                {/* Google Login - External Redirect */}
+                <Link to="http://localhost:5000/api/auth/google">
+                  <button className="p-3 rounded-full border border-gray-300 hover:bg-gray-100 transition duration-300">
+                    <FaGoogle className="text-red-500" />
+                  </button>
+                </Link>
+
+                {/* Apple Button */}
+                <button className="p-3 rounded-full border border-gray-300 hover:bg-gray-100 transition duration-300">
+                  <FaApple className="text-black" />
+                </button>
+
+                {/* Facebook Button */}
+                <button className="p-3 rounded-full border border-gray-300 hover:bg-gray-100 transition duration-300">
+                  <FaFacebook className="text-blue-600" />
+                </button>
+              </div>
+          </div>
         </div>
       </div>
-    </div>
     </div>
   );
 };

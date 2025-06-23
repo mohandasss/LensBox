@@ -14,6 +14,7 @@ import ServiceMotor from './Page/ServiceMotor';
 import ProductDetailsPage from './Page/ProductDetailsPage';
 import CartPage from './Page/CartPage';
 import ProfilePage from './Page/ProfilePage';
+import GoogleLoginSuccess from './Components/GoogleLoginSuccess';
 function App() {
   return (
     <div className="min-h-screen bg-gray-50">
@@ -43,6 +44,8 @@ function AppContent() {
 
   return (
     <Routes>
+      <Route path="/google-login-success" element={<GoogleLoginSuccess />} />
+
       <Route path='/' element={<HomePage />} />
       <Route path='/login' element={<Login />} />
       <Route path='/register' element={<Register />} />
@@ -53,6 +56,7 @@ function AppContent() {
       <Route path='/Cart' element={<CartPage />} /> 
       <Route path='/form' element={<FormPage />} /> 
       <Route path='/profile' element={<ProfilePage />} /> 
+      
 
       
       <Route path='/product/:id' element={<ProductDetailsPage />} />
