@@ -12,17 +12,19 @@ const CartPage = () => {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
+  const [user, setUser] = useState(null);
 
   const fetchCart = async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
+      if (!token) { 
         console.log("No token found");
         setLoading(false);
         return;
       }
 
       const { user } = await verifyToken(token);
+      setUser(user);
       const response = await getCart(user._id);
       setCartItems(response.cart || []);
       setLoading(false);
@@ -59,10 +61,10 @@ const CartPage = () => {
   };
 
   // Handle item removal
-  const handleRemoveItem = (productId) => {
-    setCartItems(prevItems => 
-      prevItems.filter(item => item.productId._id !== productId)
-    );
+  const handleRemoveItem = async (productId) => {
+    await RemoveCartItem(user._id, productId);
+   
+    fetchCart();
   };
 
   // Open checkout modal
@@ -73,7 +75,7 @@ const CartPage = () => {
       
       setLoadingProfile(true);
       const { user } = await verifyToken(token);
-      setUserProfile(user);
+      setUser(user);
       console.log(user);
     } catch (err) {
       console.error('Error fetching user profile:', err);
@@ -95,7 +97,7 @@ const CartPage = () => {
       return;
     }
     
-    if (!userProfile) {
+    if (!user) {
       await fetchUserProfile();
     }
     
@@ -149,7 +151,7 @@ const CartPage = () => {
       }
 
       const options = {
-        key: 'YOUR_RAZORPAY_KEY', // Replace with your Razorpay key
+        key: 'rzp_test_eH00x9FPKVU1eq', // Replace with your Razorpay key
         amount: orderData.amount.toString(),
         currency: orderData.currency,
         name: 'LensBox',
@@ -162,9 +164,9 @@ const CartPage = () => {
           // and update the order status
         },
         prefill: {
-          name: checkoutData.fullName,
-          email: 'customer@example.com', // You would get this from user profile
-          contact: checkoutData.phone
+          name: user.name,
+          email: user.email, // You would get this from user profile
+          contact: user.phone
         },
         theme: {
           color: '#000000'
@@ -314,14 +316,14 @@ const CartPage = () => {
         onClose={() => setIsCheckoutOpen(false)}
         cartItems={cartItems}
         onCheckout={handleCheckoutSubmit}
-        initialValues={userProfile?.address ? {
-          fullName: userProfile.name ,
-          phone: userProfile.phone,
-          addressLine1: `${userProfile.address.city}, ${userProfile.address.state}, ${userProfile.address.zip}`,
+        initialValues={user?.address ? {
+          fullName: user.name ,
+          phone: user.phone,
+          addressLine1: `${user.address.city}, ${user.address.state}, ${user.address.zip}`,
           addressLine2: "",
-          city: userProfile.address.city,
-          state: userProfile.address.state,
-          zipCode: userProfile.address.zip,
+          city: user.address.city,
+          state: user.address.state,
+          zipCode: user.address.zip,
           country: 'India'
         } : {}}
       />

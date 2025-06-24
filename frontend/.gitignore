@@ -7,7 +7,7 @@ node_modules
 
 # Testing
 /coverage
-
+secretfront.js
 # Production
 /build
 /dist

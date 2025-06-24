@@ -28,14 +28,21 @@ export const createOrder = async (orderData) => {
 
 export const verifyPayment = async (paymentData) => {
   try {
-    console.log('Verifying payment:', paymentData);
+    console.log('🔍 Verifying payment with data:', paymentData);
+    
+    // Validate data before sending
+    if (!paymentData.razorpay_order_id || !paymentData.razorpay_payment_id || !paymentData.razorpay_signature) {
+      throw new Error('Missing required payment verification data');
+    }
+    
     const response = await axiosInstance.post('/verify-payment', paymentData);
-    console.log('Payment verified:', response.data);
+    console.log('✅ Payment verified successfully:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error verifying payment:', {
+    console.error('❌ Error verifying payment:', {
       error: error.response?.data || error.message,
-      status: error.response?.status
+      status: error.response?.status,
+      sentData: paymentData
     });
     throw error;
   }

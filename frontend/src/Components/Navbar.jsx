@@ -12,14 +12,14 @@ const Navbar = () => {
 
   useEffect(() => {
     console.log(user);
-    
+
     const checkAuth = async () => {
       const token = localStorage.getItem("token");
       if (token) {
         try {
           const response = await verifyToken(token);
           console.log(response.user.profilePic);
-          
+
           if (
             response.success ||
             response.message === "User is authenticated"
@@ -104,6 +104,9 @@ const Navbar = () => {
             <Link to="/products" className="text-white hover:text-gray-600">
               Products
             </Link>
+            <Link to="/orders" className="text-white hover:text-gray-600">
+              Orders
+            </Link>
             <Link to="/about" className="text-white hover:text-gray-600">
               About
             </Link>
@@ -137,6 +140,7 @@ const Navbar = () => {
                     <GiEvilLove className="text-2xl text-red-500" />
                   </span>
                 </Link>
+                
                 <Link
                   to="/cart"
                   className="text-white hover:text-gray-600"
@@ -147,16 +151,15 @@ const Navbar = () => {
                   </span>
                 </Link>
                 <Link
-  to="/profile"
-  className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-gray-300 dark:ring-gray-500"
->
-  <img
-    src={user?.profilePic}
-    alt="Profile"
-    className="w-full h-full object-cover"
-  />
-</Link>
-
+                  to="/profile"
+                  className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-gray-300 dark:ring-gray-500"
+                >
+                  <img
+                    src={user?.profilePic}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                </Link>
 
                 <div
                   className={`absolute right-0 mt-2 ${
@@ -231,6 +234,12 @@ const Navbar = () => {
               Home
             </Link>
             <Link
+              to="/orders"
+              className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+            >
+              Orders
+            </Link>
+            <Link
               to="/products"
               className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
             >
@@ -275,6 +284,12 @@ const Navbar = () => {
                   className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                 >
                   Settings
+                </Link>
+                <Link
+                  to="/orders"
+                  className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                >
+                  Orders
                 </Link>
                 <button
                   onClick={handleSignOut}
