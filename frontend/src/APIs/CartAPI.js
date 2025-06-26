@@ -64,4 +64,15 @@ export const updateCartItem = async (userId, productId, quantity) => {
   }
 };
 
+export const clearCart = async (userId) => {
+  try {
+    const response = await axiosInstance.delete(`/${userId}`);
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error clearing cart:", error);
+    throw error;
+  }
+}
+
 

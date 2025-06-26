@@ -81,8 +81,34 @@ const deleteCartItem = async (req, res) => {
     }
 };
 
+const clearCart = async (req, res) => {
+    try {
+        const { userId } = req.params;
 
+        if (!userId) {
+            return res.status(400).json({ message: "User ID is required" });
+        }
 
+        const result = await Cart.deleteMany({ userId });
+        
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ message: "No cart items found for this user" });
+        }
 
+        res.status(200).json({ 
+            message: `Successfully cleared ${result.deletedCount} items from cart`,
+            deletedCount: result.deletedCount
+        });
 
-module.exports = { addToCart,updateCart, getCart, deleteCartItem };
+    } catch (error) {
+        res.status(500).json({ message: "Error clearing cart", error });
+    }
+};
+
+module.exports = { 
+    addToCart,
+    updateCart, 
+    getCart, 
+    deleteCartItem, 
+    clearCart 
+};

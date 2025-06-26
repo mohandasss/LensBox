@@ -9,15 +9,19 @@ import {
   HomeIcon,
   MapIcon,
   CalendarIcon,
-  CheckCircleIcon,
-  CurrencyRupeeIcon,
+
 } from "@heroicons/react/24/outline";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { createOrder, verifyPayment } from "../APIs/CheckoutAPI";
 import { loadRazorpay, formatAmount } from "../utils/razorpay";
 import { verifyToken } from "../APIs/AuthAPI";
-import { RemoveCartItem } from "../APIs/CartAPI";
+
+import { clearCart } from "../APIs/CartAPI";
+import PaymentSuccess from "./PaymentSuccess";
+import { AnimatePresence } from "framer-motion";
+
+
 const CheckoutModal = ({
   isOpen,
   onClose,
@@ -28,10 +32,12 @@ const CheckoutModal = ({
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
   const [paymentError, setPaymentError] = useState("");
-  
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [orderDetails, setOrderDetails] = useState(null);
+  console.log(orderDetails);
   // Initialize form data with proper defaults
   const [formData, setFormData] = useState({
     fullName: "",
@@ -278,23 +284,28 @@ const CheckoutModal = ({
             const verificationResponse = await verifyPayment(verificationData);
             console.log("✅ Payment verification successful:", verificationResponse);
 
-            // 5. Call the original onCheckout with the response
-            if (onCheckout) {
-              onCheckout({
-                ...response,
-                paymentVerified: true,
-                paymentId: razorpayResponse.razorpay_payment_id,
-              });
-            }
+            // 5. Clear cart and update state
+            const clearCartResponse = await clearCart(user._id);
+            console.log("Cart cleared successfully:", clearCartResponse);
             
-            cartItems.forEach((item) => {
-              RemoveCartItem(user._id, item.productId._id);
-              console.log(item.productId._id, user._id);
+            // 6. Set order details for success popup
+            setOrderDetails({
+              orderId: response.orderId,
+              amount: calculateTotal()
             });
             
-            // Close modal and redirect
-            onClose();
-            navigate("/orders");
+            // 7. Show success popup
+            setPaymentSuccess(true);
+            
+            // 8. Close modal after a short delay
+            setTimeout(() => {
+              onClose();
+              
+              // 9. Redirect to orders page after popup is shown
+              setTimeout(() => {
+                navigate(`/orders?payment_success=true&order_id=${response.orderId}&amount=${calculateTotal()}`);
+              }, 100);
+            }, 500);
           } catch (error) {
             console.error("❌ Payment verification failed:", error);
             setPaymentError(
@@ -660,46 +671,58 @@ const CheckoutModal = ({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 overflow-y-auto"
-      aria-labelledby="modal-title"
-      role="dialog"
-      aria-modal="true"
-    >
-      <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-          aria-hidden="true"
-          onClick={onClose}
-        ></div>
+    <div>
+      {/* Payment Success Popup */}
+      {paymentSuccess && orderDetails && (
+        <PaymentSuccess
+          orderDetails={orderDetails}
+          onClose={() => {
+            setPaymentSuccess(false);
+            onClose();
+            navigate('/orders');
+          }}
+          timer={5}
+          autoClose={true}
+        />
+      )}
 
-        <span
-          className="hidden sm:inline-block sm:align-middle sm:h-screen"
-          aria-hidden="true"
-        >
-          &#8203;
-        </span>
+      {/* Checkout Modal */}
+      <div className="fixed inset-0 z-40 overflow-y-auto">
+        <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+          <div 
+            className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+            aria-hidden="true"
+            onClick={onClose}
+          ></div>
 
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3
-                className="text-lg leading-6 font-medium text-gray-900"
-                id="modal-title"
-              >
-                {currentStep === 1 && "Shipping Information"}
-                {currentStep === 2 && "Rental Period"}
-                {currentStep === 3 && "Order Summary"}
-              </h3>
-              <button
-                type="button"
-                className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none"
-                onClick={onClose}
-              >
-                <span className="sr-only">Close</span>
-                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-              </button>
-            </div>
+          <span 
+            className="hidden sm:inline-block sm:align-middle sm:h-screen"
+            aria-hidden="true"
+          >
+            &#8203;
+          </span>
+
+
+          <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
+            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3
+                  className="text-lg leading-6 font-medium text-gray-900"
+                  id="modal-title"
+                >
+                  {currentStep === 1 && "Shipping Information"}
+                  {currentStep === 2 && "Rental Dates"}
+                  {currentStep === 3 && "Order Summary"}
+                </h3>
+                <button
+                  type="button"
+                  className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  onClick={onClose}
+                >
+                  <span className="sr-only">Close</span>
+                  <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                </button>
+              </div>
 
             {/* Progress Steps */}
             <div className="mb-6">
@@ -753,16 +776,16 @@ const CheckoutModal = ({
                 <button
                   type="button"
                   onClick={handleNext}
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                   className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? "Loading..." : "Next"}
+                  {isSubmitting ? "Loading..." : "Next"}
                 </button>
                 {currentStep > 1 && (
                   <button
                     type="button"
                     onClick={handlePrevious}
-                    disabled={isLoading}
+                    disabled={isSubmitting}
                     className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Back
@@ -790,6 +813,7 @@ const CheckoutModal = ({
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

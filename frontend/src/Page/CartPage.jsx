@@ -6,6 +6,7 @@ import { verifyToken } from "../APIs/AuthAPI";
 import { getCart, updateCartItem, RemoveCartItem } from "../APIs/CartAPI";
 import { Link } from "react-router-dom";
 import { loadRazorpay } from "../utils/razorpay";
+import { clearCart } from "../APIs/CartAPI";
 const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -157,16 +158,53 @@ const CartPage = () => {
         name: 'LensBox',
         description: 'Camera Equipment Rental',
         order_id: orderId,
-        handler: function (response) {
-          // Handle successful payment
-          alert('Payment successful! Payment ID: ' + response.razorpay_payment_id);
-          // Here you would typically verify the payment on your backend
-          // and update the order status
+        handler: async function (response) {
+          try {
+            // Verify payment with your backend
+            const token = localStorage.getItem("token");
+            const verifyResponse = await fetch('http://localhost:8000/api/checkout/verify-payment', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+                amount: amount,
+                cartItems: cartItems.map(item => ({
+                  productId: item.productId._id,
+                  quantity: item.quantity,
+                  price: item.productId.price
+                }))
+              })
+            });
+            
+            const result = await verifyResponse.json();
+            
+            if (result.success) {
+              // Clear the cart and redirect to orders page
+              await clearCart(user._id);
+              window.location.href = '/orders';
+            } else {
+              throw new Error(result.message || 'Payment verification failed');
+            }
+          } catch (error) {
+            console.error('Payment verification error:', error);
+            alert('Error verifying payment: ' + error.message);
+          }
+        },
+        modal: {
+          ondismiss: function() {
+            // This is called when the payment modal is closed without completing payment
+            console.log('Payment modal closed');
+          }
         },
         prefill: {
           name: user.name,
-          email: user.email, // You would get this from user profile
-          contact: user.phone
+          email: user.email,
+          contact: user.phone || ''
         },
         theme: {
           color: '#000000'
@@ -179,10 +217,15 @@ const CartPage = () => {
       // Close the modal after opening Razorpay
       setIsCheckoutOpen(false);
       
+      // Add error handler for payment modal close
+      paymentObject.on('payment.failed', function (response) {
+        alert('Payment failed: ' + response.error.description);
+      });
+      
     } catch (err) {
       console.error('Error during checkout:', err);
       // Show error message to user
-      alert('Error processing payment: ' + err.message);
+      
     }
   };
 

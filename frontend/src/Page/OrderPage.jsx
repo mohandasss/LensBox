@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
 import OrderDetails from "../Components/OrderDetails";
+import PaymentSuccess from "../Components/PaymentSuccess";
 import { verifyToken } from "../APIs/AuthAPI";
 import { getOrders, downloadInvoice } from "../APIs/OrderAPI";
 import { toast } from "react-toastify";
@@ -58,6 +60,30 @@ const sampleOrders = [
 ];
 
 const OrderPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+  const [orderDetails, setOrderDetails] = useState(null);
+
+  // Check for payment success in URL params
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const paymentSuccess = params.get('payment_success');
+    const orderId = params.get('order_id');
+    const amount = params.get('amount');
+
+    if (paymentSuccess === 'true' && orderId) {
+      setShowPaymentSuccess(true);
+      setOrderDetails({
+        orderId,
+        amount: amount || '0.00'
+      });
+
+      // Clean up URL
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  }, [location]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -101,9 +127,19 @@ const OrderPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-800 flex flex-col">
+    <div className="min-h-screen flex flex-col bg-black">
       <Navbar />
-
+      
+      {/* Payment Success Popup */}
+      {showPaymentSuccess && (
+        <PaymentSuccess 
+          orderDetails={orderDetails} 
+          onClose={() => setShowPaymentSuccess(false)}
+          timer={5}
+          autoClose={true}
+        />
+      )}
+      
       <main className="flex-grow container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Your Orders</h1>
