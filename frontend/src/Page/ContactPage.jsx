@@ -11,45 +11,48 @@ const images = [
 
 const ContactPage = () => {
   return (
-    <div className="min-h-screen bg-black text-white">
-      <Navbar />
+    <div className="bg-black"> 
+    <Navbar />  
+    <div className="min-h-screen bg-gray-200 text-gray-900">
+      
 
       {/* Contact Section */}
-      <div className="flex flex-col items-center justify-center py-12 px-4 md:px-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold">Contact Us</h1>
-          <p className="text-gray-400">We are here to help you</p>
+      <div className="flex flex-col items-center justify-center py-20 px-4 md:px-8 max-w-6xl mx-auto">
+        <div className="text-center mb-16">
+          <h1 className="text-5xl font-light text-gray-900 mb-4 tracking-tight">Get in Touch</h1>
+          <div className="w-12 h-0.5 bg-gray-900 mx-auto mb-6"></div>
+          <p className="text-lg text-gray-600 font-light">We'd love to hear from you</p>
         </div>
 
         {/* Contact Form */}
-        <form className="w-full max-w-md bg-gray-900 p-6 rounded-lg shadow-xl border border-gray-700">
-          <div className="mb-4">
-            <label className="block text-sm font-semibold mb-1" htmlFor="email">
-              Email
+        <form className="w-full max-w-lg bg-white p-8 border border-gray-100 shadow-sm">
+          <div className="mb-8">
+            <label className="block text-xs font-medium text-gray-700 mb-3 tracking-widest uppercase" htmlFor="email">
+              Email Address
             </label>
             
             <input
-              className="w-full p-3 rounded-md bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full p-4 bg-white text-gray-900 border-0 border-b border-gray-200 focus:border-gray-900 focus:outline-none transition-all duration-300 text-lg font-light placeholder-gray-400"
               id="email"
               type="email"
-              placeholder="Enter your email"
+              placeholder="your@email.com"
             />
           </div>
 
-          <div className="mb-6">
-            <label className="block text-sm font-semibold mb-1" htmlFor="message">
+          <div className="mb-10">
+            <label className="block text-xs font-medium text-gray-700 mb-3 tracking-widest uppercase" htmlFor="message">
               Message
             </label>
             <textarea
-              className="w-full p-3 rounded-md bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none h-32 resize-none"
+              className="w-full p-4 bg-white text-gray-900 border-0 border-b border-gray-200 focus:border-gray-900 focus:outline-none transition-all duration-300 h-32 resize-none text-lg font-light placeholder-gray-400"
               id="message"
-              placeholder="Enter your message"
+              placeholder="Tell us what's on your mind..."
             />
           </div>
 
           <div className="text-center">
             <button
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md transition-all duration-300 shadow-lg"
+              className="w-full py-4 px-8 bg-gray-900 text-white font-medium tracking-widest uppercase text-xs hover:bg-gray-800 transition-all duration-300"
               type="submit"
             >
               Send Message
@@ -58,17 +61,17 @@ const ContactPage = () => {
         </form>
 
         {/* Image Gallery */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mt-20 w-full max-w-5xl">
           {images.map((image, index) => (
             <motion.div
               key={index}
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.3 }}
-              className="rounded-lg overflow-hidden shadow-xl"
+              whileHover={{ scale: 1.02, y: -8 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className="bg-white shadow-sm hover:shadow-lg transition-all duration-500"
             >
               <img
-                className="w-full h-[250px] object-cover rounded-lg"
-                src={image}
+                className="w-full h-[280px] object-cover rounded-xl grayscale hover:grayscale-0 transition-all duration-500"
+                src={image || "/placeholder.svg"}
                 alt={`Contact Image ${index + 1}`}
               />
             </motion.div>
@@ -77,6 +80,7 @@ const ContactPage = () => {
       </div>
 
       <Footer />
+    </div>
     </div>
   );
 };

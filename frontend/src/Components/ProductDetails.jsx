@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { getCategoriesById } from "../APIs/CategoryAPI";
 import { addToCart } from "../APIs/CartAPI";
-
+import { addToWishlist } from "../APIs/WishlistAPI";
 import { verifyToken } from "../APIs/AuthAPI";
+import { toast } from "react-toastify";
 const ProductDetails = ({ product }) => {
   const [selectedImage, setSelectedImage] = useState(
     Array.isArray(product.image) ? product.image[0] : product.image
@@ -39,6 +40,21 @@ const ProductDetails = ({ product }) => {
     },
     [product]
   );
+
+
+
+  const addToWishlistHandler = async (productId) => {
+    try {
+        const {user} =await verifyToken(localStorage.getItem("token"))
+        console.log(productId);
+        console.log(user._id);
+        const addedtoWishlist = await addToWishlist(productId, user._id);
+        toast.success("Product added to wishlist");
+      console.log(addedtoWishlist);
+    } catch (error) {
+      console.error("Failed to add to wishlist:", error);
+    }
+  };
 
   return (
     <div className="bg-white">
@@ -161,7 +177,7 @@ const ProductDetails = ({ product }) => {
                 </svg>
                 Add to Cart
               </button>
-              <button className="bg-gray-100 flex gap-2 items-center justify-center text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition duration-300">
+              <button onClick={() => addToWishlistHandler(product._id)} className="bg-gray-100 flex gap-2 items-center justify-center text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition duration-300">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"

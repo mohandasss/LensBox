@@ -8,56 +8,6 @@ import { verifyToken } from "../APIs/AuthAPI";
 import { getOrders, downloadInvoice } from "../APIs/OrderAPI";
 import { toast } from "react-toastify";
 // Sample order data - in a real app, this would come from an API
-const sampleOrders = [
-  {
-    id: "ORD-123456",
-    date: "June 24, 2025",
-    status: "Shipped",
-    address: "123 Main St, Apt 4B, New York, NY 10001, United States",
-    paymentMethod: "Visa ending in 4242",
-    items: [
-      {
-        id: 1,
-        name: "Classic Aviator Sunglasses",
-        price: 129.99,
-        quantity: 1,
-        image:
-          "https://images.unsplash.com/photo-1511499767150-a48a237ac008?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
-      },
-      {
-        id: 2,
-        name: "Polarized Sunglasses",
-        price: 89.99,
-        quantity: 2,
-        image:
-          "https://images.unsplash.com/photo-1511499767150-a48a237ac008?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
-      },
-    ],
-    subtotal: 309.97,
-    shipping: 0.0,
-    total: 309.97,
-  },
-  {
-    id: "ORD-123455",
-    date: "June 15, 2025",
-    status: "Delivered",
-    address: "123 Main St, Apt 4B, New York, NY 10001, United States",
-    paymentMethod: "Mastercard ending in 5555",
-    items: [
-      {
-        id: 3,
-        name: "Blue Light Blocking Glasses",
-        price: 49.99,
-        quantity: 1,
-        image:
-          "https://images.unsplash.com/photo-1511499767150-a48a237ac008?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&h=100&q=80",
-      },
-    ],
-    subtotal: 49.99,
-    shipping: 4.99,
-    total: 54.98,
-  },
-];
 
 const OrderPage = () => {
   const location = useLocation();
@@ -127,7 +77,7 @@ const OrderPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-black">
+    <div className="min-h-screen flex flex-col bg-gray-700">
       <Navbar />
       
       {/* Payment Success Popup */}

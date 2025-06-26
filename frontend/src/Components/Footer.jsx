@@ -1,10 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
+import SubscriptionSuccessModal from "./SubscriptionSuccessModal";
+import { subscribe } from "../APIs/SubscriberAPI";
 
 const Footer = () => {
+  const [email, setEmail] = useState("");
+  const [subscriptionSuccess, setSubscriptionSuccess] = useState(false);
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+
+      await subscribe(email);
+    setSubscriptionSuccess(true);
+  };
+
   return (
-    <footer className="bg-black text-gray-400">
+    <footer className="bg-black text-gray-400 relative z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-6 lg:gap-8">
@@ -49,16 +61,34 @@ const Footer = () => {
           <div className="text-center sm:text-left">
             <h3 className="text-lg font-semibold text-white mb-4">Newsletter</h3>
             <p className="text-sm mb-4">Subscribe to our newsletter for updates and exclusive offers.</p>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="bg-gray-900 text-white px-4 py-2 rounded-md sm:rounded-l-md sm:rounded-r-none focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-              />
-              <button className="bg-black text-white px-4 sm:px-6 py-2 sm:py-3 rounded-md hover:bg-gray-800 transition-colors duration-300 whitespace-nowrap">
-                Subscribe
-              </button>
-            </div>
+            <form onSubmit={handleSubscribe} className="space-y-2">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  className="bg-gray-900 text-white px-4 py-3 rounded-md sm:rounded-r-none focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                  required
+                />
+                <button
+                  onClick={handleSubscribe}
+                  type="submit"
+                  className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors duration-300 whitespace-nowrap w-full sm:w-auto"
+                >
+                  Subscribe
+                </button>
+              </div>
+              <p className="text-xs text-gray-500">
+                We respect your privacy. Unsubscribe at any time.
+              </p>
+            </form>
+            
+            {/* Success Modal */}
+            <SubscriptionSuccessModal 
+              isOpen={subscriptionSuccess} 
+              onClose={() => setSubscriptionSuccess(false)}
+            />
           </div>
         </div>
 

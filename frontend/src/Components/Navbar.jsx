@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { verifyToken } from "../APIs/AuthAPI";
-import { GiEvilLove } from "react-icons/gi";
-import { FaOpencart } from "react-icons/fa";
+import { FaHeart } from 'react-icons/fa'
+import { FaCartArrowDown } from "react-icons/fa6";
 const Navbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
@@ -137,7 +137,7 @@ const Navbar = () => {
                   title="Wishlist"
                 >
                   <span className="text-white hover:text-gray-600">
-                    <GiEvilLove className="text-2xl text-red-500" />
+                    <FaHeart className="text-2xl text-red-500" />
                   </span>
                 </Link>
                 
@@ -147,7 +147,7 @@ const Navbar = () => {
                   title="Cart"
                 >
                   <span className="text-white hover:text-gray-600">
-                    <FaOpencart className="text-2xl text-yellow-500" />
+                    <FaCartArrowDown className="text-2xl text-yellow-500" />
                   </span>
                 </Link>
                 <Link

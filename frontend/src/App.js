@@ -16,6 +16,7 @@ import CartPage from './Page/CartPage';
 import ProfilePage from './Page/ProfilePage';
 import GoogleLoginSuccess from './Components/GoogleLoginSuccess';
 import OrderPage from './Page/OrderPage';
+import WishlistPage from './Page/WishlistPage';
 function App() {
   return (
     <div className="min-h-screen bg-gray-50">
@@ -58,7 +59,7 @@ function AppContent() {
       <Route path='/form' element={<FormPage />} /> 
       <Route path='/profile' element={<ProfilePage />} /> 
       <Route path='/orders' element={<OrderPage />} /> 
-
+      <Route path='/wishlist' element={<WishlistPage />} /> 
       
       <Route path='/product/:id' element={<ProductDetailsPage />} />
       <Route path='/service-motor' element={<ServiceMotor />} /> 

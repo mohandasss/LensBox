@@ -224,7 +224,6 @@ const CartPage = () => {
       
     } catch (err) {
       console.error('Error during checkout:', err);
-      // Show error message to user
       
     }
   };

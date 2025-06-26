@@ -5,6 +5,7 @@ import PreferenceSearch from "../Components/PreferenceSearch";
 import Footer from "../Components/Footer";
 import { Link } from "react-router-dom";
 import ChatButton from "../Components/ChatButton";
+import TestimonialsSection from "../Components/TestimonialsSection";
 const HomePage = () => {
   const brands = [
     {
@@ -153,6 +154,7 @@ const HomePage = () => {
           </div>
         </div>
       </div>
+      <TestimonialsSection />
       <Footer />
       <ChatButton />
     </div>

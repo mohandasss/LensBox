@@ -13,8 +13,10 @@ const chatRoute = require("./Routes/ChatRoutes.js");
 const checkout  = require ("./Routes/checkout.js");
 const wishlistRoutes = require("./Routes/wishlistRoutes.js");
 const orderRoutes = require("./Routes/OrderRoutes.js");
-dotenv.config();
+const subscriberRoutes = require("./Routes/subscriberRoutes.js");
 
+const mailRoutes = require("./Routes/mailRoutes.js");
+dotenv.config();
 require('./Config/passport.js');
 const googleLoginRoutes = require('./Routes/googleLogin.js');
 
@@ -65,6 +67,9 @@ app.use("/api/cart", cartRoutes);
 app.use('/api/checkout', checkout);
 app.use("/api/orders", orderRoutes);
 app.use("/api/wishlist", wishlistRoutes)
+app.use("/auth", googleLoginRoutes);
+app.use('/api/mail', mailRoutes);
+app.use('/api/subscribe', subscriberRoutes);
 // Basic Route
 app.get("/", (req, res) => {
   res.send("Hello, world!");
