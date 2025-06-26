@@ -11,6 +11,7 @@ const fileUpload = require("express-fileupload");
 const cartRoutes = require("./Routes/CartRoutes.js");
 const chatRoute = require("./Routes/ChatRoutes.js");
 const checkout  = require ("./Routes/checkout.js");
+const wishlistRoutes = require("./Routes/wishlistRoutes.js");
 const orderRoutes = require("./Routes/OrderRoutes.js");
 dotenv.config();
 
@@ -63,6 +64,7 @@ app.use("/api/brands", brandRoutes);
 app.use("/api/cart", cartRoutes);
 app.use('/api/checkout', checkout);
 app.use("/api/orders", orderRoutes);
+app.use("/api/wishlist", wishlistRoutes)
 // Basic Route
 app.get("/", (req, res) => {
   res.send("Hello, world!");
