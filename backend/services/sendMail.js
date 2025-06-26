@@ -3,7 +3,7 @@ const transporter = require('../Config/mailer');
 
 const sendMail = async ({ to, subject, text, html }) => {
   const mailOptions = {
-    from: `"Your App Name" <${process.env.MAIL_USER}>`,
+    from: `"LensBox" <${process.env.MAIL_USER}>`,
     to,
     subject,
     text,

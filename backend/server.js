@@ -69,7 +69,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/wishlist", wishlistRoutes)
 app.use("/auth", googleLoginRoutes);
 app.use('/api/mail', mailRoutes);
-app.use('/api/subscribe', subscriberRoutes);
+app.use('/api/', subscriberRoutes);
 // Basic Route
 app.get("/", (req, res) => {
   res.send("Hello, world!");

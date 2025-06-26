@@ -8,6 +8,6 @@ const { authMiddleware, isAdmin } = require('../middlewares/AuthMiddleware');
  * @desc    Send email to all subscribers (Admin only)
  * @access  Private/Admin
  */
-router.post('/broadcast', authMiddleware, isAdmin, broadcastEmail);
+router.post('/broadcast', broadcastEmail);
 
 module.exports = router;

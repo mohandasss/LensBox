@@ -7,10 +7,10 @@ const sendMail = require('../services/sendMail');
  * @access  Private/Admin
  */
 exports.broadcastEmail = async (req, res) => {
-  const { title, message } = req.body;
+  const { tittle, message } = req.body;
 
   // Input validation
-  if (!title || !message) {
+  if (!tittle || !message) {
     return res.status(400).json({ 
       success: false, 
       message: 'Title and message are required' 
@@ -32,11 +32,11 @@ exports.broadcastEmail = async (req, res) => {
     const emailPromises = subscribers.map(subscriber => {
       const emailContent = {
         to: subscriber.email,
-        subject: title,
+        subject: tittle,
         text: message,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2>${title}</h2>
+            <h2>${tittle}</h2>
             <div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
               ${message.replace(/\n/g, '<br>')}
             </div>
