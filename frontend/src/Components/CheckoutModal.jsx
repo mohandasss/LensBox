@@ -9,7 +9,6 @@ import {
   HomeIcon,
   MapIcon,
   CalendarIcon,
-
 } from "@heroicons/react/24/outline";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -20,7 +19,6 @@ import { verifyToken } from "../APIs/AuthAPI";
 import { clearCart } from "../APIs/CartAPI";
 import PaymentSuccess from "./PaymentSuccess";
 import { AnimatePresence } from "framer-motion";
-
 
 const CheckoutModal = ({
   isOpen,
@@ -49,19 +47,19 @@ const CheckoutModal = ({
     zipCode: "",
     country: "India",
   });
-  
+
   // Initialize dates with proper defaults
   const [dates, setDates] = useState({
     startDate: null,
     endDate: null,
   });
-  
+
   const [errors, setErrors] = useState({});
 
   // Update form data when initialValues change (only once when component mounts or initialValues change)
   useEffect(() => {
     if (initialValues && Object.keys(initialValues).length > 0) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         fullName: initialValues.fullName || "",
         phone: initialValues.phone || "",
@@ -75,72 +73,83 @@ const CheckoutModal = ({
 
       if (initialValues.startDate || initialValues.endDate) {
         setDates({
-          startDate: initialValues.startDate ? new Date(initialValues.startDate) : null,
-          endDate: initialValues.endDate ? new Date(initialValues.endDate) : null,
+          startDate: initialValues.startDate
+            ? new Date(initialValues.startDate)
+            : null,
+          endDate: initialValues.endDate
+            ? new Date(initialValues.endDate)
+            : null,
         });
       }
     }
   }, [initialValues]);
 
   // Custom Input Component - Memoized to prevent re-renders
-  const InputField = React.memo(({
-    id,
-    name,
-    label,
-    type = "text",
-    value,
-    onChange,
-    error,
-    icon: Icon,
-    placeholder,
-    className = "",
-    ...props
-  }) => (
-    <div className={`mb-4 ${className}`}>
-      <div className="relative">
-        {Icon && (
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Icon
-              className={`h-5 w-5 ${error ? "text-red-500" : "text-gray-400"}`}
-              aria-hidden="true"
-            />
-          </div>
-        )}
-        <input
-          id={id}
-          name={name}
-          type={type}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder || `Enter ${label.toLowerCase()}`}
-          className={`block w-full ${
-            Icon ? "pl-10" : "pl-3"
-          } pr-3 py-3 border-0 border-b-2 ${
-            error ? "border-red-500" : "border-gray-200 hover:border-gray-300"
-          } focus:border-indigo-600 focus:ring-0 sm:text-sm transition-colors duration-200 bg-transparent`}
-          {...props}
-        />
+  const InputField = React.memo(
+    ({
+      id,
+      name,
+      label,
+      type = "text",
+      value,
+      onChange,
+      error,
+      icon: Icon,
+      placeholder,
+      className = "",
+      ...props
+    }) => (
+      <div className={`mb-4 ${className}`}>
+        <div className="relative">
+          {Icon && (
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Icon
+                className={`h-5 w-5 ${
+                  error ? "text-red-500" : "text-gray-400"
+                }`}
+                aria-hidden="true"
+              />
+            </div>
+          )}
+          <input
+            id={id}
+            name={name}
+            type={type}
+            value={value}
+            onChange={onChange}
+            placeholder={placeholder || `Enter ${label.toLowerCase()}`}
+            className={`block w-full ${
+              Icon ? "pl-10" : "pl-3"
+            } pr-3 py-3 border-0 border-b-2 ${
+              error ? "border-red-500" : "border-gray-200 hover:border-gray-300"
+            } focus:border-indigo-600 focus:ring-0 sm:text-sm transition-colors duration-200 bg-transparent`}
+            {...props}
+          />
+        </div>
+        {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
       </div>
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
-    </div>
-  ));
+    )
+  );
 
   // Memoized input change handler to prevent unnecessary re-renders
-  const handleInputChange = useCallback((e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-    
-    // Clear error for this field when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
+  const handleInputChange = useCallback(
+    (e) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({
         ...prev,
-        [name]: "",
+        [name]: value,
       }));
-    }
-  }, [errors]);
+
+      // Clear error for this field when user starts typing
+      if (errors[name]) {
+        setErrors((prev) => ({
+          ...prev,
+          [name]: "",
+        }));
+      }
+    },
+    [errors]
+  );
 
   const validateStep1 = useCallback(() => {
     const newErrors = {};
@@ -179,7 +188,7 @@ const CheckoutModal = ({
       setError("Please select both start and end dates");
       return;
     }
-    
+
     setError(""); // Clear any previous errors
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
@@ -193,17 +202,20 @@ const CheckoutModal = ({
     }
   }, [currentStep]);
 
-  const handleDateChange = useCallback((field, date) => {
-    setDates(prev => ({
-      ...prev,
-      [field]: date,
-    }));
-    
-    // Clear error when dates are selected
-    if (error && date) {
-      setError("");
-    }
-  }, [error]);
+  const handleDateChange = useCallback(
+    (field, date) => {
+      setDates((prev) => ({
+        ...prev,
+        [field]: date,
+      }));
+
+      // Clear error when dates are selected
+      if (error && date) {
+        setError("");
+      }
+    },
+    [error]
+  );
 
   const calculateRentalDays = useCallback(() => {
     if (!dates.startDate || !dates.endDate) return 0;
@@ -224,7 +236,7 @@ const CheckoutModal = ({
 
   const handleSubmit = async () => {
     if (currentStep !== 3) return;
-    
+
     setIsSubmitting(true);
     setError("");
     setPaymentError("");
@@ -282,30 +294,37 @@ const CheckoutModal = ({
 
             // 4. Verify payment on your server
             const verificationResponse = await verifyPayment(verificationData);
-            console.log("✅ Payment verification successful:", verificationResponse);
+            console.log(
+              "✅ Payment verification successful:",
+              verificationResponse
+            );
 
             // 5. Clear cart and update state
             const clearCartResponse = await clearCart(user._id);
             console.log("Cart cleared successfully:", clearCartResponse);
-            
+
             // 6. Set order details for success popup
             setOrderDetails({
               orderId: response.orderId,
-              amount: calculateTotal()
+              amount: calculateTotal(),
             });
-            
+
             // 7. Show success popup
-            setPaymentSuccess(true);
-            
+
             // 8. Close modal after a short delay
-            setTimeout(() => {
+            // 1. First show the success popup
+            setPaymentSuccess(true);
+            console.log("orderId", response.order.id);
+            
+            
+            // 2. Set up cleanup and navigation
+            const timer = setTimeout(() => {
               onClose();
-              
-              // 9. Redirect to orders page after popup is shown
-              setTimeout(() => {
-                navigate(`/orders?payment_success=true&order_id=${response.orderId}&amount=${calculateTotal()}`);
-              }, 100);
-            }, 500);
+              navigate("/orders");
+            }, 4000);
+
+            // 3. Return cleanup function to clear the timeout if component unmounts
+            return () => clearTimeout(timer);
           } catch (error) {
             console.error("❌ Payment verification failed:", error);
             setPaymentError(
@@ -480,8 +499,10 @@ const CheckoutModal = ({
                       : ""
                   }
                   onChange={(e) => {
-                    const date = e.target.value ? new Date(e.target.value) : null;
-                    handleDateChange('startDate', date);
+                    const date = e.target.value
+                      ? new Date(e.target.value)
+                      : null;
+                    handleDateChange("startDate", date);
                   }}
                   className="block w-full px-4 py-3 text-sm text-gray-900 bg-white border border-gray-200 rounded-lg focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 transition-all"
                 />
@@ -508,8 +529,10 @@ const CheckoutModal = ({
                       : ""
                   }
                   onChange={(e) => {
-                    const date = e.target.value ? new Date(e.target.value) : null;
-                    handleDateChange('endDate', date);
+                    const date = e.target.value
+                      ? new Date(e.target.value)
+                      : null;
+                    handleDateChange("endDate", date);
                   }}
                   disabled={!dates.startDate}
                   className={`block w-full px-4 py-3 text-sm text-gray-900 bg-white border border-gray-200 rounded-lg focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 transition-all ${
@@ -679,7 +702,7 @@ const CheckoutModal = ({
           onClose={() => {
             setPaymentSuccess(false);
             onClose();
-            navigate('/orders');
+            navigate("/orders");
           }}
           timer={5}
           autoClose={true}
@@ -689,19 +712,18 @@ const CheckoutModal = ({
       {/* Checkout Modal */}
       <div className="fixed inset-0 z-40 overflow-y-auto">
         <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-          <div 
+          <div
             className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
             aria-hidden="true"
             onClick={onClose}
           ></div>
 
-          <span 
+          <span
             className="hidden sm:inline-block sm:align-middle sm:h-screen"
             aria-hidden="true"
           >
             &#8203;
           </span>
-
 
           <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
             <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
@@ -724,96 +746,98 @@ const CheckoutModal = ({
                 </button>
               </div>
 
-            {/* Progress Steps */}
-            <div className="mb-6">
-              <div className="flex justify-between">
-                {[1, 2, 3].map((step) => (
-                  <div key={step} className="flex flex-col items-center">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
+              {/* Progress Steps */}
+              <div className="mb-6">
+                <div className="flex justify-between">
+                  {[1, 2, 3].map((step) => (
+                    <div key={step} className="flex flex-col items-center">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
                         ${
                           currentStep >= step
                             ? "bg-indigo-600 text-white"
                             : "bg-gray-200 text-gray-600"
                         }`}
-                    >
-                      {step}
+                      >
+                        {step}
+                      </div>
+                      <span className="mt-1 text-xs text-gray-500">
+                        {step === 1
+                          ? "Address"
+                          : step === 2
+                          ? "Dates"
+                          : "Summary"}
+                      </span>
                     </div>
-                    <span className="mt-1 text-xs text-gray-500">
-                      {step === 1
-                        ? "Address"
-                        : step === 2
-                        ? "Dates"
-                        : "Summary"}
-                    </span>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                <div className="mt-2 w-full bg-gray-200 rounded-full h-1.5">
+                  <div
+                    className="bg-indigo-600 h-1.5 rounded-full transition-all duration-300"
+                    style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
+                  ></div>
+                </div>
               </div>
-              <div className="mt-2 w-full bg-gray-200 rounded-full h-1.5">
-                <div
-                  className="bg-indigo-600 h-1.5 rounded-full transition-all duration-300"
-                  style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
-                ></div>
+
+              {/* Error Display */}
+              {(error || paymentError) && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-sm text-red-600">
+                    {error || paymentError}
+                  </p>
+                </div>
+              )}
+
+              {/* Step Content */}
+              <div className="mt-4 max-h-[60vh] overflow-y-auto pr-2 -mr-2">
+                <div className="pr-2">{renderStepContent()}</div>
               </div>
             </div>
 
-            {/* Error Display */}
-            {(error || paymentError) && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-sm text-red-600">{error || paymentError}</p>
-              </div>
-            )}
-
-            {/* Step Content */}
-            <div className="mt-4 max-h-[60vh] overflow-y-auto pr-2 -mr-2">
-              <div className="pr-2">{renderStepContent()}</div>
-            </div>
-          </div>
-
-          <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-            {currentStep < 3 ? (
-              <>
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  disabled={isSubmitting}
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? "Loading..." : "Next"}
-                </button>
-                {currentStep > 1 && (
+            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+              {currentStep < 3 ? (
+                <>
                   <button
                     type="button"
-                    onClick={handlePrevious}
+                    onClick={handleNext}
                     disabled={isSubmitting}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Back
+                    {isSubmitting ? "Loading..." : "Next"}
                   </button>
-                )}
-              </>
-            ) : (
+                  {currentStep > 1 && (
+                    <button
+                      type="button"
+                      onClick={handlePrevious}
+                      disabled={isSubmitting}
+                      className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Back
+                    </button>
+                  )}
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? "Processing..." : "Proceed to Payment"}
+                </button>
+              )}
               <button
                 type="button"
-                onClick={handleSubmit}
+                onClick={onClose}
                 disabled={isSubmitting}
-                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "Processing..." : "Proceed to Payment"}
+                {currentStep === 1 ? "Cancel" : "Close"}
               </button>
-            )}
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {currentStep === 1 ? "Cancel" : "Close"}
-            </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
     </div>
   );
 };

@@ -8,4 +8,5 @@ const  {generateInvoicePDF}  = require('../Controllers/InvoiceController');
 router.get("/:userId", authMiddleware, getAllOrders);
 router.get('/:orderId/invoice', authMiddleware, generateInvoicePDF);
 
+
 module.exports = router;

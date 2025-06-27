@@ -16,7 +16,7 @@ const SubscriptionSuccessModal = ({ isOpen, onClose }) => {
   return (
     <AnimatePresence>
       <motion.div 
-        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -29,16 +29,22 @@ const SubscriptionSuccessModal = ({ isOpen, onClose }) => {
           bottom: 0,
           width: '100vw',
           height: '100vh',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          transform: 'translateZ(0)'
         }}
       >
         <motion.div 
-          className="bg-gray-900 rounded-2xl max-w-md w-full p-8 relative border border-gray-800 overflow-hidden"
+          className="bg-gray-900 rounded-2xl max-w-md w-full p-8 relative border border-gray-800 overflow-hidden z-[99999]"
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 50, opacity: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           onClick={(e) => e.stopPropagation()}
+          style={{
+            position: 'relative',
+            zIndex: 99999,
+            transform: 'translateZ(0)'
+          }}
         >
           {/* Close button */}
           <button 

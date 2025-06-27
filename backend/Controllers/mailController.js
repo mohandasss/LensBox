@@ -1,11 +1,52 @@
 const Subscriber = require('../Models/Subscribers');
-const sendMail = require('../services/sendMail');
+const Order = require('../Models/orderModel');
+const { sendMail, sendPurchaseConfirmation, sendWelcomeEmail } = require('../services/sendMail');
+const PDFDocument = require('pdfkit');
+const { generateInvoicePDF } = require('./InvoiceController');
 
 /**
- * @desc    Send email to all subscribers
- * @route   POST /api/mail/broadcast
- * @access  Private/Admin
+ * @desc    Send a welcome email to a new subscriber
+ * @route   POST /api/mail/welcome
+ * @access  Public
+ * 
  */
+exports.sendWelcomeEmail = async (req, res) => {
+  const { email, name } = req.body;
+
+  if (!email) {
+    return res.status(400).json({
+      success: false,
+      message: 'Email is required'
+    });
+  }
+
+  try {
+    const result = await sendWelcomeEmail({ to: email, name });
+    
+    if (!result.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send welcome email',
+        error: result.error
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Welcome email sent successfully'
+    });
+  } catch (error) {
+    console.error('Error sending welcome email:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
+
+
+
 exports.broadcastEmail = async (req, res) => {
   const { tittle, message } = req.body;
 
@@ -86,3 +127,7 @@ exports.broadcastEmail = async (req, res) => {
     });
   }
 };
+
+
+
+

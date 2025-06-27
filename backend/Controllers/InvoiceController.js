@@ -8,8 +8,29 @@ const generateInvoicePDF = async (req, res) => {
     const orderId = req.params.orderId;
     console.log("📋 Received invoice request for order ID:", orderId);
 
-    const order = await Order.findById(orderId).populate('items.productId');
-    if (!order) return res.status(404).send('Order not found');
+    // Try to find order by MongoDB _id first, then by razorpay.orderId
+    let order;
+    try {
+      // First try to find by MongoDB _id
+      order = await Order.findById(orderId).populate('items.productId');
+      
+      // If not found by _id, try to find by razorpay.orderId
+      if (!order) {
+        order = await Order.findOne({ 'razorpay.orderId': orderId }).populate('items.productId');
+      }
+    } catch (error) {
+      // If there's an error (e.g., invalid ObjectId), try finding by razorpay.orderId
+      if (error.name === 'CastError') {
+        order = await Order.findOne({ 'razorpay.orderId': orderId }).populate('items.productId');
+      } else {
+        throw error; // Re-throw other errors
+      }
+    }
+
+    if (!order) {
+      console.error('Order not found for ID:', orderId);
+      return res.status(404).send('Order not found');
+    }
 
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
     res.setHeader('Content-Type', 'application/pdf');

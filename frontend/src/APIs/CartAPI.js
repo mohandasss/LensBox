@@ -10,7 +10,7 @@ const axiosInstance = axios.create({
 });
 
 export const addToCart = async (productId, quantity, userId) => {
-  console.log(productId, quantity, userId);
+  console.log( "data idhar hai",  productId, quantity, userId);
   const response = await axiosInstance.post(`/`, {
     productId,
     quantity,

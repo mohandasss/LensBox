@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-const PaymentSuccess = ({ orderDetails, onClose, timer = 5, autoClose = true }) => {
+const PaymentSuccess = ({ orderDetails, onClose, timer = 3, autoClose = true }) => {
   const [countdown, setCountdown] = useState(timer);
   const [isVisible, setIsVisible] = useState(true);
   const navigate = useNavigate();
@@ -19,6 +19,8 @@ const PaymentSuccess = ({ orderDetails, onClose, timer = 5, autoClose = true }) 
   }, [navigate, onClose, location.pathname]);
 
   useEffect(() => {
+    console.log( "asli wala",orderDetails);
+    
     if (!autoClose) return;
     
     const timerId = setTimeout(() => {
@@ -119,11 +121,9 @@ const PaymentSuccess = ({ orderDetails, onClose, timer = 5, autoClose = true }) 
             <p className="text-gray-600 mb-6">
               Your order has been placed successfully. We've sent a confirmation to your email.
             </p>
-              {
-                console.log(orderDetails)
-              }
+              
             <div className="bg-gray-50 p-4 rounded-lg mb-6">
-              <p className="text-sm text-gray-600 mb-2">Order ID: <span className="font-medium">{orderDetails?.orderId || 'N/A'}</span></p>
+             
               <p className="text-sm text-gray-600">Total Paid: <span className="font-medium">₹{orderDetails?.amount || '0.00'}</span></p>
             </div>
 

@@ -10,13 +10,18 @@ const Footer = () => {
 
   const handleSubscribe = async (e) => {
     e.preventDefault();
-
-      await subscribe(email);
+    try {
+     const response =await subscribe(email);
+    console.log(response);
     setSubscriptionSuccess(true);
+    setEmail("");
+    } catch (error) {
+      console.error("Error subscribing to newsletter:", error);
+    }
   };
 
   return (
-    <footer className="bg-black text-gray-400 relative z-10">
+    <footer className="bg-gray-900 text-gray-400 relative z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-6 lg:gap-8">

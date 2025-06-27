@@ -6,16 +6,19 @@ import Footer from '../Components/Footer';
 import { verifyToken } from '../APIs/AuthAPI';
 import { getWishlist, removeFromWishlist } from '../APIs/WishlistAPI';
 import { toast } from 'react-toastify';
+import { addToCart } from '../APIs/CartAPI';
 
 const WishlistPage = () => {
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
   const fetchWishlist = async () => {
     try {
       const { user } = await verifyToken(localStorage.getItem('token'));
+      setUser(user);
       if (user?._id) {
         const wishlistData = await getWishlist(user._id); // Should return product data
         setWishlist(wishlistData);
@@ -50,13 +53,30 @@ const WishlistPage = () => {
       toast.error('Failed to remove item from wishlist');
     }
   };
-
-  const handleAddToCart = (productId, e) => {
+  const handleAddToCart = async (productId, e) => {
     e.stopPropagation();
-    console.log('Add to cart:', productId);
-    // implement add to cart logic
+    try {
+      if (!user?._id) {
+        toast.error('Please login to add items to cart');
+        return;
+      }
+      
+      const quantity = 1;
+      setLoading(true);
+      const response = await addToCart(productId, quantity, user._id);
+      
+      if (response.success) {
+        toast.success('Added to cart');
+      } else {
+        toast.error(response.message || 'Failed to add to cart');
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error('An error occurred while adding to cart');
+    } finally {
+      setLoading(false);
+    }
   };
-
   const navigateToProduct = (productId) => {
     navigate(`/product/${productId}`);
   };
