@@ -19,6 +19,7 @@ const UserSchema = new mongoose.Schema({
   role: { type: String, enum: ['user', 'seller'], default: 'user' },
   phone: { type: String, required: false }, // ✅ Make this optional
   profilePic: { type: String },
+  cloudinaryUrl: { type: String } // Store Cloudinary URL for profile picture
 }, { timestamps: true });
 
 UserSchema.pre('validate', function (next) {
