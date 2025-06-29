@@ -10,7 +10,7 @@ cloudinary.config({
 });
 
 // Function to upload image from URL to Cloudinary
-const uploadImageFromUrl = async (imageUrl, folder = 'profile_pictures') => {
+const uploadImageFromUrl = async (imageUrl, folder = 'profilePictures') => {
   try {
     // Download the image
     const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
