@@ -42,9 +42,9 @@ const TestimonialsSection = () => {
   
 
   return (
-    <section className="bg-white dark:bg-black py-12  ">
+    <section className="bg-white py-12  ">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-12 text-white dark:text-white">
+        <h2 className="text-3xl font-bold text-center mb-12 text-black">
           What Our Customers Say
         </h2>
         <AnimatedTestimonials testimonials={testimonials} autoplay={true} />

@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { 
   broadcastEmail,
-  sendWelcomeEmail 
+  sendWelcomeEmail,
+  sendPurchaseConfirmationEmail 
 } = require('../Controllers/mailController');
 const { authMiddleware, isAdmin } = require('../middlewares/AuthMiddleware');
 
@@ -18,7 +19,7 @@ router.post('/welcome', sendWelcomeEmail);
  * @desc    Send purchase confirmation email with invoice
  * @access  Private
  */
-
+router.post('/purchase-confirmation', authMiddleware, sendPurchaseConfirmationEmail);
 /**
  * @route   POST /api/mail/broadcast
  * @desc    Send email to all subscribers (Admin only)

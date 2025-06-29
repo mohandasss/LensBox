@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useCallback } from "react";
+import * as React from 'react';
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import config from "./secretfront";
+import { paymentConfirmation } from "../APIs/SubscriberAPI";
 import {
   XMarkIcon,
   UserIcon,
@@ -298,6 +300,7 @@ const CheckoutModal = ({
               "✅ Payment verification successful:",
               verificationResponse
             );
+            console.log("orderDetails", orderDetails);
 
             // 5. Clear cart and update state
             const clearCartResponse = await clearCart(user._id);
@@ -305,10 +308,11 @@ const CheckoutModal = ({
 
             // 6. Set order details for success popup
             setOrderDetails({
-              orderId: response.orderId,
+              orderId: verificationResponse.orderId,
               amount: calculateTotal(),
             });
-
+              console.log("paymentConfirmation", verificationResponse.orderId);
+              paymentConfirmation(verificationResponse.orderId);
             // 7. Show success popup
 
             // 8. Close modal after a short delay

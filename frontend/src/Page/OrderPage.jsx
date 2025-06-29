@@ -21,6 +21,8 @@ const OrderPage = () => {
     const paymentSuccess = params.get('payment_success');
     const orderId = params.get('order_id');
     const amount = params.get('amount');
+   
+    
 
     if (paymentSuccess === 'true' && orderId) {
       setShowPaymentSuccess(true);

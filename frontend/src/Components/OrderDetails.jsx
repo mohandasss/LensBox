@@ -47,7 +47,7 @@ const OrderDetails = ({ order }) => {
       {/* Order Info */}
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Order #{order._id || 'N/A'}</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Order {order._id || 'N/A'}</h3>
           <p className="text-sm text-gray-600">
             {order.createdAt ? `Placed on ${new Date(order.createdAt).toLocaleString()}` : 'Date not available'}
           </p>

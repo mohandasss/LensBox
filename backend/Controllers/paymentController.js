@@ -2,9 +2,9 @@ require("dotenv").config();
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const Order = require("../Models/orderModel");
-const { log } = require("console");
 const tempOrderModel = require("../Models/tempOrderModel");
 const secret = require("../secret");
+
 const instance = new Razorpay({
   key_id: secret.RAZORPAY_KEY_ID,
   key_secret: secret.RAZORPAY_KEY_SECRET,
@@ -27,9 +27,6 @@ const createOrder = async (req, res) => {
       items,
       userId, // Add this - should come from frontend
     } = req.body;
-    
-    console.log("📋 Create order request body:", req.body);
-    console.log("👤 User ID received:", userId);
 
     const amount = parseInt(Number(total) * 100);
 
@@ -53,7 +50,6 @@ const createOrder = async (req, res) => {
     };
 
     const razorpayOrder = await instance.orders.create(options);
-    console.log("✅ Razorpay order created:", razorpayOrder.id);
 
     // Save all the data in TempOrder INCLUDING userId
     await tempOrderModel.create({
@@ -75,41 +71,28 @@ const createOrder = async (req, res) => {
       },
     });
 
-    console.log("✅ Temp order saved with userId:", userId);
-
     res.status(200).json({ 
       success: true, 
       order: razorpayOrder,
       razorpayOrderId: razorpayOrder.id
     });
   } catch (error) {
-    console.error("Create Order Error:", error);
+    // Error creating order
     res.status(500).json({ success: false, error: error.message });
   }
 };
 
 const verifyAndCreateOrder = async (req, res) => {
   try {
-    console.log("🔍 Received verification request body:", req.body);
+    // Processing payment verification
     
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
     
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      console.error("❌ Missing required fields:", {
-        razorpay_order_id: !!razorpay_order_id,
-        razorpay_payment_id: !!razorpay_payment_id,
-        razorpay_signature: !!razorpay_signature
-      });
-      return res.status(400).json({ 
-        success: false, 
-        message: "Missing required payment verification data" 
-      });
+      return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
 
-    console.log("🔑 Payment verification data:");
-    console.log("Order ID:", razorpay_order_id);
-    console.log("Payment ID:", razorpay_payment_id);
-    console.log("Signature:", razorpay_signature);
+    // Verifying payment signature
 
     // Create expected signature
     const expectedSignature = crypto
@@ -117,47 +100,32 @@ const verifyAndCreateOrder = async (req, res) => {
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest("hex");
 
-    console.log("🔐 Expected signature:", expectedSignature);
-    console.log("🔐 Received signature:", razorpay_signature);
+    // Verifying signature match
 
     if (expectedSignature !== razorpay_signature) {
-      console.error("❌ Signature verification failed");
-      return res.status(400).json({ 
-        success: false, 
-        message: "Invalid payment signature" 
-      });
+      return res.status(400).json({ success: false, message: 'Invalid signature' });
     }
 
-    console.log("✅ Signature verified successfully");
+    // Signature verified
 
     // Fetch stored temp order data
-    console.log("🔍 Looking for temp order with razorpayOrderId:", razorpay_order_id);
+    // Retrieving temporary order
     const tempOrder = await tempOrderModel.findOne({
       razorpayOrderId: razorpay_order_id,
     });
 
     if (!tempOrder) {
-      console.error("❌ Temp order not found for razorpayOrderId:", razorpay_order_id);
-      return res.status(404).json({ 
-        success: false, 
-        message: "Order not found" 
-      });
+      return res.status(404).json({ success: false, message: 'Temporary order not found' });
     }
 
-    console.log("✅ Temp order found:", tempOrder._id);
+    // Temporary order retrieved
     const orderData = tempOrder.orderData;
     
-    // Log the orderData to see what's available
-    console.log("📋 Order data from temp order:", orderData);
-    console.log("👤 User ID from order data:", orderData.userId);
+    // Processing order data
 
     // Check if userId exists in orderData
     if (!orderData.userId) {
-      console.error("❌ No userId found in temp order data");
-      return res.status(400).json({ 
-        success: false, 
-        message: "User ID not found in order data" 
-      });
+      return res.status(400).json({ success: false, message: 'User ID not found in order data' });
     }
 
     // Create new order
@@ -182,22 +150,24 @@ const verifyAndCreateOrder = async (req, res) => {
         paymentId: razorpay_payment_id,
         signature: razorpay_signature,
       },
+      
       status: 'confirmed'
     });
 
     await newOrder.save();
-    console.log("✅ New order created:", newOrder._id);
+    console.log("New order created:",);
     
     await tempOrder.deleteOne();
-    console.log("✅ Temp order deleted");
+    // Order processed successfully
 
     res.status(200).json({
       success: true,
       message: "Payment verified and order created successfully",
       order: newOrder,
+      orderId: newOrder._id
     });
   } catch (error) {
-    console.error("❌ Verify Order Error:", error);
+    // Error processing order verification
     res.status(500).json({ 
       success: false, 
       message: "Internal server error",

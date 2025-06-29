@@ -25,7 +25,11 @@ const subscribe = async (req, res) => {
                 await subscriber.save();
                 
                 // Send welcome email
-                await sendWelcomeEmail({ to: email, name });
+                try {
+                    await sendWelcomeEmail({ to: email, name });
+                } catch (error) {
+                    // Continue even if welcome email fails
+                }
                 
                 return res.status(200).json({ 
                     success: true, 
@@ -49,18 +53,20 @@ const subscribe = async (req, res) => {
         await newSubscriber.save();
         
         // Send welcome email
-        await sendWelcomeEmail({ to: email, name });
+        try {
+            await sendWelcomeEmail({ to: email, name });
+        } catch (error) {
+            // Continue even if welcome email fails
+        }
         
         res.status(200).json({ 
             success: true, 
             message: "You have been subscribed successfully" 
         });
     } catch (error) {
-        console.error('Subscription error:', error);
         res.status(500).json({ 
             success: false, 
-            message: "Failed to subscribe",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            message: 'Failed to process subscription' 
         });
     }
 };
@@ -103,11 +109,9 @@ const unsubscribe = async (req, res) => {
             message: "You have been unsubscribed successfully" 
         });
     } catch (error) {
-        console.error('Unsubscription error:', error);
         res.status(500).json({ 
             success: false, 
-            message: "Failed to unsubscribe",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            message: 'Failed to process unsubscription' 
         });
     }
 };

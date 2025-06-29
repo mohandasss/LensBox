@@ -6,6 +6,7 @@ import Footer from "../Components/Footer";
 import { Link } from "react-router-dom";
 import ChatButton from "../Components/ChatButton";
 import TestimonialsSection from "../Components/TestimonialsSection";
+import HeroProducts from "../Components/HeroProducts";
 const HomePage = () => {
   const brands = [
     {
@@ -55,10 +56,14 @@ const HomePage = () => {
         </div>
       </div>
 
-      <div className="bg-white py-8">
+          <div className="bg-white py-8" >
+            <HeroProducts/>
+          </div>
+
+      <div className="bg-black py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-center py-4">
-            <h1 className="text-black text-center text-3xl font-bold ">
+            <h1 className="text-white text-center text-3xl font-bold ">
               What we offer
             </h1>
           </div>
@@ -67,15 +72,15 @@ const HomePage = () => {
             {/* Left side text content */}
 
             <div className="md:w-1/2 space-y-4">
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-white">
                 High-Quality Camera & Lens Rentals
               </h2>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-white">
                 Rent the latest DSLR, mirrorless cameras, and premium lenses
                 from top brands like Canon, Sony, and Nikon.
               </p>
               <Link to="/about">
-                <button className="bg-black text-white px-6 py-2 my-3 rounded-lg hover:bg-gray-800 transition-colors">
+                <button className="bg-white text-black px-6 py-2 my-3 rounded-lg hover:bg-gray-800 transition-colors">
                   Learn More
                 </button>
               </Link>
@@ -92,7 +97,7 @@ const HomePage = () => {
           </div>
         </div>
       </div>
-      <div className="bg-black py-8">
+      <div className="bg-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-center py-4"></div>
 
@@ -107,14 +112,14 @@ const HomePage = () => {
             </div>
             {/* Right side text content */}
             <div className="md:w-1/2 space-y-4">
-              <h2 className="text-3xl font-bold text-white">
+              <h2 className="text-3xl font-bold text-black">
                 Flexible Rental Plans & Affordable Pricing
               </h2>
-              <p className="text-lg text-gray-300">
+              <p className="text-lg text-black">
                 Choose from hourly, daily, or weekly rental options at
                 competitive prices with no hidden fees.
               </p>
-              <button className="bg-white text-black px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors">
+              <button className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors">
                 Explore Services
               </button>
             </div>
@@ -122,22 +127,22 @@ const HomePage = () => {
         </div>
       </div>
 
-      <div className="bg-white py-8">
+      <div className="bg-black py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-center py-4"></div>
 
           <div className="flex py-8 flex-col md:flex-row items-center justify-between gap-8">
             {/* Left side text content */}
             <div className="md:w-1/2 space-y-4">
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-white">
                 24/7 Expert Assistance
               </h2>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-white">
                 Easy online booking, doorstep delivery, and 24/7 customer
                 support for a seamless rental experience.
               </p>
               <Link to="/contact">
-                <button className="bg-black my-3 text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors">
+                <button className="bg-white my-3 text-black px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors">
                   Contact Us
                 </button>
               </Link>

@@ -19,6 +19,16 @@ export const subscribe = async (email) => {
     throw error;
   }
 };
+
+export const paymentConfirmation = async (orderId) => {
+  try {
+    const response = await axiosInstance.post("/mail/purchase-confirmation", { orderId });
+    return response.data;
+  } catch (error) {
+    console.error("Error subscribing to newsletter:", error);
+    throw error;
+  }
+};
  
 
 

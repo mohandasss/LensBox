@@ -8,6 +8,21 @@ const axiosinstance = axios.create({
   },
 });
 
+
+export const getHeroProducts = async () => {
+    const response = await axiosinstance.get("/");  
+    if (response.data) {
+       // Sort products by createdAt in descending order and get top 7
+       const sortedProducts = [...response.data]
+         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+         .slice(0, 7);
+       console.log("Top 7 Recent Products:", sortedProducts);
+       return sortedProducts;
+    }
+    return [];
+};
+
+
 export const getProducts = async () => {
     const response = await axiosinstance.get("/");  
     if (response.data) {

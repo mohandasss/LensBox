@@ -53,10 +53,9 @@ const addToWishlist = async (req, res) => {
       message: "Product added to wishlist" 
     });
   } catch (error) {
-    console.error("Error in addToWishlist:", error);
-    return res.status(500).json({ 
+    res.status(500).json({ 
       success: false, 
-      message: "Failed to update wishlist" 
+      message: "Failed to add product to wishlist" 
     });
   }
 };
@@ -85,9 +84,7 @@ const getWishlist = async (req, res) => {
           products.push(product);
         }
       } catch (error) {
-        console.error(`Error fetching product ${productId}:`, error.message);
-        // Continue with next product even if one fails
-        continue;
+        return null; // Skip products that can't be fetched
       }
     }
 

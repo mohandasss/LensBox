@@ -45,16 +45,13 @@ const addProduct = async (req, res) => {
       stock,
       seller,
       features,
-      image: uploadedImages, // Store array of image URLs
+      image: uploadedImages,
     });
 
     await newProduct.save();
-    res
-      .status(201)
-      .json({ message: "Product added successfully", product: newProduct });
+    res.status(201).json({ message: "Product added successfully", product: newProduct });
   } catch (error) {
-    console.error("Error adding product:", error);
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ error: "Failed to add product" });
   }
 };
 
@@ -64,7 +61,7 @@ const updateProduct = async (req, res) => {
     const product = await Product.findById(req.params.id);
 
     if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).json({ error: "Product not found" });
     }
 
     product.name = name || product.name;
@@ -74,29 +71,22 @@ const updateProduct = async (req, res) => {
     product.stock = stock || product.stock;
     product.features = features || product.features;
 
-
     if (req.files && req.files.image) {
-      // ✅ Ensure product.image exists and is a string
       if (product.image && typeof product.image === "string") {
         const publicId = product.image.split("/").pop().split(".")[0];
         await cloudinary.uploader.destroy(publicId);
       }
 
-      // ✅ Upload new image
-      const uploadedResponse = await cloudinary.uploader.upload(
-        req.files.image.tempFilePath,
-        {
-          folder: "products",
-        }
-      );
+      const uploadedResponse = await cloudinary.uploader.upload(req.files.image.tempFilePath, {
+        folder: "products",
+      });
       product.image = uploadedResponse.secure_url;
     }
 
     await product.save();
     res.status(200).json({ message: "Product updated successfully", product });
   } catch (error) {
-    console.error("Error updating product:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ error: "Failed to update product" });
   }
 };
 
@@ -106,18 +96,16 @@ const deleteProduct = async (req, res) => {
     const product = await Product.findById(id);
 
     if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).json({ error: "Product not found" });
     }
 
-    // Delete image from Cloudinary
     const publicId = product.image.split("/").pop().split(".")[0];
     await cloudinary.uploader.destroy(publicId);
 
     await Product.findByIdAndDelete(id);
     res.status(200).json({ message: "Product deleted successfully" });
   } catch (error) {
-    console.error("Error deleting product:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ error: "Failed to delete product" });
   }
 };
 
@@ -126,32 +114,29 @@ const getProductById = async (req, res) => {
     const { id } = req.params;
     const product = await Product.findById(id);
     if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).json({ error: "Product not found" });
     }
-    res.status(200).json({ message: "Product found", product });
+    res.json(product);
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ error: "Failed to fetch product" });
   }
 };
 
 const getAllProducts = async (req, res) => {
   try {
     const products = await Product.find();
-
     if (products.length === 0) {
       return res.status(404).json({ message: "No products found" });
     }
-
-    res.status(200).json({ message: "Products found", products });
+    res.json(products);
   } catch (error) {
-    console.error("Error fetching products:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ error: "Failed to fetch products" });
   }
 };
 
 const searchProducts = async (req, res) => {
   try {
-    const { name,location,dateranges } = req.body;
+    const { name, location, dateranges } = req.body;
   
     const products = await Product.find({
       name: { $regex: name, $options: "i" },

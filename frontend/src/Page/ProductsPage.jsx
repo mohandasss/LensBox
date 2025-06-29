@@ -8,12 +8,13 @@ import { getProducts, getProductsByCategory } from "../APIs/ProductAPI";
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [loading, setLoading] = useState(false); // Added loading state
+  const [loading, setLoading] = useState(false); 
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const { products } = await getProducts();
+      const  products  = await getProducts();
+      console.log("allproducts" ,products);
       setProducts(products);
     } catch (error) {
       console.error("Error fetching all products:", error);
@@ -39,7 +40,7 @@ const ProductsPage = () => {
   };
 
   useEffect(() => {
-    fetchProducts(); // Fetch all products initially
+    fetchProducts(); 
   }, []);
 
   useEffect(() => {
@@ -76,7 +77,6 @@ const ProductsPage = () => {
             </select>
           </div>
 
-          {/* Loading State */}
           {loading ? (
             <div className="text-center text-white text-lg">Loading...</div>
           ) : (
