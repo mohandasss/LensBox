@@ -1,296 +1,87 @@
-import React, { useState } from "react";
-// Add fuse.js for fuzzy search
-import Fuse from "fuse.js";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Search, Camera, Aperture, Compass, Zap } from "lucide-react";
 import { searchProducts } from "../APIs/ProductAPI";
 
-const PreferenceSearch = () => {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [dateRange, setDateRange] = useState({ start: null, end: null });
-  const [showDatePicker, setShowDatePicker] = useState(false);
-
-  // Add new states for camera model search
-  const [searchTerm, setSearchTerm] = useState("");
+const MinimalistSearch = ({ onSearch, initialCategory = "507f1f77bcf86cd799439011", initialSearch = "" }) => {
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredModels, setFilteredModels] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
 
-  // Add new states for location search
-  const [locationSearchTerm, setLocationSearchTerm] = useState("");
-  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
-  const [filteredLocations, setFilteredLocations] = useState([]);
-
-  // Example camera models array
-  const cameraModels = [
-    // Sony Mirrorless Cameras
-    "Sony A7 III",
-    "Sony A7 IV",
-    "Sony A7R IV",
-    "Sony A7R V",
-    "Sony A7S III",
-    "Sony A9 II",
-    "Sony A1",
-    "Sony FX3",
-    "Sony ZV-E1",
-    "Sony ZV-E10",
-    "Sony A6400",
-    "Sony A6600",
-
-    // Canon Mirrorless Cameras
-    "Canon EOS R6 II",
-    "Canon EOS R5",
-    "Canon EOS R3",
-    "Canon EOS R8",
-    "Canon EOS R7",
-    "Canon EOS R10",
-    "Canon EOS R50",
-    "Canon EOS M50 Mark II",
-    "Canon EOS R100",
-
-    // Canon DSLR Cameras
-    "Canon EOS 90D",
-    "Canon EOS 5D Mark IV",
-    "Canon EOS 6D Mark II",
-    "Canon EOS 1D X Mark III",
-
-    // Nikon Mirrorless Cameras
-    "Nikon Z9",
-    "Nikon Z8",
-    "Nikon Z7 II",
-    "Nikon Z6 II",
-    "Nikon Z5",
-    "Nikon Z50",
-    "Nikon Zfc",
-    "Nikon Z30",
-
-    // Nikon DSLR Cameras
-    "Nikon D850",
-    "Nikon D780",
-    "Nikon D750",
-    "Nikon D6",
-    "Nikon D5600",
-    "Nikon D3500",
-
-    // Fujifilm Cameras
-    "Fujifilm X-T5",
-    "Fujifilm X-T4",
-    "Fujifilm X-H2S",
-    "Fujifilm X-S20",
-    "Fujifilm X100V",
-    "Fujifilm GFX 100S",
-    "Fujifilm GFX 50S II",
-
-    // Panasonic Cameras
-    "Panasonic Lumix GH6",
-    "Panasonic Lumix S5 II",
-    "Panasonic Lumix G9",
-    "Panasonic Lumix GH5 II",
-    "Panasonic Lumix S1H",
-
-    // Leica Cameras
-    "Leica M11",
-    "Leica SL2",
-    "Leica Q2",
-    "Leica CL",
-    "Leica M10-R",
-
-    // OM System / Olympus Cameras
-    "OM System OM-1",
-    "Olympus OM-D E-M1 Mark III",
-    "Olympus PEN-F",
-
-    // Hasselblad Cameras
-    "Hasselblad X2D 100C",
-    "Hasselblad X1D II 50C",
-
-    // Ricoh / Pentax Cameras
-    "Ricoh GR III",
-    "Pentax K-3 Mark III",
+  // Categories with icons
+  const categories = [
+    { id: "507f1f77bcf86cd799439011", label: "Camera", icon: Camera },
+    { id: "507f1f77bcf86cd799439012", label: "Lens", icon: Aperture },
+    { id: "507f1f77bcf86cd799439015", label: "Drone", icon: Compass },
+    { id: "507f1f77bcf86cd799439013", label: "Tripod", icon: Zap },
   ];
 
-  // Add Indian cities array
-  const indianCities = [
-    // Major Metropolitan Cities
-    "Mumbai, Maharashtra",
-    "Delhi, Delhi",
-    "Bangalore, Karnataka",
-    "Hyderabad, Telangana",
-    "Chennai, Tamil Nadu",
-    "Kolkata, West Bengal",
-    "Pune, Maharashtra",
-    "Ahmedabad, Gujarat",
-
-    // Other Major Cities
-    "Jaipur, Rajasthan",
-    "Lucknow, Uttar Pradesh",
-    "Kanpur, Uttar Pradesh",
-    "Nagpur, Maharashtra",
-    "Indore, Madhya Pradesh",
-    "Thane, Maharashtra",
-    "Bhopal, Madhya Pradesh",
-    "Visakhapatnam, Andhra Pradesh",
-    "Pimpri-Chinchwad, Maharashtra",
-    "Patna, Bihar",
-    "Vadodara, Gujarat",
-    "Ghaziabad, Uttar Pradesh",
-    "Ludhiana, Punjab",
-    "Agra, Uttar Pradesh",
-    "Nashik, Maharashtra",
-    "Faridabad, Haryana",
-    "Meerut, Uttar Pradesh",
-    "Rajkot, Gujarat",
-    "Varanasi, Uttar Pradesh",
-    "Srinagar, Jammu & Kashmir",
-    "Aurangabad, Maharashtra",
-    "Dhanbad, Jharkhand",
-    "Amritsar, Punjab",
-    "Navi Mumbai, Maharashtra",
-    "Allahabad, Uttar Pradesh",
-    "Ranchi, Jharkhand",
-    "Howrah, West Bengal",
-    "Coimbatore, Tamil Nadu",
-    "Jabalpur, Madhya Pradesh",
-    "Gwalior, Madhya Pradesh",
-    "Vijayawada, Andhra Pradesh",
-    "Jodhpur, Rajasthan",
-    "Madurai, Tamil Nadu",
-    "Raipur, Chhattisgarh",
-    "Kochi, Kerala",
-    "Chandigarh, Chandigarh",
-    "Mysore, Karnataka",
-    "Guwahati, Assam",
-    "Thiruvananthapuram, Kerala",
-    "Udaipur, Rajasthan",
-    "Dehradun, Uttarakhand",
-    "Shimla, Himachal Pradesh",
-    "Puducherry, Puducherry",
-    "Bhubaneswar, Odisha",
-    "Mangalore, Karnataka",
-  ];
-
-  // Initialize Fuse for fuzzy search
-  const fuse = new Fuse(cameraModels, {
-    threshold: 0.3,
-    minMatchCharLength: 2,
-  });
-
-  // Initialize Fuse for location search
-  const locationFuse = new Fuse(indianCities, {
-    threshold: 0.3,
-    minMatchCharLength: 2,
-  });
-
-  // Update date selection handler for range selection
-  const handleDateSelect = (date) => {
-    if (!dateRange.start || dateRange.end) {
-      // Start new selection
-      setDateRange({ start: date, end: null });
-    } else {
-      // Complete the range
-      if (date < dateRange.start) {
-        setDateRange({ start: date, end: dateRange.start });
-      } else {
-        setDateRange({ start: dateRange.start, end: date });
-      }
-    }
+  // Equipment data based on categories
+  const equipmentData = {
+    camera: [
+      // Sony Mirrorless
+      "Sony A7 III", "Sony A7 IV", "Sony A7R IV", "Sony A7R V", "Sony A7S III",
+      "Sony A9 II", "Sony A1", "Sony FX3", "Sony ZV-E1", "Sony ZV-E10",
+      "Sony A6400", "Sony A6600",
+      // Canon Mirrorless
+      "Canon EOS R6 II", "Canon EOS R5", "Canon EOS R3", "Canon EOS R8",
+      "Canon EOS R7", "Canon EOS R10", "Canon EOS R50", "Canon EOS M50 Mark II",
+      // Canon DSLR
+      "Canon EOS 90D", "Canon EOS 5D Mark IV", "Canon EOS 6D Mark II",
+      // Nikon Mirrorless
+      "Nikon Z9", "Nikon Z8", "Nikon Z7 II", "Nikon Z6 II", "Nikon Z5",
+      "Nikon Z50", "Nikon Zfc", "Nikon Z30",
+      // Nikon DSLR
+      "Nikon D850", "Nikon D780", "Nikon D750", "Nikon D6",
+      // Fujifilm
+      "Fujifilm X-T5", "Fujifilm X-T4", "Fujifilm X-H2S", "Fujifilm X-S20",
+      "Fujifilm X100V", "Fujifilm GFX 100S",
+      // Others
+      "Panasonic Lumix GH6", "Panasonic Lumix S5 II", "Leica M11", "Leica Q2",
+      "OM System OM-1", "Ricoh GR III"
+    ],
+    lens: [
+      // Sony Lenses
+      "Sony FE 24-70mm f/2.8 GM", "Sony FE 70-200mm f/2.8 GM", "Sony FE 85mm f/1.4 GM",
+      "Sony FE 50mm f/1.2 GM", "Sony FE 35mm f/1.4 GM", "Sony FE 16-35mm f/2.8 GM",
+      // Canon Lenses
+      "Canon RF 24-70mm f/2.8L", "Canon RF 70-200mm f/2.8L", "Canon RF 85mm f/1.2L",
+      "Canon RF 50mm f/1.2L", "Canon EF 24-70mm f/2.8L", "Canon EF 70-200mm f/2.8L",
+      // Nikon Lenses
+      "Nikon Z 24-70mm f/2.8 S", "Nikon Z 70-200mm f/2.8 S", "Nikon Z 85mm f/1.8 S",
+      "Nikon Z 50mm f/1.8 S", "Nikon AF-S 24-70mm f/2.8E", "Nikon AF-S 70-200mm f/2.8E",
+      // Third Party
+      "Sigma 24-70mm f/2.8 DG DN Art", "Sigma 85mm f/1.4 DG DN Art",
+      "Tamron 28-75mm f/2.8 Di III RXD", "Tamron 70-180mm f/2.8 Di III VXD"
+    ],
+    drone: [
+      "DJI Mavic 3", "DJI Mavic 3 Pro", "DJI Mavic 3 Classic", "DJI Air 3",
+      "DJI Mini 4 Pro", "DJI Mini 3", "DJI Mini 3 Pro", "DJI Avata 2",
+      "DJI FPV", "DJI Inspire 3", "DJI Matrice 30T", "DJI Phantom 4 Pro",
+      "Autel EVO Lite+", "Autel EVO Nano+", "Skydio 2+", "Parrot Anafi",
+      "Holy Stone HS720E", "Potensic ATOM SE", "Ruko F11GIM2"
+    ],
+    tripod: [
+      "Manfrotto MT055XPRO3", "Manfrotto BeFree Advanced", "Gitzo GT3543XLS",
+      "Peak Design Travel Tripod", "Vanguard Alta Pro 263AP", "Joby GorillaPod 5K",
+      "Benro Mach3 TMA47AXL", "Really Right Stuff TVC-24L", "Sirui T-025X",
+      "Feisol CT-3372 Rapid", "Oben CT-3535", "MeFOTO RoadTrip",
+      "Induro CLT304L", "Benro Rhino FRHN34CVX30", "Gitzo GT1545T Series 1"
+    ]
   };
 
-  // Helper to check if a date is within the selected range
-  const isInRange = (date) => {
-    if (!dateRange.start || !dateRange.end) return false;
-    return date >= dateRange.start && date <= dateRange.end;
-  };
-
-  // Helper to check if a date is the start or end of the range
-  const isRangeEnd = (date) => {
-    return (
-      (dateRange.start && date.getTime() === dateRange.start.getTime()) ||
-      (dateRange.end && date.getTime() === dateRange.end.getTime())
-    );
-  };
-
-  // Generate calendar days with range selection styling
-  const generateCalendarDays = () => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const startingDay = firstDay.getDay();
-    const totalDays = lastDay.getDate();
-
-    const prevMonthDays = [];
-    for (let i = 0; i < startingDay; i++) {
-      const day = new Date(year, month, -i);
-      prevMonthDays.unshift(
-        <div key={`prev-${day}`} className="text-gray-400 text-center p-2">
-          {day.getDate()}
-        </div>
-      );
-    }
-
-    const currentMonthDays = [];
-    for (let day = 1; day <= totalDays; day++) {
-      const currentDay = new Date(year, month, day);
-      const inRange = isInRange(currentDay);
-      const isEndpoint = isRangeEnd(currentDay);
-
-      currentMonthDays.push(
-        <div
-          key={`current-${day}`}
-          className={`
-            text-center p-2 cursor-pointer
-            ${inRange ? "bg-blue-50" : "hover:bg-blue-100"}
-            ${isEndpoint ? "bg-blue-500 text-white rounded-full" : ""}
-          `}
-          onClick={() => handleDateSelect(currentDay)}
-        >
-          {day}
-        </div>
-      );
-    }
-
-    return [...prevMonthDays, ...currentMonthDays];
-  };
-
-  // Month navigation handlers
-  const handlePrevMonth = () => {
-    setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1)
-    );
-  };
-
-  const handleNextMonth = () => {
-    setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1)
-    );
-  };
-
-  const handleApply = () => {
-    setShowDatePicker(false);
-    // Format the date range for display
-    const formattedRange =
-      dateRange.start && dateRange.end
-        ? `${dateRange.start.toLocaleDateString()} - ${dateRange.end.toLocaleDateString()}`
-        : dateRange.start
-        ? dateRange.start.toLocaleDateString()
-        : "";
-    setDateRange({
-      ...dateRange,
-      displayValue: formattedRange,
-    });
-  };
-
-  const handleCancel = () => {
-    setShowDatePicker(false);
-    setDateRange({ start: null, end: null, displayValue: "" });
-  };
-
-  // Handle input change for camera model search
-  const handleCameraModelSearch = (e) => {
-    const value = e.target.value;
+  const handleSearch = (value) => {
     setSearchTerm(value);
-
+    
     if (value.length > 0) {
-      const results = fuse.search(value);
-      setFilteredModels(results.map((result) => result.item));
+      const currentData = equipmentData[selectedCategory] || [];
+      const filtered = currentData.filter(item =>
+        item.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredModels(filtered.slice(0, 8)); // Limit to 8 suggestions
       setShowSuggestions(true);
     } else {
       setFilteredModels([]);
@@ -298,193 +89,126 @@ const PreferenceSearch = () => {
     }
   };
 
-  // Handle suggestion selection
-  const handleSelectModel = (model) => {
-    setSearchTerm(model);
+  const handleSelectItem = (item) => {
+    setSearchTerm(item);
     setShowSuggestions(false);
   };
 
-  // Handle input change for location search
-  const handleLocationSearch = (e) => {
-    const value = e.target.value;
-    setLocationSearchTerm(value);
+  const handleCategoryChange = (categoryId) => {
+    setSelectedCategory(categoryId);
+    setSearchTerm("");
+    setShowSuggestions(false);
+  };
 
-    if (value.length > 0) {
-      const results = locationFuse.search(value);
-      setFilteredLocations(results.map((result) => result.item));
-      setShowLocationSuggestions(true);
+  const handleSubmitSearch = async (e) => {
+    if (e) e.preventDefault();
+    
+    if (!searchTerm.trim()) {
+      // If search term is empty, reset to show all products
+      if (onSearch) {
+        onSearch('', '');
+      }
+      return;
+    }
+
+    if (onSearch) {
+      // Call parent's search handler if provided
+      onSearch(selectedCategory, searchTerm);
     } else {
-      setFilteredLocations([]);
-      setShowLocationSuggestions(false);
+      // Fallback to direct API call if no parent handler
+      try {
+        const { data } = await searchProducts(selectedCategory, searchTerm);
+        setSearchResults(data || []);
+      } catch (error) {
+        console.error('Search failed:', error);
+        setSearchResults([]);
+      }
     }
   };
 
-  // Handle location suggestion selection
-  const handleSelectLocation = (location) => {
-    setLocationSearchTerm(location);
-    setShowLocationSuggestions(false);
-  };
-
-  const handleSearch = async () => {
-    // Format the search parameters
-    const searchParams = {
-      cameraModel: searchTerm || null,
-      location: locationSearchTerm || null,
-      dateRange: dateRange.start && dateRange.end ? {
-        startDate: dateRange.start.toISOString().split('T')[0], // Format: YYYY-MM-DD
-        endDate: dateRange.end.toISOString().split('T')[0]
-      } : null
-    };
-
-    // Log the search parameters (replace with your API call)
-    console.log('Search Parameters:', searchParams);
-    
-    
-    try {
-      const response = await searchProducts(searchParams);
-      console.log('Search Response:', response);
-    } catch (error) {
-      console.error('Search failed:', error);
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSubmitSearch(e);
     }
   };
+
+  // Update search term when initialSearch prop changes
+  useEffect(() => {
+    setSearchTerm(initialSearch);
+  }, [initialSearch]);
+
+  // Update category when initialCategory prop changes
+  useEffect(() => {
+    if (initialCategory) {
+      setSelectedCategory(initialCategory);
+    }
+  }, [initialCategory]);
 
   return (
-    <div className="flex flex-col items-center pt-10 w-full px-4">
-      <div className="bg-white shadow-lg rounded-lg p-4 sm:p-7 w-full">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-          {/* Camera Model Input */}
-          <div className="flex-1 relative">
-            <p className="text-sm py-2 font-bold text-gray-600">Camera Model</p>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={handleCameraModelSearch}
-              placeholder="Search camera"
-              className="w-full p-2 border rounded-md"
-            />
-            {/* Suggestions dropdown */}
-            {showSuggestions && filteredModels.length > 0 && (
-              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
-                {filteredModels.map((model, index) => (
-                  <div
-                    key={index}
-                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
-                    onClick={() => handleSelectModel(model)}
-                  >
-                    {model}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Updated Location Input */}
-          <div className="flex-1 relative">
-            <p className="text-sm py-2 font-bold text-gray-600">Location</p>
-            <input
-              type="text"
-              value={locationSearchTerm}
-              onChange={handleLocationSearch}
-              placeholder="Search location"
-              className="w-full p-2 border rounded-md"
-            />
-            {/* Location suggestions dropdown */}
-            {showLocationSuggestions && filteredLocations.length > 0 && (
-              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
-                {filteredLocations.map((location, index) => (
-                  <div
-                    key={index}
-                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
-                    onClick={() => handleSelectLocation(location)}
-                  >
-                    {location}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Date Input */}
-          <div className="flex-1 relative">
-            <p className="text-sm py-2 font-bold text-gray-600">Date</p>
-            <input
-              type="text"
-              value={dateRange.displayValue || ""}
-              onClick={() => setShowDatePicker(true)}
-              placeholder="Select date range"
-              className="w-full p-2 border rounded-md cursor-pointer"
-              readOnly
-            />
-
-            {showDatePicker && (
-              <div className="absolute right-0 sm:right-auto top-full mt-2 bg-white shadow-lg rounded-lg p-3 sm:p-4 z-10 w-[calc(100vw-2rem)] sm:w-auto min-w-[280px] max-w-[320px]">
-                <div className="flex justify-between items-center mb-4">
-                  <button
-                    className="p-1 hover:bg-gray-100 rounded-full text-lg w-8 h-8 flex items-center justify-center"
-                    onClick={handlePrevMonth}
-                  >
-                    &lt;
-                  </button>
-                  <span className="text-sm sm:text-base font-medium">
-                    {currentDate.toLocaleString("default", { month: "long" })} /{" "}
-                    {currentDate.getFullYear()}
-                  </span>
-                  <button
-                    className="p-1 hover:bg-gray-100 rounded-full text-lg w-8 h-8 flex items-center justify-center"
-                    onClick={handleNextMonth}
-                  >
-                    &gt;
-                  </button>
-                </div>
-
-                {/* Calendar header */}
-                <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2">
-                  {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
-                    <div
-                      key={day}
-                      className="text-center text-gray-600 text-xs sm:text-sm"
-                    >
-                      {day}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Calendar days */}
-                <div className="grid grid-cols-7 gap-1 sm:gap-2">
-                  {generateCalendarDays()}
-                </div>
-
-                <div className="flex justify-end gap-2 mt-4">
-                  <button
-                    onClick={handleCancel}
-                    className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm text-gray-600 hover:bg-gray-100 rounded"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleApply}
-                    className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
-                    Apply
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Search Button */}
-          <div className="flex items-end mt-9">
+    <div className="w-full max-w-7xl">
+    <form onSubmit={handleSubmitSearch} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+      {/* Category Pills */}
+      <div className="flex flex-wrap gap-2 mb-3">
+        {categories.map((category) => {
+          const IconComponent = category.icon;
+          return (
             <button
-              className="w-full sm:w-auto px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors h-[42px]"
-              onClick={handleSearch}
+              key={category.id}
+              onClick={() => handleCategoryChange(category.id)}
+              className={`
+                flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all
+                ${selectedCategory === category.id
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }
+              `}
             >
-              Search
+              <IconComponent size={12} />
+              {category.label}
             </button>
-          </div>
-        </div>
+          );
+        })}
       </div>
-    </div>
+
+      {/* Search Input Row */}
+      <div className="flex gap-3 relative">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => handleSearch(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder={`Search ${categories.find(c => c.id === selectedCategory)?.label.toLowerCase()}...`}
+            className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:border-blue-500 focus:bg-white focus:outline-none transition-all placeholder-gray-400"
+          />
+
+          {/* Suggestions Dropdown */}
+          {showSuggestions && filteredModels.length > 0 && (
+            <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden">
+              {filteredModels.map((item, index) => (
+                <div
+                  key={index}
+                  className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm border-b border-gray-50 last:border-b-0"
+                  onClick={() => handleSelectItem(item)}
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <button
+          onClick={handleSubmitSearch}
+          className="px-4 py-2.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-all"
+        >
+          Search
+        </button>
+      </div>
+    </form>
+  </div>
   );
 };
 
-export default PreferenceSearch;
+export default MinimalistSearch;

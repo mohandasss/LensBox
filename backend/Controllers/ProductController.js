@@ -134,18 +134,67 @@ const getAllProducts = async (req, res) => {
   }
 };
 
+/**
+ * Search products with flexible querying
+ * Supports searching by name, description, and features
+ * Can filter by category (optional)
+ * 
+ * Query Parameters (GET):
+ * - q: Search term (required)
+ * - category: Category ID to filter by (optional)
+ * 
+ * Request Body (POST):
+ * - searchTerm: Search term (required)
+ * - selectedCategory: Category ID to filter by (optional)
+ */
 const searchProducts = async (req, res) => {
   try {
-    const { name, location, dateranges } = req.body;
-  
-    const products = await Product.find({
-      name: { $regex: name, $options: "i" },
+    // Get search term from query params or request body
+    const search = req.query.q || req.body.searchTerm;
+    const category = req.query.category || req.body.selectedCategory;
+
+    // Validate search term exists
+    if (!search || typeof search !== 'string' || search.trim() === '') {
+      return res.status(400).json({ 
+        error: 'Search term is required',
+        example: '/api/products/search?q=camera' 
+      });
+    }
+
+    // Build search query
+    const searchQuery = {
+      $or: [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { features: { $in: [new RegExp(search, 'i')] } }
+      ]
+    };
+
+    // Add category filter if provided
+    if (category) {
+      searchQuery.category = category;
+    }
+
+    // Execute search
+    const products = await Product.find(searchQuery);
+
+    // Return results
+    res.json({
+      success: true,
+      count: products.length,
+      data: products
     });
-    res.status(200).json({ message: "Products found", products });
+    
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    console.error('Search error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Search failed',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
+
 
 const getProductByCategory = async (req, res) => {
   try {
@@ -158,27 +207,36 @@ const getProductByCategory = async (req, res) => {
   }
 };
 
+
 const getProductsByCategory = async (req, res) => {
   try {
+    console.log(req.params);
     const category = req.params.categoryId;
     
     const categoryId = categorymappedwithid[category];
-    const products = await Product.find({ category: categoryId });  
+    
+    // Add validation for invalid category
+    if (!categoryId) {
+      return res.status(400).json({ message: "Invalid category" });
+    }
+    
+    const products = await Product.find({ category: categoryId });
+    
     res.status(200).json({ message: "Products found", products });
   } catch (error) {
+    console.error('Error fetching products:', error); // Better error logging
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 
 module.exports = {
   addProduct,
   updateProduct,
   deleteProduct,
-  searchProducts,
   getProductById,
   getAllProducts,
+  searchProducts,
   getProductsByCategory,
 
 };

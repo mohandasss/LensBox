@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { addProduct, updateProduct, searchProducts, deleteProduct, getProductById, getAllProducts, getProductsByCategory  } = require("../Controllers/ProductController");
+const { addProduct, updateProduct, deleteProduct,searchProducts, getProductById, getAllProducts, getProductsByCategory  } = require("../Controllers/ProductController");
 
 const { authMiddleware } = require("../middlewares/AuthMiddleware");
 
@@ -9,6 +9,7 @@ router.delete("/:id", authMiddleware, deleteProduct);
 router.get("/:id", getProductById);
 router.get("/", getAllProducts);
 router.get("/category/:categoryId", getProductsByCategory);
-router.get("/search", searchProducts);
+router.post("/search", searchProducts);
+
 
 module.exports = router;

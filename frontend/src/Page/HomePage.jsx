@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../Components/Navbar";
 import Caruselshapevideo from "../Components/CarouselShapeVideo";
 import PreferenceSearch from "../Components/PreferenceSearch";
@@ -7,7 +8,20 @@ import { Link } from "react-router-dom";
 import ChatButton from "../Components/ChatButton";
 import TestimonialsSection from "../Components/TestimonialsSection";
 import HeroProducts from "../Components/HeroProducts";
+
 const HomePage = () => {
+  const navigate = useNavigate();
+  
+  // Handle search submission from PreferenceSearch
+  const handleSearch = (category, query) => {
+    if (query && query.trim() !== '') {
+      // Navigate to products page with search parameters
+      navigate(`/products?category=${category}&q=${encodeURIComponent(query)}`);
+    } else {
+      // If no search term, just go to products page
+      navigate('/products');
+    }
+  };
   const brands = [
     {
       name: "Sony",
@@ -33,7 +47,7 @@ const HomePage = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Caruselshapevideo />
         <div className="flex flex-col items-center justify-center py-12">
-          <PreferenceSearch />
+          <PreferenceSearch onSearch={handleSearch} />
         </div>
       </main>
       <h1 className="text-white text-center text-3xl font-bold ">

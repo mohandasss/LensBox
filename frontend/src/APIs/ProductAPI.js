@@ -34,13 +34,21 @@ export const getProducts = async () => {
 
 };
 
-export const searchProducts = async (searchParams) => {
-  const response = await axiosinstance.post("/search", searchParams); 
-  if (response.data) {
-    console.log(response.data);
-    return response.data;
+export const searchProducts = async (selectedCategory, searchTerm) => {
+  try {
+    const response = await axiosinstance.post('/search', {
+      searchTerm,
+      selectedCategory
+    });
+    
+    console.log("search response", response.data);
+    
+    // Return the data array or empty array if not found
+    return response.data || [];
+  } catch (error) {
+    console.error('Search API error:', error);
+    return []; // Return empty array on error
   }
-  return response.data;
 };
 
 export const getProduct = async (id) => {
@@ -53,12 +61,15 @@ export const getProduct = async (id) => {
 };
 
 export const getProductsByCategory = async (category) => {
-  const response = await axiosinstance.get(`/category/${category}`);
-  console.log(response.data);
-  if (response.data) {
-    console.log(response.data);
-    return response.data;
+  try {
+    const response = await axiosinstance.get(`/category/${category}`);
+    console.log("category", category);
+    console.log("response data:", response.data.products);
+    
+    return response.data.products; 
+  } catch (error) {
+    console.error('Error fetching category products:', error);
+    return [];
   }
-  return response.data;
 };
-export default { getProducts, searchProducts, getProduct, getProductsByCategory };
+export default { getProducts, searchProducts,  getProduct, getProductsByCategory };

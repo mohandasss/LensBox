@@ -71,6 +71,7 @@ app.use("/auth", googleLoginRoutes);
 app.use('/api/mail', mailRoutes);
 app.use('/api/', subscriberRoutes);
 
+
 // Basic Route
 app.get("/", (req, res) => {
   res.send("Hello, world!");
