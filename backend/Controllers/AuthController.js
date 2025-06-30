@@ -155,38 +155,79 @@ const registerUser = async (req, res) => {
   }
 };
 
+/**
+ * Handles avatar upload and updates the user's profile picture
+ * Expects a base64 encoded image in the request body as { avatar: 'base64string' }
+ */
+const uploadAvatar = async (req, res) => {
+  try {
+    const userId = req.user.userId; // Get userId from authenticated user
 
+    // Step 1: Check for uploaded file
+    if (!req.files || !req.files.profilePic) {
+      return res.status(400).json({ message: "Avatar image is required" });
+    }
 
+    const profilePic = req.files.profilePic;
 
+    // Step 2: Optional – check for truncated upload
+    if (profilePic.truncated) {
+      return res.status(400).json({ message: "Image file too large or truncated" });
+    }
+
+    // Step 3: Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(profilePic.tempFilePath, {
+      folder: "profilePictures",
+    });
+
+    // Step 4: Update user's profilePic
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { profilePic: result.secure_url },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ 
+      message: "Avatar updated successfully", 
+      user: updatedUser,
+      profilePic: updatedUser.profilePic // Ensure profilePic is included in the response
+    });
+
+  } catch (error) {
+    console.error("Error updating avatar:", error);
+    res.status(500).json({ 
+      message: "Failed to update avatar",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+/**
+ * Updates user profile information
+ * Does not handle profile picture updates - use uploadAvatar for that
+ */
 const updateUser = async (req, res) => {
   try {
     const userId = req.user.userId;
-
-    const {
-      name,
-      phone,
-      image,
-      address = {}
-    } = req.body;
-
+    const { name, phone, address = {} } = req.body;
     const { city, state, zip, country } = address;
 
-    console.log("Received Data:", req.body);
-
-    let profilePic;
-
-    if (image) {
-      const result = await cloudinary.uploader.upload(image, {
-        folder: "user_profiles",
-      });
-      profilePic = result.secure_url;
+    // Validate at least one field is being updated
+    if (!name && !phone && !city && !state && !zip && !country) {
+      return res.status(400).json({ message: "No update data provided" });
     }
 
     const updateData = {};
+    
+    // Basic info updates
     if (name) updateData.name = name;
     if (phone) updateData.phone = phone;
-    if (profilePic) updateData.profilePic = profilePic;
 
+    // Address updates
     if (city || state || zip || country) {
       updateData.address = {};
       if (city) updateData.address.city = city;
@@ -194,8 +235,6 @@ const updateUser = async (req, res) => {
       if (zip) updateData.address.zip = zip;
       if (country) updateData.address.country = country;
     }
-
-    console.log("Update Object:", updateData);
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
@@ -211,10 +250,12 @@ const updateUser = async (req, res) => {
       message: "Profile updated successfully",
       user: updatedUser,
     });
-
   } catch (err) {
     console.error("Update error:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ 
+      message: "Failed to update profile",
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 };
 
@@ -272,4 +313,4 @@ const deleteUser = async (req, res) => {
 
 
 
-module.exports = {googleCallback , registerUser,updateUser, loginUser, deleteUser, checkAuth };
+module.exports = {googleCallback , registerUser,uploadAvatar,updateUser, loginUser, deleteUser, checkAuth };

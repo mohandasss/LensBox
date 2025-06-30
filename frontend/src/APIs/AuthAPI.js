@@ -57,6 +57,24 @@ const updateUser = async (token, updatedData) => {
   }
 };
 
+const uploadAvatar = async (formData, token) => {
+  try {
+    const response = await axiosinstance.put(`/uploadavatar`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    return response.data; // this contains the profilePic or whatever the backend sends
+  } catch (error) {
+    console.log("Upload avatar error:", error);
+    throw error;
+  }
+};
+
+
+
 const deleteUser = async (userId) => {
   try {
     const response = await axiosinstance.delete(`/deleteuser/${userId}`);
@@ -83,4 +101,4 @@ const verifyToken = async (token) => {
   }
 };
 
-export { register, login, updateUser, deleteUser, verifyToken };
+export { register, login, updateUser, deleteUser, verifyToken, uploadAvatar };

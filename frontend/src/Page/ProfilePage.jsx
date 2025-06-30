@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { verifyToken, updateUser, deleteUser } from "../APIs/AuthAPI"; // Your provided verifyToken function
+import { verifyToken, updateUser, deleteUser, uploadAvatar } from "../APIs/AuthAPI"; // Your provided verifyToken function
 import Navbar from "../Components/Navbar";
+
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
+  const [isLoading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -56,21 +58,55 @@ const ProfilePage = () => {
     }));
   };
   
-  
- ;
   const handleAvatarChange = (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    setAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
-  }
-};
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.match('image.*')) {
+        alert('Please select an image file (JPEG, PNG)');
+        return;
+      }
+      
+      // Validate file size (max 1MB)
+      if (file.size > 1024 * 1024) {
+        alert('Image size should be less than 1MB');
+        return;
+      }
+      
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+    }
+  };
+
+  // In ProfilePage.jsx, modify the handleSave function
   const handleSave = async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) return;
+      if (!token) {
+        alert('Please log in to update your profile');
+        return;
+      }
   
-      const updatedData = {
+      setLoading(true);
+      
+      // Upload avatar first if it exists
+      if (avatarFile) {
+        const formDataObj = new FormData();
+        formDataObj.append('profilePic', avatarFile);
+        
+        // Upload avatar - pass formData first, then token
+        const avatarResponse = await uploadAvatar(formDataObj, token);
+        
+        if (avatarResponse?.profilePic) {
+          setUser(prev => ({
+            ...prev,
+            profilePic: avatarResponse.profilePic
+          }));
+        }
+      }
+      
+      // Then update user info
+      const userData = {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
@@ -81,17 +117,20 @@ const ProfilePage = () => {
           country: formData.country,
         },
       };
-           const res = await updateUser(token, updatedData);
-           console.log(res);
-           
-       
-      }
-  
       
-     catch (err) {
+      await updateUser(token, userData);
+      
+      alert('Profile updated successfully!');
+      setAvatarFile(null);
+      
+    } catch (err) {
       console.error("Update failed:", err);
+      alert(err.message || 'Failed to update profile. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
+  
   
 
   const handleDeleteAccount = async () => {
@@ -179,7 +218,7 @@ const ProfilePage = () => {
                   <div className="relative group">
                     <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
                       <img
-                        src={user?.profilePic || "https://i.pravatar.cc/300"}
+                        src={avatarPreview || user?.profilePic || "https://i.pravatar.cc/300"}
                         alt="Profile"
                         className="w-full h-full object-cover"
                       />
@@ -361,22 +400,35 @@ const ProfilePage = () => {
                   <button
                     type="button"
                     onClick={handleSave}
-                    className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                    disabled={isLoading}
+                    className={`inline-flex items-center justify-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
                   >
-                    <svg
-                      className="w-5 h-5 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    Save Changes
+                    {isLoading ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          className="w-5 h-5 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                        Save Changes
+                      </>
+                    )}
                   </button>
                 </div>
 
