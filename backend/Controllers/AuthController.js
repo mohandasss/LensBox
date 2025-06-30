@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const User = require("../Models/UserModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -210,40 +211,73 @@ const uploadAvatar = async (req, res) => {
  * Updates user profile information
  * Does not handle profile picture updates - use uploadAvatar for that
  */
+/**
+ * Updates user profile information
+ * Does not handle profile picture updates - use uploadAvatar for that
+ */
 const updateUser = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { name, phone, address = {} } = req.body;
-    const { city, state, zip, country } = address;
+    const { name, phone, address } = req.body;
 
     // Validate at least one field is being updated
-    if (!name && !phone && !city && !state && !zip && !country) {
+    if (!name && !phone && !address) {
       return res.status(400).json({ message: "No update data provided" });
     }
 
+    // Get the current user document
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Prepare update object
     const updateData = {};
     
-    // Basic info updates
+    // Update basic info if provided
     if (name) updateData.name = name;
     if (phone) updateData.phone = phone;
 
-    // Address updates
-    if (city || state || zip || country) {
-      updateData.address = {};
-      if (city) updateData.address.city = city;
-      if (state) updateData.address.state = state;
-      if (zip) updateData.address.zip = zip;
-      if (country) updateData.address.country = country;
+    // Handle address updates if provided
+    if (address) {
+      // Start with existing address or empty object with required fields
+      const currentAddress = user.address || { city: '', country: '' };
+      
+      // Create a new address object with updated fields
+      const updatedAddress = {
+        city: address.city !== undefined ? address.city : currentAddress.city,
+        state: address.state !== undefined ? address.state : currentAddress.state,
+        zip: address.zip !== undefined ? address.zip : currentAddress.zip,
+        country: address.country !== undefined ? address.country : currentAddress.country
+      };
+
+      // Validate required address fields
+      if (!updatedAddress.city || !updatedAddress.country) {
+        return res.status(400).json({ 
+          message: "Both city and country are required for address updates" 
+        });
+      }
+
+      updateData.address = updatedAddress;
     }
 
+    // If no valid updates after validation
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ message: "No valid updates provided" });
+    }
+
+    // Perform the update
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $set: updateData },
-      { new: true, runValidators: true }
+      { 
+        new: true, 
+        runValidators: true
+      }
     ).select("-password");
 
     if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found after update" });
     }
 
     res.status(200).json({
@@ -252,6 +286,19 @@ const updateUser = async (req, res) => {
     });
   } catch (err) {
     console.error("Update error:", err);
+    
+    // Handle validation errors specifically
+    if (err.name === 'ValidationError') {
+      const errors = {};
+      Object.keys(err.errors).forEach(key => {
+        errors[key] = err.errors[key].message;
+      });
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: errors
+      });
+    }
+    
     res.status(500).json({ 
       message: "Failed to update profile",
       error: process.env.NODE_ENV === 'development' ? err.message : undefined

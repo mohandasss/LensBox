@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -11,16 +12,75 @@ import {
   HomeIcon,
   MapIcon,
   CalendarIcon,
+  CheckIcon,
+  CreditCardIcon,
+  TruckIcon,
 } from "@heroicons/react/24/outline";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { createOrder, verifyPayment } from "../APIs/CheckoutAPI";
 import { loadRazorpay, formatAmount } from "../utils/razorpay";
 import { verifyToken } from "../APIs/AuthAPI";
-
 import { clearCart } from "../APIs/CartAPI";
 import PaymentSuccess from "./PaymentSuccess";
 import { AnimatePresence } from "framer-motion";
+
+// Move InputField outside the component to prevent recreation
+const InputField = React.memo(({
+  id,
+  name,
+  label,
+  type = "text",
+  value,
+  onChange,
+  error,
+  icon: Icon,
+  placeholder,
+  className = "",
+  ...props
+}) => {
+  return (
+    <div className={`mb-6 ${className}`}>
+      <label htmlFor={id} className="block text-sm font-semibold text-gray-700 mb-2">
+        {label}
+      </label>
+      <div className="relative group">
+        {Icon && (
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <Icon
+              className={`h-5 w-5 transition-colors ${
+                error ? "text-red-500" : "text-gray-400 group-focus-within:text-indigo-600"
+              }`}
+              aria-hidden="true"
+            />
+          </div>
+        )}
+        <input
+          id={id}
+          name={name}
+          type={type}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder || `Enter ${label.toLowerCase()}`}
+          className={`block w-full ${Icon ? "pl-12" : "pl-4"} pr-4 py-3 text-gray-900 placeholder-gray-500 bg-white border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${
+            error 
+              ? "border-red-500 bg-red-50" 
+              : "border-gray-200 hover:border-gray-300 focus:border-indigo-500"
+          }`}
+          {...props}
+        />
+      </div>
+      {error && (
+        <p className="mt-2 text-sm text-red-600 flex items-center">
+          <span className="inline-block w-1 h-1 bg-red-500 rounded-full mr-2"></span>
+          {error}
+        </p>
+      )}
+    </div>
+  );
+});
+
+InputField.displayName = "InputField";
 
 const CheckoutModal = ({
   isOpen,
@@ -32,13 +92,12 @@ const CheckoutModal = ({
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-
   const navigate = useNavigate();
   const [paymentError, setPaymentError] = useState("");
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [orderDetails, setOrderDetails] = useState(null);
-  console.log(orderDetails);
-  // Initialize form data with proper defaults
+
+  // Simplified form state management
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
@@ -50,7 +109,6 @@ const CheckoutModal = ({
     country: "India",
   });
 
-  // Initialize dates with proper defaults
   const [dates, setDates] = useState({
     startDate: null,
     endDate: null,
@@ -58,10 +116,10 @@ const CheckoutModal = ({
 
   const [errors, setErrors] = useState({});
 
-  // Update form data when initialValues change (only once when component mounts or initialValues change)
+  // Initialize form data from initialValues only once
   useEffect(() => {
     if (initialValues && Object.keys(initialValues).length > 0) {
-      setFormData((prev) => ({
+      setFormData(prev => ({
         ...prev,
         fullName: initialValues.fullName || "",
         phone: initialValues.phone || "",
@@ -75,89 +133,36 @@ const CheckoutModal = ({
 
       if (initialValues.startDate || initialValues.endDate) {
         setDates({
-          startDate: initialValues.startDate
-            ? new Date(initialValues.startDate)
-            : null,
-          endDate: initialValues.endDate
-            ? new Date(initialValues.endDate)
-            : null,
+          startDate: initialValues.startDate ? new Date(initialValues.startDate) : null,
+          endDate: initialValues.endDate ? new Date(initialValues.endDate) : null,
         });
       }
     }
   }, [initialValues]);
 
-  // Custom Input Component - Memoized to prevent re-renders
-  const InputField = React.memo(
-    ({
-      id,
-      name,
-      label,
-      type = "text",
-      value,
-      onChange,
-      error,
-      icon: Icon,
-      placeholder,
-      className = "",
-      ...props
-    }) => (
-      <div className={`mb-4 ${className}`}>
-        <div className="relative">
-          {Icon && (
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Icon
-                className={`h-5 w-5 ${
-                  error ? "text-red-500" : "text-gray-400"
-                }`}
-                aria-hidden="true"
-              />
-            </div>
-          )}
-          <input
-            id={id}
-            name={name}
-            type={type}
-            value={value}
-            onChange={onChange}
-            placeholder={placeholder || `Enter ${label.toLowerCase()}`}
-            className={`block w-full ${
-              Icon ? "pl-10" : "pl-3"
-            } pr-3 py-3 border-0 border-b-2 ${
-              error ? "border-red-500" : "border-gray-200 hover:border-gray-300"
-            } focus:border-indigo-600 focus:ring-0 sm:text-sm transition-colors duration-200 bg-transparent`}
-            {...props}
-          />
-        </div>
-        {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
-      </div>
-    )
-  );
-
-  // Memoized input change handler to prevent unnecessary re-renders
-  const handleInputChange = useCallback(
-    (e) => {
-      const { name, value } = e.target;
-      setFormData((prev) => ({
+  // Simple input change handler without debouncing
+  const handleInputChange = useCallback((e) => {
+    const { name, value } = e.target;
+    
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
         ...prev,
-        [name]: value,
+        [name]: ""
       }));
-
-      // Clear error for this field when user starts typing
-      if (errors[name]) {
-        setErrors((prev) => ({
-          ...prev,
-          [name]: "",
-        }));
-      }
-    },
-    [errors]
-  );
+    }
+  }, [errors]);
 
   const validateStep1 = useCallback(() => {
     const newErrors = {};
     const requiredFields = [
       "fullName",
-      "phone",
+      "phone", 
       "addressLine1",
       "city",
       "state",
@@ -191,7 +196,7 @@ const CheckoutModal = ({
       return;
     }
 
-    setError(""); // Clear any previous errors
+    setError("");
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     }
@@ -200,29 +205,25 @@ const CheckoutModal = ({
   const handlePrevious = useCallback(() => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
-      setError(""); // Clear errors when going back
+      setError("");
     }
   }, [currentStep]);
 
-  const handleDateChange = useCallback(
-    (field, date) => {
-      setDates((prev) => ({
-        ...prev,
-        [field]: date,
-      }));
+  const handleDateChange = useCallback((field, date) => {
+    setDates((prev) => ({
+      ...prev,
+      [field]: date,
+    }));
 
-      // Clear error when dates are selected
-      if (error && date) {
-        setError("");
-      }
-    },
-    [error]
-  );
+    if (error && date) {
+      setError("");
+    }
+  }, [error]);
 
   const calculateRentalDays = useCallback(() => {
     if (!dates.startDate || !dates.endDate) return 0;
     const diffTime = Math.abs(dates.endDate - dates.startDate);
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both start and end days
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
   }, [dates.startDate, dates.endDate]);
 
   const calculateSubtotal = useCallback(() => {
@@ -245,9 +246,7 @@ const CheckoutModal = ({
 
     try {
       const { user } = await verifyToken(localStorage.getItem("token"));
-      console.log("user data", user._id);
 
-      // 1. Create order in your backend
       const orderData = {
         ...formData,
         startDate: dates.startDate,
@@ -261,19 +260,13 @@ const CheckoutModal = ({
         })),
       };
 
-      console.log("🚀 Creating order with data:", orderData);
       const response = await createOrder(orderData);
-      console.log("✅ Order created successfully:", response);
-
-      // 2. Load Razorpay script
       const isRazorpayLoaded = await loadRazorpay();
+      
       if (!isRazorpayLoaded) {
         throw new Error("Failed to load payment gateway. Please try again.");
       }
 
-      console.log("✅ Razorpay loaded successfully");
-
-      // 3. Initialize Razorpay checkout
       const options = {
         key: config.RAZORPAY_KEY_ID,
         amount: formatAmount(calculateTotal()),
@@ -283,54 +276,31 @@ const CheckoutModal = ({
         order_id: response.razorpayOrderId,
         handler: async function (razorpayResponse) {
           try {
-            console.log("💳 Payment response received:", razorpayResponse);
-
-            // Prepare verification data
             const verificationData = {
               razorpay_order_id: razorpayResponse.razorpay_order_id,
               razorpay_payment_id: razorpayResponse.razorpay_payment_id,
               razorpay_signature: razorpayResponse.razorpay_signature,
             };
 
-            console.log("📤 Sending verification data:", verificationData);
-
-            // 4. Verify payment on your server
             const verificationResponse = await verifyPayment(verificationData);
-            console.log(
-              "✅ Payment verification successful:",
-              verificationResponse
-            );
-            console.log("orderDetails", orderDetails);
-
-            // 5. Clear cart and update state
             const clearCartResponse = await clearCart(user._id);
-            console.log("Cart cleared successfully:", clearCartResponse);
 
-            // 6. Set order details for success popup
             setOrderDetails({
               orderId: verificationResponse.orderId,
               amount: calculateTotal(),
             });
-              console.log("paymentConfirmation", verificationResponse.orderId);
-              paymentConfirmation(verificationResponse.orderId);
-            // 7. Show success popup
 
-            // 8. Close modal after a short delay
-            // 1. First show the success popup
+           const paymentConfirmationResponse = await paymentConfirmation(verificationResponse.orderId);
+           console.log("Payment Confirmation Response:", paymentConfirmationResponse);
             setPaymentSuccess(true);
-            console.log("orderId", response.order.id);
             
-            
-            // 2. Set up cleanup and navigation
             const timer = setTimeout(() => {
               onClose();
               navigate("/orders");
             }, 4000);
 
-            // 3. Return cleanup function to clear the timeout if component unmounts
             return () => clearTimeout(timer);
           } catch (error) {
-            console.error("❌ Payment verification failed:", error);
             setPaymentError(
               "Payment verification failed. Please contact support with payment ID: " +
                 (razorpayResponse.razorpay_payment_id || "N/A")
@@ -349,19 +319,14 @@ const CheckoutModal = ({
         },
         modal: {
           ondismiss: function () {
-            console.log("⚠️ Payment modal dismissed by user");
             setIsSubmitting(false);
           },
         },
       };
 
-      console.log("🎯 Opening Razorpay checkout");
-
-      // 6. Open Razorpay checkout
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (error) {
-      console.error("❌ Error during checkout:", error);
       setError(
         error.response?.data?.message ||
           error.message ||
@@ -373,13 +338,14 @@ const CheckoutModal = ({
 
   const renderStep1 = () => (
     <div className="space-y-2">
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="p-2 rounded-full bg-indigo-50">
-          <UserIcon className="h-6 w-6 text-indigo-600" />
+      <div className="flex items-center space-x-4 mb-8">
+        <div className="p-3 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100">
+          <TruckIcon className="h-7 w-7 text-indigo-600" />
         </div>
-        <h3 className="text-xl font-semibold text-gray-900">
-          Shipping Information
-        </h3>
+        <div>
+          <h3 className="text-2xl font-bold text-gray-900">Shipping Information</h3>
+          <p className="text-gray-600 mt-1">Where should we deliver your equipment?</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -391,6 +357,7 @@ const CheckoutModal = ({
           onChange={handleInputChange}
           error={errors.fullName}
           icon={UserIcon}
+          placeholder="Enter your full name"
         />
         <InputField
           id="phone"
@@ -401,6 +368,7 @@ const CheckoutModal = ({
           onChange={handleInputChange}
           error={errors.phone}
           icon={PhoneIcon}
+          placeholder="Enter your phone number"
         />
       </div>
 
@@ -412,6 +380,7 @@ const CheckoutModal = ({
         onChange={handleInputChange}
         error={errors.addressLine1}
         icon={HomeIcon}
+        placeholder="Enter your street address"
       />
 
       <InputField
@@ -421,6 +390,7 @@ const CheckoutModal = ({
         value={formData.addressLine2}
         onChange={handleInputChange}
         icon={MapPinIcon}
+        placeholder="Nearby landmark or apartment details"
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -432,6 +402,7 @@ const CheckoutModal = ({
           onChange={handleInputChange}
           error={errors.city}
           icon={MapPinIcon}
+          placeholder="Enter city"
         />
         <InputField
           id="state"
@@ -441,32 +412,39 @@ const CheckoutModal = ({
           onChange={handleInputChange}
           error={errors.state}
           icon={MapIcon}
+          placeholder="Enter state"
         />
         <InputField
           id="zipCode"
           name="zipCode"
-          label="ZIP Code"
+          label="PIN Code"
           value={formData.zipCode}
           onChange={handleInputChange}
           error={errors.zipCode}
           icon={MapPinIcon}
+          placeholder="6-digit PIN"
         />
       </div>
 
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <MapPinIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+      <div className="mb-6">
+        <label htmlFor="country" className="block text-sm font-semibold text-gray-700 mb-2">
+          Country
+        </label>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <MapPinIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+          </div>
+          <select
+            id="country"
+            name="country"
+            value={formData.country}
+            onChange={handleInputChange}
+            disabled
+            className="block w-full pl-12 pr-4 py-3 text-gray-900 bg-gray-50 border-2 border-gray-200 rounded-xl cursor-not-allowed"
+          >
+            <option>India</option>
+          </select>
         </div>
-        <select
-          id="country"
-          name="country"
-          value={formData.country}
-          onChange={handleInputChange}
-          className="block w-full pl-10 pr-3 py-3 border-0 border-b-2 border-gray-200 focus:border-indigo-600 focus:ring-0 sm:text-sm hover:border-gray-300 transition-colors duration-200 bg-transparent"
-          disabled
-        >
-          <option>India</option>
-        </select>
       </div>
     </div>
   );
@@ -474,130 +452,109 @@ const CheckoutModal = ({
   const renderStep2 = () => {
     const today = new Date();
     const maxDate = new Date();
-    maxDate.setMonth(today.getMonth() + 3); // Allow selection up to 3 months in future
+    maxDate.setMonth(today.getMonth() + 3);
 
     return (
       <div className="space-y-8">
-        <div className="space-y-6">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-2 rounded-full bg-indigo-50">
-              <CalendarIcon className="h-5 w-5 text-indigo-600" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900">
-              Select Rental Period
-            </h3>
+        <div className="flex items-center space-x-4 mb-8">
+          <div className="p-3 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100">
+            <CalendarIcon className="h-7 w-7 text-indigo-600" />
           </div>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Start Date
-              </label>
-              <div className="relative">
-                <input
-                  type="date"
-                  min={today.toISOString().split("T")[0]}
-                  value={
-                    dates.startDate
-                      ? dates.startDate.toISOString().split("T")[0]
-                      : ""
-                  }
-                  onChange={(e) => {
-                    const date = e.target.value
-                      ? new Date(e.target.value)
-                      : null;
-                    handleDateChange("startDate", date);
-                  }}
-                  className="block w-full px-4 py-3 text-sm text-gray-900 bg-white border border-gray-200 rounded-lg focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 transition-all"
-                />
-                <CalendarIcon className="h-4 w-4 text-gray-400 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                End Date
-              </label>
-              <div className="relative">
-                <input
-                  type="date"
-                  min={
-                    dates.startDate
-                      ? dates.startDate.toISOString().split("T")[0]
-                      : today.toISOString().split("T")[0]
-                  }
-                  max={maxDate.toISOString().split("T")[0]}
-                  value={
-                    dates.endDate
-                      ? dates.endDate.toISOString().split("T")[0]
-                      : ""
-                  }
-                  onChange={(e) => {
-                    const date = e.target.value
-                      ? new Date(e.target.value)
-                      : null;
-                    handleDateChange("endDate", date);
-                  }}
-                  disabled={!dates.startDate}
-                  className={`block w-full px-4 py-3 text-sm text-gray-900 bg-white border border-gray-200 rounded-lg focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 transition-all ${
-                    !dates.startDate ? "opacity-70 cursor-not-allowed" : ""
-                  }`}
-                />
-                <CalendarIcon
-                  className={`h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none ${
-                    !dates.startDate ? "text-gray-300" : "text-gray-400"
-                  }`}
-                />
-              </div>
-            </div>
+          <div>
+            <h3 className="text-2xl font-bold text-gray-900">Select Rental Period</h3>
+            <p className="text-gray-600 mt-1">Choose your rental dates</p>
           </div>
-
-          {dates.startDate && dates.endDate && (
-            <div className="mt-4 p-3 bg-indigo-50 rounded-lg">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-indigo-700">
-                  {dates.startDate.toLocaleDateString()} -{" "}
-                  {dates.endDate.toLocaleDateString()}
-                </span>
-                <span className="text-xs px-2 py-1 bg-white rounded-full text-indigo-600 font-medium">
-                  {calculateRentalDays()}{" "}
-                  {calculateRentalDays() === 1 ? "Day" : "Days"}
-                </span>
-              </div>
-            </div>
-          )}
         </div>
 
-        <div className="border-t border-gray-200 pt-4">
-          <h4 className="text-md font-medium text-gray-900 mb-2">
-            Order Summary
-          </h4>
-          <div className="space-y-2">
-            {cartItems.map((item) => (
-              <div key={item._id} className="flex justify-between text-sm">
-                <span>
-                  {item.quantity} × {item.productId.name}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Start Date
+            </label>
+            <div className="relative">
+              <input
+                type="date"
+                min={today.toISOString().split("T")[0]}
+                value={dates.startDate ? dates.startDate.toISOString().split("T")[0] : ""}
+                onChange={(e) => {
+                  const date = e.target.value ? new Date(e.target.value) : null;
+                  handleDateChange("startDate", date);
+                }}
+                className="block w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+              />
+              <CalendarIcon className="h-5 w-5 text-gray-400 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              End Date
+            </label>
+            <div className="relative">
+              <input
+                type="date"
+                min={dates.startDate ? dates.startDate.toISOString().split("T")[0] : today.toISOString().split("T")[0]}
+                max={maxDate.toISOString().split("T")[0]}
+                value={dates.endDate ? dates.endDate.toISOString().split("T")[0] : ""}
+                onChange={(e) => {
+                  const date = e.target.value ? new Date(e.target.value) : null;
+                  handleDateChange("endDate", date);
+                }}
+                disabled={!dates.startDate}
+                className={`block w-full px-4 py-3 text-gray-900 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all ${
+                  !dates.startDate ? "opacity-50 cursor-not-allowed bg-gray-50" : ""
+                }`}
+              />
+              <CalendarIcon className={`h-5 w-5 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none ${
+                !dates.startDate ? "text-gray-300" : "text-gray-400"
+              }`} />
+            </div>
+          </div>
+        </div>
+
+        {dates.startDate && dates.endDate && (
+          <div className="mt-6 p-4 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl border border-indigo-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-indigo-700">
+                  {dates.startDate.toLocaleDateString()} - {dates.endDate.toLocaleDateString()}
+                </p>
+                <p className="text-xs text-indigo-600 mt-1">Rental Period Selected</p>
+              </div>
+              <div className="text-right">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white text-indigo-700 border border-indigo-200">
+                  {calculateRentalDays()} {calculateRentalDays() === 1 ? "Day" : "Days"}
                 </span>
-                <span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-white border-2 border-gray-100 rounded-xl p-6">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h4>
+          <div className="space-y-3">
+            {cartItems.map((item) => (
+              <div key={item._id} className="flex justify-between items-center py-2">
+                <div className="flex-1">
+                  <span className="text-gray-900 font-medium">{item.productId.name}</span>
+                  <span className="text-gray-500 ml-2">× {item.quantity}</span>
+                </div>
+                <span className="font-semibold text-gray-900">
                   ₹{(item.productId.price * item.quantity).toFixed(2)}
                 </span>
               </div>
             ))}
-            <div className="border-t border-gray-200 pt-2 mt-2">
-              <div className="flex justify-between font-medium">
+            
+            <div className="border-t border-gray-200 pt-4 space-y-2">
+              <div className="flex justify-between text-gray-600">
                 <span>Subtotal:</span>
                 <span>₹{calculateSubtotal().toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span>Rental Duration:</span>
-                <span>
-                  {calculateRentalDays()} day
-                  {calculateRentalDays() !== 1 ? "s" : ""}
-                </span>
+              <div className="flex justify-between text-gray-600">
+                <span>Duration:</span>
+                <span>{calculateRentalDays()} day{calculateRentalDays() !== 1 ? "s" : ""}</span>
               </div>
-            </div>
-            <div className="border-t border-gray-200 pt-2">
-              <div className="flex justify-between font-medium text-lg">
+              <div className="flex justify-between text-xl font-bold text-gray-900 pt-2 border-t border-gray-200">
                 <span>Total:</span>
                 <span>₹{calculateTotal()}</span>
               </div>
@@ -615,65 +572,76 @@ const CheckoutModal = ({
 
     return (
       <div className="space-y-6">
-        <h3 className="text-lg font-medium text-gray-900">Order Summary</h3>
-
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h4 className="font-medium text-gray-900 mb-2">Shipping Address</h4>
-          <p className="text-sm">
-            {formData.fullName}
-            <br />
-            {formData.addressLine1}
-            {formData.addressLine2 && (
-              <>
-                <br />
-                {formData.addressLine2}
-              </>
-            )}
-            <br />
-            {formData.city}, {formData.state} {formData.zipCode}
-            <br />
-            {formData.country}
-            <br />
-            {formData.phone}
-          </p>
+        <div className="flex items-center space-x-4 mb-8">
+          <div className="p-3 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 border border-green-100">
+            <CheckIcon className="h-7 w-7 text-green-600" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-gray-900">Order Summary</h3>
+            <p className="text-gray-600 mt-1">Review your order before payment</p>
+          </div>
         </div>
 
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h4 className="font-medium text-gray-900 mb-2">Rental Period</h4>
-          <p className="text-sm">
-            {dates.startDate?.toLocaleDateString()} to{" "}
-            {dates.endDate?.toLocaleDateString()}
-            <br />({rentalDays} day{rentalDays !== 1 ? "s" : ""})
-          </p>
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
+          <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+            <TruckIcon className="h-5 w-5 mr-2 text-gray-600" />
+            Shipping Address
+          </h4>
+          <div className="text-gray-700 leading-relaxed">
+            <p className="font-medium">{formData.fullName}</p>
+            <p>{formData.addressLine1}</p>
+            {formData.addressLine2 && <p>{formData.addressLine2}</p>}
+            <p>{formData.city}, {formData.state} {formData.zipCode}</p>
+            <p>{formData.country}</p>
+            <p className="text-indigo-600 font-medium">{formData.phone}</p>
+          </div>
         </div>
 
-        <div className="border-t border-gray-200 pt-4">
-          <h4 className="font-medium text-gray-900 mb-2">Order Details</h4>
-          <div className="space-y-2">
+        <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-6">
+          <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+            <CalendarIcon className="h-5 w-5 mr-2 text-indigo-600" />
+            Rental Period
+          </h4>
+          <div className="text-gray-700">
+            <p className="font-medium">
+              {dates.startDate?.toLocaleDateString()} to {dates.endDate?.toLocaleDateString()}
+            </p>
+            <p className="text-indigo-600 font-medium">
+              ({rentalDays} day{rentalDays !== 1 ? "s" : ""})
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-white border-2 border-gray-100 rounded-xl p-6">
+          <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
+            <CreditCardIcon className="h-5 w-5 mr-2 text-gray-600" />
+            Order Details
+          </h4>
+          <div className="space-y-3">
             {cartItems.map((item) => (
-              <div key={item._id} className="flex justify-between text-sm">
-                <span>
-                  {item.quantity} × {item.productId.name}
-                </span>
-                <span>
+              <div key={item._id} className="flex justify-between items-center py-2">
+                <div className="flex-1">
+                  <span className="text-gray-900 font-medium">{item.productId.name}</span>
+                  <span className="text-gray-500 ml-2">× {item.quantity}</span>
+                </div>
+                <span className="font-semibold text-gray-900">
                   ₹{(item.productId.price * item.quantity).toFixed(2)}
                 </span>
               </div>
             ))}
-            <div className="border-t border-gray-200 pt-2 mt-2 space-y-1">
-              <div className="flex justify-between">
+            
+            <div className="border-t border-gray-200 pt-4 space-y-2">
+              <div className="flex justify-between text-gray-600">
                 <span>Subtotal:</span>
                 <span>₹{subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Rental Duration:</span>
-                <span>
-                  {rentalDays} day{rentalDays !== 1 ? "s" : ""}
-                </span>
+              <div className="flex justify-between text-gray-600">
+                <span>Duration:</span>
+                <span>{rentalDays} day{rentalDays !== 1 ? "s" : ""}</span>
               </div>
-              <div className="flex justify-between font-medium text-lg pt-2 border-t border-gray-200 mt-2">
-                <span>Total:</span>
-                <span>₹{total}</span>
+              <div className="flex justify-between text-2xl font-bold text-gray-900 pt-4 border-t-2 border-gray-200">
+                <span>Total Amount:</span>
+                <span className="text-green-600">₹{total}</span>
               </div>
             </div>
           </div>
@@ -699,7 +667,6 @@ const CheckoutModal = ({
 
   return (
     <div>
-      {/* Payment Success Popup */}
       {paymentSuccess && orderDetails && (
         <PaymentSuccess
           orderDetails={orderDetails}
@@ -713,36 +680,34 @@ const CheckoutModal = ({
         />
       )}
 
-      {/* Checkout Modal */}
       <div className="fixed inset-0 z-40 overflow-y-auto">
         <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
           <div
-            className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+            className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm transition-opacity"
             aria-hidden="true"
             onClick={onClose}
           ></div>
 
-          <span
-            className="hidden sm:inline-block sm:align-middle sm:h-screen"
-            aria-hidden="true"
-          >
+          <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
             &#8203;
           </span>
 
-          <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
-            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3
-                  className="text-lg leading-6 font-medium text-gray-900"
-                  id="modal-title"
-                >
-                  {currentStep === 1 && "Shipping Information"}
-                  {currentStep === 2 && "Rental Dates"}
-                  {currentStep === 3 && "Order Summary"}
-                </h3>
+          <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+            <div className="bg-white px-6 pt-6 pb-4 sm:p-8 sm:pb-4">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {currentStep === 1 && "Shipping Information"}
+                    {currentStep === 2 && "Rental Dates"}
+                    {currentStep === 3 && "Order Summary"}
+                  </h2>
+                  <p className="text-gray-600 mt-1">
+                    Step {currentStep} of 3
+                  </p>
+                </div>
                 <button
                   type="button"
-                  className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  className="bg-white rounded-xl p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                   onClick={onClose}
                 >
                   <span className="sr-only">Close</span>
@@ -751,47 +716,50 @@ const CheckoutModal = ({
               </div>
 
               {/* Progress Steps */}
-              <div className="mb-6">
-                <div className="flex justify-between">
-                  {[1, 2, 3].map((step) => (
-                    <div key={step} className="flex flex-col items-center">
+              <div className="mb-8">
+                <div className="flex justify-between items-center">
+                  {[
+                    { step: 1, label: "Address", icon: TruckIcon },
+                    { step: 2, label: "Dates", icon: CalendarIcon },
+                    { step: 3, label: "Payment", icon: CreditCardIcon }
+                  ].map(({ step, label, icon: StepIcon }) => (
+                    <div key={step} className="flex flex-col items-center relative">
                       <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
-                        ${
-                          currentStep >= step
-                            ? "bg-indigo-600 text-white"
-                            : "bg-gray-200 text-gray-600"
+                        className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all
+                        ${currentStep >= step
+                          ? "bg-indigo-600 text-white shadow-lg scale-110"
+                          : "bg-gray-200 text-gray-600"
                         }`}
                       >
-                        {step}
+                        {currentStep > step ? (
+                          <CheckIcon className="h-6 w-6" />
+                        ) : (
+                          <StepIcon className="h-6 w-6" />
+                        )}
                       </div>
-                      <span className="mt-1 text-xs text-gray-500">
-                        {step === 1
-                          ? "Address"
-                          : step === 2
-                          ? "Dates"
-                          : "Summary"}
+                      <span className={`mt-2 text-sm font-medium ${
+                        currentStep >= step ? "text-indigo-600" : "text-gray-500"
+                      }`}>
+                        {label}
                       </span>
+                      {step < 3 && (
+                        <div className={`absolute top-6 -right-16 w-32 h-0.5 ${
+                          currentStep > step ? "bg-indigo-600" : "bg-gray-200"
+                        }`} />
+                      )}
                     </div>
                   ))}
-                </div>
-                <div className="mt-2 w-full bg-gray-200 rounded-full h-1.5">
-                  <div
-                    className="bg-indigo-600 h-1.5 rounded-full transition-all duration-300"
-                    style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
-                  ></div>
                 </div>
               </div>
 
               {/* Error Display */}
               {(error || paymentError) && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-                  <p className="text-sm text-red-600">
+                <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl">
+                  <p className="text-sm text-red-700 font-medium">
                     {error || paymentError}
                   </p>
                 </div>
               )}
-
               {/* Step Content */}
               <div className="mt-4 max-h-[60vh] overflow-y-auto pr-2 -mr-2">
                 <div className="pr-2">{renderStepContent()}</div>

@@ -21,6 +21,7 @@ const Product = require('../Models/Products');
 exports.sendPurchaseConfirmationEmail = async (req, res) => {
   try {
     const { orderId } = req.body;
+    console.log(orderId);
     
     if (!orderId) {
       return res.status(400).json({
@@ -63,6 +64,7 @@ exports.sendPurchaseConfirmationEmail = async (req, res) => {
       orderDate: order.createdAt,
       customerName: order.customerDetails?.fullName || ''
     });
+    console.log("result",result);
     
     if (!result.success) {
       return res.status(500).json({

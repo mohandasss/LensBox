@@ -1,12 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { verifyToken, updateUser, deleteUser, uploadAvatar } from "../APIs/AuthAPI"; // Your provided verifyToken function
+import { verifyToken, updateUser, deleteUser, uploadAvatar } from "../APIs/AuthAPI";
 import Navbar from "../Components/Navbar";
-
+import Notification from "../Components/Notification";
+import Footer from "../Components/Footer";
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
   const [isLoading, setLoading] = useState(false);
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
+  
+  const showNotification = (message, type = 'success') => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => {
+      setNotification(prev => ({ ...prev, show: false }));
+    }, 3000);
+  };
+  
+  const closeNotification = () => {
+    setNotification(prev => ({ ...prev, show: false }));
+  };
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -63,18 +76,19 @@ const ProfilePage = () => {
     if (file) {
       // Validate file type
       if (!file.type.match('image.*')) {
-        alert('Please select an image file (JPEG, PNG)');
+        showNotification('Please select an image file (JPEG, PNG)', 'error');
         return;
       }
       
       // Validate file size (max 1MB)
       if (file.size > 1024 * 1024) {
-        alert('Image size should be less than 1MB');
+        showNotification('Image size should be less than 1MB', 'error');
         return;
       }
       
       setAvatarFile(file);
       setAvatarPreview(URL.createObjectURL(file));
+      showNotification('Image selected successfully', 'success');
     }
   };
 
@@ -83,7 +97,7 @@ const ProfilePage = () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        alert('Please log in to update your profile');
+        showNotification('Please log in to update your profile', 'error');
         return;
       }
   
@@ -94,14 +108,21 @@ const ProfilePage = () => {
         const formDataObj = new FormData();
         formDataObj.append('profilePic', avatarFile);
         
-        // Upload avatar - pass formData first, then token
-        const avatarResponse = await uploadAvatar(formDataObj, token);
-        
-        if (avatarResponse?.profilePic) {
-          setUser(prev => ({
-            ...prev,
-            profilePic: avatarResponse.profilePic
-          }));
+        try {
+          // Upload avatar - pass formData first, then token
+          const avatarResponse = await uploadAvatar(formDataObj, token);
+          
+          if (avatarResponse?.profilePic) {
+            setUser(prev => ({
+              ...prev,
+              profilePic: avatarResponse.profilePic
+            }));
+            showNotification('Profile picture updated successfully', 'success');
+          }
+        } catch (err) {
+          console.error("Avatar upload failed:", err);
+          showNotification('Failed to upload profile picture. ' + (err.response?.data?.message || 'Please try again.'), 'error');
+          throw err; // Re-throw to be caught by the outer catch
         }
       }
       
@@ -117,15 +138,18 @@ const ProfilePage = () => {
           country: formData.country,
         },
       };
+      console.log(userData);
       
       await updateUser(token, userData);
       
-      alert('Profile updated successfully!');
+      showNotification('Profile updated successfully!', 'success');
       setAvatarFile(null);
       
     } catch (err) {
       console.error("Update failed:", err);
-      alert(err.message || 'Failed to update profile. Please try again.');
+      if (!notification.show) { // Don't show duplicate error if already shown
+        showNotification(err.response?.data?.message || 'Failed to update profile. Please try again.', 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -134,33 +158,44 @@ const ProfilePage = () => {
   
 
   const handleDeleteAccount = async () => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete your account? This action cannot be undone."
-    );
+    // Using a custom confirm dialog instead of window.confirm
+    setNotification({
+      show: true,
+      message: 'Are you sure you want to delete your account? This action cannot be undone.',
+      type: 'warning',
+      showConfirm: true,
+      onConfirm: async () => {
+        try {
+          const token = localStorage.getItem("token");
+          if (!token) {
+            showNotification("No authentication token found. Please log in again.", 'error');
+            return;
+          }
 
-    if (!confirmDelete) return;
-
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        console.error("No token found");
-        return;
-      }
-
-      const { user } = await verifyToken(token);
-      console.log(user._id);
-
-      const response = await deleteUser(user._id);
-
-      console.log("Account deleted:", response.data.message);
-
-      // Optional: clear token and redirect to login/home
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-    } catch (error) {
-      console.error("Error deleting account:", error);
-      alert("Failed to delete account. Try again.");
-    }
+          const { user } = await verifyToken(token);
+          
+          setLoading(true);
+          await deleteUser(user._id);
+          
+          // Show success message before redirecting
+          showNotification("Account deleted successfully. Redirecting...", 'success');
+          
+          // Clear token and redirect to login/home after a short delay
+          setTimeout(() => {
+            localStorage.removeItem("token");
+            window.location.href = "/login";
+          }, 1500);
+          
+        } catch (error) {
+          console.error("Error deleting account:", error);
+          showNotification(error.response?.data?.message || "Failed to delete account. Please try again.", 'error');
+          setLoading(false);
+        }
+      },
+      confirmText: 'Yes, delete my account',
+      cancelText: 'Cancel',
+      onClose: () => setNotification(prev => ({ ...prev, show: false }))
+    });
   };
 
   const handleLogout = () => {
@@ -172,6 +207,14 @@ const ProfilePage = () => {
   if (!user) return <div className="text-white p-6">Loading...</div>;
   return (
     <div className="relative bg-black min-h-screen">
+      {/* Notification */}
+      {notification.show && (
+        <Notification 
+          message={notification.message} 
+          type={notification.type}
+          onClose={closeNotification}
+        />
+      )}
       {/* Navbar with higher z-index */}
       <div className="relative z-50">
         <Navbar />
@@ -471,6 +514,7 @@ const ProfilePage = () => {
           </div>
         </div>
       </div>
+      <Footer/>
     </div>
   );
 };

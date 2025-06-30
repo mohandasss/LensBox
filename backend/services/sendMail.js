@@ -132,8 +132,7 @@ const sendPurchaseConfirmationEmail = async ({ to, name, orderId, items, total, 
   return sendMail({
     to,
     subject,
-    html,
-    attachments
+    html
   });
 };;
 
