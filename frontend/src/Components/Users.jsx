@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Plus,
   Search,
@@ -14,24 +14,16 @@ import {
   UserCheck
 } from 'lucide-react';
 
+import { getUserStats } from '../APIs/AdminAPI';
+
 const User = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [users, setUsers] = useState([]);
 
-  const users = [
-    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Customer', status: 'Active', joined: '2024-01-15', orders: 12, spent: 1299.99, avatar: null },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'Seller', status: 'Active', joined: '2024-02-20', orders: 0, spent: 0, avatar: null },
-    { id: 3, name: 'Admin User', email: 'admin@example.com', role: 'Admin', status: 'Active', joined: '2024-01-01', orders: 0, spent: 0, avatar: null },
-    { id: 4, name: 'Bob Johnson', email: 'bob@example.com', role: 'Customer', status: 'Inactive', joined: '2024-03-10', orders: 5, spent: 499.99, avatar: null },
-    { id: 5, name: 'Alice Brown', email: 'alice@example.com', role: 'Customer', status: 'Active', joined: '2024-04-05', orders: 8, spent: 899.99, avatar: null },
-    { id: 6, name: 'Charlie Wilson', email: 'charlie@example.com', role: 'Seller', status: 'Pending', joined: '2024-06-01', orders: 0, spent: 0, avatar: null },
-    { id: 7, name: 'Diana Prince', email: 'diana@example.com', role: 'Customer', status: 'Active', joined: '2024-05-15', orders: 15, spent: 2199.99, avatar: null },
-    { id: 8, name: 'Edward King', email: 'edward@example.com', role: 'Customer', status: 'Suspended', joined: '2024-03-22', orders: 3, spent: 299.99, avatar: null }
-  ];
-
-  const roles = ['Admin', 'Seller', 'Customer'];
-  const statuses = ['Active', 'Inactive', 'Pending', 'Suspended'];
+  const roles = ['admin', 'seller', 'user'];
+  const statuses = ['active', 'inactive', 'pending', 'suspended'];
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -41,53 +33,129 @@ const User = () => {
     return matchesSearch && matchesRole && matchesStatus;
   });
 
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const response = await getUserStats();
+        console.log("userdata",response);
+        const formattedUsers = response.map(user => {
+          
+          const joinDate = user.joinDate || user.createdAt;
+          const dateObj = joinDate ? new Date(joinDate) : new Date();
+          
+          return {
+            id: user._id,
+            name: user.name || 'No Name',
+            email: user.email,
+            role: user.role || 'user',
+            status: user.isActive ? 'active' : 'inactive',
+            joined: dateObj,
+            profilePic: user.profilePic,
+            orders: user.orderCount || user.orders?.length || 0,
+            spent: user.totalSpent || 0
+          };
+        });
+        setUsers(formattedUsers);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        setError('Failed to load users. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, []);
+  
+
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
   const getRoleIcon = (role) => {
-    switch (role) {
-      case 'Admin':
+    switch (role.toLowerCase()) {
+      case 'admin':
         return <Shield className="w-4 h-4" />;
-      case 'Customer':
-        return <Users className="w-4 h-4" />;
+      case 'seller':
+        return <UserCheck className="w-4 h-4" />;
+      case 'user':
       default:
         return <Users className="w-4 h-4" />;
     }
   };
 
   const getRoleColor = (role) => {
-    switch (role) {
-      case 'Admin':
+    switch (role.toLowerCase()) {
+      case 'admin':
         return 'bg-purple-100 text-purple-800';
-      case 'Seller':
+      case 'seller':
         return 'bg-blue-100 text-blue-800';
-      case 'Customer':
-        return 'bg-green-100 text-green-800';
+      case 'user':
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-green-100 text-green-800';
     }
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'Active':
+    switch (status?.toLowerCase()) {
+      case 'active':
         return 'bg-green-100 text-green-800';
-      case 'Inactive':
+      case 'inactive':
         return 'bg-gray-100 text-gray-800';
-      case 'Pending':
+      case 'pending':
         return 'bg-yellow-100 text-yellow-800';
-      case 'Suspended':
+      case 'suspended':
+      case 'banned':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getInitials = (name) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-600"></div>
+      </div>
+    );
+  }
 
+  if (error) {
+    return (
+      <div className="bg-red-50 border-l-4 border-red-400 p-4">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <p className="text-sm text-red-700">
+              {error}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  
+
+  // Calculate statistics
   const totalUsers = users.length;
-  const activeUsers = users.filter(user => user.status === 'Active').length;
-  const sellers = users.filter(user => user.role === 'Seller').length;
-  const customers = users.filter(user => user.role === 'Customer').length;
+  const activeUsers = users.filter(user => user.status === 'active').length;
+  const sellers = users.filter(user => user.role === 'seller').length;
+  const customers = users.filter(user => user.role === 'user').length;
 
   return (
     <div className="space-y-6">
@@ -216,8 +284,21 @@ const User = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="h-10 w-10 flex-shrink-0">
-                        <div className="h-10 w-10 rounded-full bg-violet-100 flex items-center justify-center">
-                          <span className="text-sm font-medium text-violet-700">
+                        <div className="h-10 w-10 rounded-full bg-violet-100 flex items-center justify-center overflow-hidden">
+                          {user.profilePic ? (
+                            <img 
+                              src={user.profilePic} 
+                              alt={user.name || 'User'} 
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextElementSibling.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <span 
+                            className={`text-sm font-medium text-violet-700 ${user.profilePic ? 'hidden' : 'flex items-center justify-center w-full h-full'}`}
+                          >
                             {getInitials(user.name)}
                           </span>
                         </div>
@@ -243,10 +324,14 @@ const User = () => {
                     {user.orders}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    ${user.spent.toFixed(2)}
+                    ₹{user.spent?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {user.joined}
+                    {user.joined.toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric'
+                    })}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">

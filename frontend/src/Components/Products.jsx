@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Plus,
   Search,
@@ -10,25 +10,18 @@ import {
   Package,
   MoreHorizontal
 } from 'lucide-react';
-
+import { getProductsStats } from '../APIs/AdminAPI';
 const Products = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
 
-  const products = [
-    { id: 1, name: 'iPhone 15 Pro', category: 'Electronics', price: '$999', stock: 25, status: 'Active', image: '/api/placeholder/64/64' },
-    { id: 2, name: 'Nike Air Max', category: 'Sports', price: '$129', stock: 0, status: 'Out of Stock', image: '/api/placeholder/64/64' },
-    { id: 3, name: 'MacBook Pro', category: 'Electronics', price: '$1999', stock: 15, status: 'Active', image: '/api/placeholder/64/64' },
-    { id: 4, name: 'Wireless Headphones', category: 'Electronics', price: '$299', stock: 50, status: 'Active', image: '/api/placeholder/64/64' },
-    { id: 5, name: 'Running Shoes', category: 'Sports', price: '$89', stock: 30, status: 'Active', image: '/api/placeholder/64/64' },
-    { id: 6, name: 'Smart Watch', category: 'Electronics', price: '$399', stock: 20, status: 'Active', image: '/api/placeholder/64/64' },
-    { id: 7, name: 'Yoga Mat', category: 'Sports', price: '$29', stock: 5, status: 'Low Stock', image: '/api/placeholder/64/64' },
-    { id: 8, name: 'Bluetooth Speaker', category: 'Electronics', price: '$79', stock: 40, status: 'Active', image: '/api/placeholder/64/64' }
-  ];
+  const [products, setProducts] = useState([]);
+  const [statistics, setStatistics] = useState([]);
+  
 
-  const categories = ['Electronics', 'Sports', 'Clothing', 'Books', 'Home'];
-  const statuses = ['Active', 'Inactive', 'Out of Stock', 'Low Stock'];
+  const categories = ['camera','lens','equipment','light'];
+  const statuses = ['active', 'inactive', 'out of stock', 'low stock'];
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -39,18 +32,32 @@ const Products = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Active':
+
+      case 'In Stock':
         return 'bg-green-100 text-green-800';
       case 'Out of Stock':
         return 'bg-red-100 text-red-800';
       case 'Low Stock':
         return 'bg-yellow-100 text-yellow-800';
-      case 'Inactive':
-        return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
+
+
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const {products, statistics} = await getProductsStats();
+          setStatistics(statistics);
+        setProducts(products);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -77,7 +84,7 @@ const Products = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Products</p>
-              <p className="text-2xl font-bold text-gray-900">{products.length}</p>
+              <p className="text-2xl font-bold text-gray-900">{statistics.totalProducts}</p>
             </div>
           </div>
         </div>
@@ -89,7 +96,7 @@ const Products = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Active Products</p>
               <p className="text-2xl font-bold text-gray-900">{products.filter(p => p.status === 'Active').length}</p>
-            </div>
+            </div>  
           </div>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
@@ -179,7 +186,7 @@ const Products = () => {
                     <div className="flex items-center">
                       <div className="h-10 w-10 flex-shrink-0">
                         <div className="h-10 w-10 rounded-lg bg-gray-200 flex items-center justify-center">
-                          <Package className="w-5 h-5 text-gray-500" />
+                          <img className="h-10 w-10 rounded-lg" src={product.image} alt="" />
                         </div>
                       </div>
                       <div className="ml-4">
@@ -189,7 +196,7 @@ const Products = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.category}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.price}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">₹{product.price}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.stock}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(product.status)}`}>

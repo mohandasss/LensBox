@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getOrders } from '../APIs/AdminAPI';
 import { 
   Search,
   Filter,
@@ -20,17 +21,20 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedDate, setSelectedDate] = useState('all');
+  const [orders, setOrders] = useState([]);
 
-  const orders = [
-    { id: '#12345', customer: 'John Doe', email: 'john@example.com', amount: 299.99, status: 'Completed', date: '2024-06-30', items: 3, payment: 'Paid' },
-    { id: '#12346', customer: 'Jane Smith', email: 'jane@example.com', amount: 199.50, status: 'Processing', date: '2024-06-30', items: 2, payment: 'Paid' },
-    { id: '#12347', customer: 'Bob Johnson', email: 'bob@example.com', amount: 449.99, status: 'Shipped', date: '2024-06-29', items: 1, payment: 'Paid' },
-    { id: '#12348', customer: 'Alice Brown', email: 'alice@example.com', amount: 89.99, status: 'Pending', date: '2024-06-29', items: 2, payment: 'Pending' },
-    { id: '#12349', customer: 'Charlie Wilson', email: 'charlie@example.com', amount: 349.99, status: 'Cancelled', date: '2024-06-28', items: 1, payment: 'Refunded' },
-    { id: '#12350', customer: 'Diana Prince', email: 'diana@example.com', amount: 129.99, status: 'Processing', date: '2024-06-28', items: 3, payment: 'Paid' },
-    { id: '#12351', customer: 'Edward King', email: 'edward@example.com', amount: 599.99, status: 'Shipped', date: '2024-06-27', items: 2, payment: 'Paid' },
-    { id: '#12352', customer: 'Fiona Green', email: 'fiona@example.com', amount: 79.99, status: 'Completed', date: '2024-06-27', items: 1, payment: 'Paid' }
-  ];
+   useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await getOrders();
+        console.log(response);
+        setOrders(response);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+      }
+    };
+    fetchOrders();
+  }, []);
 
   const statuses = ['Pending', 'Processing', 'Shipped', 'Completed', 'Cancelled'];
 
@@ -127,7 +131,7 @@ const Index = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="text-2xl font-bold text-gray-900">${totalRevenue.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">₹{totalRevenue.toLocaleString()}</p>
               </div>
               <div className="bg-emerald-100 p-3 rounded-xl group-hover:bg-emerald-200 transition-colors">
                 <DollarSign className="w-6 h-6 text-emerald-600" />
@@ -163,7 +167,7 @@ const Index = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Average Order</p>
-                <p className="text-2xl font-bold text-gray-900">${averageOrderValue.toFixed(0)}</p>
+                <p className="text-2xl font-bold text-gray-900">₹{averageOrderValue.toFixed(0)}</p>
               </div>
               <div className="bg-purple-100 p-3 rounded-xl group-hover:bg-purple-200 transition-colors">
                 <Users className="w-6 h-6 text-purple-600" />
@@ -226,7 +230,7 @@ const Index = () => {
                   <tr key={order.id} className="hover:bg-gray-50 transition-colors duration-150">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{order.id}</div>
+                        <img className="w-10 h-10 rounded-lg object-cover" src={order.productImage} alt="" />
                         <div className="text-sm text-gray-500">{order.items} items</div>
                       </div>
                     </td>
@@ -237,7 +241,7 @@ const Index = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-semibold text-gray-900">${order.amount}</div>
+                      <div className="text-sm font-semibold text-gray-900">₹{order.amount}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium border ${getStatusColor(order.status)}`}>

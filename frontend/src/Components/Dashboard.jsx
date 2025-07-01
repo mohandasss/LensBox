@@ -171,7 +171,7 @@ const Dashboard = () => {
           title="Total Products"
           value={products?.total}
           change={products?.change}
-          icon={Package2}
+          icon={Package2} 
           color="bg-green-500"
         />
         <StatCard

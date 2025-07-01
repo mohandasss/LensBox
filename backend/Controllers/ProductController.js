@@ -403,22 +403,30 @@ const getProductsByCategory = async (req, res) => {
 
 const getSalesOverview = async (req, res) => {
   try {
-    const { period = '6m' } = req.query;
-    const months = parseInt(period);
+    // Get sales data for the last 6 months by default
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
     
-    if (isNaN(months) || months <= 0) {
-      return res.status(400).json({ message: 'Invalid period parameter' });
+    // Initialize array for the last 6 months
+    const monthsData = [];
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(currentYear, currentMonth - i, 1);
+      monthsData.push({
+        month: monthNames[date.getMonth()],
+        year: date.getFullYear(),
+        startDate: new Date(date.getFullYear(), date.getMonth(), 1),
+        endDate: new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999)
+      });
     }
 
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - months);
-
-    const salesData = await Order.aggregate([
+    // Get total revenue for the current period
+    const revenueData = await Order.aggregate([
       {
         $match: {
           status: { $ne: 'cancelled' },
-          createdAt: { $gte: startDate, $lte: endDate }
+          createdAt: { $gte: monthsData[0].startDate, $lte: monthsData[monthsData.length - 1].endDate }
         }
       },
       {
@@ -427,21 +435,34 @@ const getSalesOverview = async (req, res) => {
             year: { $year: '$createdAt' },
             month: { $month: '$createdAt' }
           },
-          totalSales: { $sum: '$total' },
-          count: { $sum: 1 }
+          totalSales: { $sum: '$total' }
         }
-      },
-      {
-        $sort: { '_id.year': 1, '_id.month': 1 }
       }
     ]);
 
-    // Format the response
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const formattedData = salesData.map(item => ({
-      month: `${monthNames[item._id.month - 1]} ${item._id.year}`,
-      sales: item.totalSales
-    }));
+    // Create a map of month-year to sales
+    const salesMap = new Map();
+    revenueData.forEach(item => {
+      const key = `${monthNames[item._id.month - 1]}-${item._id.year}`;
+      salesMap.set(key, item.totalSales);
+    });
+
+    // Format the response to match the sample
+    const formattedData = monthsData.map(({ month, year }) => {
+      const key = `${month}-${year}`;
+      // For the current month, use the average daily sales * 30 for estimation
+      if (month === monthNames[currentMonth] && year === currentYear) {
+        const dailyAvg = salesMap.get(key) ? salesMap.get(key) / currentDate.getDate() : 0;
+        return {
+          month,
+          sales: Math.round(dailyAvg * 30) // Estimated monthly sales
+        };
+      }
+      return {
+        month,
+        sales: salesMap.get(key) || 0
+      };
+    });
 
     res.status(200).json({ data: formattedData });
   } catch (error) {
@@ -452,14 +473,6 @@ const getSalesOverview = async (req, res) => {
 
 const getSalesByCategory = async (req, res) => {
   try {
-    const categoryColors = {
-      'camera': '#8b5cf6',
-      'lens': '#06b6d4',
-      'equipment': '#10b981',
-      'accessories': '#f59e0b',
-      'other': '#6b7280'
-    };
-
     const salesData = await Order.aggregate([
       {
         $match: { status: { $ne: 'cancelled' } }
@@ -478,27 +491,123 @@ const getSalesByCategory = async (req, res) => {
         $group: {
           _id: '$product.category',
           totalSales: { $sum: { $multiply: ['$items.quantity', '$items.amount'] } },
-          count: { $sum: 1 }
+          count: { $sum: '$items.quantity' }
         }
       },
       {
         $project: {
           _id: 0,
-          name: '$_id',
+          categoryId: '$_id',
+          name: {
+            $switch: {
+              branches: [
+                { 
+                  case: { $eq: [{ $toString: '$_id' }, '507f1f77bcf86cd799439011'] }, 
+                  then: 'Camera' 
+                },
+                { 
+                  case: { $eq: [{ $toString: '$_id' }, '507f1f77bcf86cd799439012'] }, 
+                  then: 'Lens' 
+                },
+                { 
+                  case: { $eq: [{ $toString: '$_id' }, '507f1f77bcf86cd799439013'] }, 
+                  then: 'Equipment' 
+                }
+              ],
+              default: 'Other'
+            }
+          },
           value: { $round: ['$totalSales', 2] },
+          count: 1,
           color: {
-            $let: {
-              vars: { category: { $toLower: '$_id' } },
-              in: { $ifNull: [categoryColors[{$toString: '$$category'}] , '#6b7280'] }
+            $switch: {
+              branches: [
+                { 
+                  case: { $eq: [{ $toString: '$_id' }, '507f1f77bcf86cd799439011'] }, 
+                  then: '#8b5cf6' 
+                },
+                { 
+                  case: { $eq: [{ $toString: '$_id' }, '507f1f77bcf86cd799439012'] }, 
+                  then: '#06b6d4' 
+                },
+                { 
+                  case: { $eq: [{ $toString: '$_id' }, '507f1f77bcf86cd799439013'] }, 
+                  then: '#10b981' 
+                }
+              ],
+              default: '#6b7280'
             }
           }
         }
-      }
+      },
+      { $sort: { value: -1 } }
     ]);
 
     res.status(200).json({ data: salesData });
   } catch (error) {
     console.error('Error fetching sales by category:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+const getAllOrders = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 15; // Fixed at 15 items per page as per requirement
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination
+    const total = await Order.countDocuments({});
+    const pages = Math.ceil(total / limit);
+
+    const orders = await Order.find({})
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('user', 'name email')
+      .populate({
+        path: 'items.productId',
+        select: 'name image', // Include image field in the population
+        options: { lean: true }
+      })
+      .lean();
+
+    const formattedOrders = orders.map(order => {
+      const itemCount = order.items.reduce((total, item) => total + (item.quantity || 0), 0);
+      
+      // Get the first item with a valid product and image
+      const firstItemWithImage = order.items.find(item => 
+        item.productId?.image?.length > 0
+      );
+
+      // Get the first image from the first product with images, or use a placeholder
+      const productImage = firstItemWithImage?.productId?.image?.[0] || 
+                          'https://via.placeholder.com/100x100?text=No+Image';
+
+      return {
+        id: `#${order._id.toString().substring(18, 24)}`,
+        customer: order.customerDetails?.fullName || 'Guest User',
+        email: order.customerDetails?.email || order.user?.email || 'no-email@example.com',
+        amount: order.total || 0,
+        status: 'Completed',
+        date: order.createdAt ? order.createdAt.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        items: itemCount,
+        payment: 'Paid',
+        productImage: productImage
+      };
+    });
+
+    res.status(200).json({
+      data: formattedOrders,
+      pagination: {
+        total,
+        page,
+        pages,
+        limit
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching paginated orders:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
@@ -511,15 +620,37 @@ const getRecentOrders = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(limit)
       .populate('user', 'name email')
+      .populate({
+        path: 'items.productId',
+        select: 'name image',
+        options: { lean: true }
+      })
       .lean();
 
-    const formattedOrders = orders.map(order => ({
-      id: order._id,
-      customer: order.customerDetails?.fullName || 'Guest User',
-      amount: order.total,
-      status: order.status || 'Completed',
-      date: order.createdAt.toISOString().split('T')[0]
-    }));
+    const formattedOrders = orders.map(order => {
+      const itemCount = order.items.reduce((total, item) => total + (item.quantity || 0), 0);
+      
+      // Get the first item with a valid product and image
+      const firstItemWithImage = order.items.find(item => 
+        item.productId?.image?.length > 0
+      );
+
+      // Get the first image from the first product with images, or use a placeholder
+      const productImage = firstItemWithImage?.productId?.image?.[0] || 
+                          'https://via.placeholder.com/100x100?text=No+Image';
+      
+      return {
+        id: `#${order._id.toString().substring(18, 24)}`,
+        customer: order.customerDetails?.fullName || 'Guest User',
+        email: order.customerDetails?.email || order.user?.email || 'no-email@example.com',
+        amount: order.total || 0,
+        status: 'Completed',
+        date: order.createdAt ? order.createdAt.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        items: itemCount,
+        payment: 'Paid',
+        productImage: productImage
+      };
+    });
 
     res.status(200).json({ data: formattedOrders });
   } catch (error) {
@@ -527,6 +658,230 @@ const getRecentOrders = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
+const salesdata = async (req, res) => {
+  try {
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    
+    // Get data for the last 12 months
+    const monthlySales = await Order.aggregate([
+      {
+        $match: {
+          status: { $ne: 'cancelled' },
+          createdAt: { $gte: new Date(currentYear - 1, currentDate.getMonth(), 1) }
+        }
+      },
+      {
+        $project: {
+          month: { $month: '$createdAt' },
+          year: { $year: '$createdAt' },
+          total: 1,
+          items: 1
+        }
+      },
+      { $unwind: '$items' },
+      {
+        $group: {
+          _id: {
+            month: '$month',
+            year: '$year'
+          },
+          totalSales: { $sum: { $multiply: ['$items.quantity', '$items.amount'] } },
+          orderCount: { $sum: 1 }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          month: '$_id.month',
+          year: '$_id.year',
+          monthName: {
+            $let: {
+              vars: { months: monthNames },
+              in: { $arrayElemAt: ['$$months', { $subtract: ['$_id.month', 1] }] }
+            }
+          },
+          totalSales: 1,
+          orderCount: 1
+        }
+      },
+      { $sort: { year: 1, month: 1 } }
+    ]);
+
+    // Format the response to include all months, even those with no sales
+    const formattedData = [];
+    const startDate = new Date(currentYear - 1, currentDate.getMonth(), 1);
+    
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(startDate);
+      date.setMonth(startDate.getMonth() + i);
+      
+      const month = date.getMonth() + 1;
+      const year = date.getFullYear();
+      const monthName = monthNames[date.getMonth()];
+      
+      const monthData = monthlySales.find(
+        m => m.month === month && m.year === year
+      );
+      
+      formattedData.push({
+        month: monthName,
+        year: year,
+        sales: monthData ? Math.round(monthData.totalSales) : 0,
+        orderCount: monthData ? monthData.orderCount : 0
+      });
+    }
+
+    res.status(200).json({ data: formattedData });
+  } catch (error) {
+    console.error('Error fetching monthly sales data:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+
+
+
+const getProductStats = async (req, res) => {
+  try {
+    // Get all products with their stock information
+    const products = await Product.aggregate([
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      { $unwind: '$categoryInfo' },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          sku: 1,
+          price: 1,
+          stock: 1,
+          image: { $arrayElemAt: ['$image', 0] }, // Get first image
+          category: '$categoryInfo.name',
+          status: {
+            $switch: {
+              branches: [
+                { case: { $lte: ['$stock', 0] }, then: 'Out of Stock' },
+                { case: { $lt: ['$stock', 5] }, then: 'Low Stock' },
+                { case: { $gte: ['$stock', 5] }, then: 'In Stock' }
+              ],
+              default: 'In Stock'
+            }
+          }
+        }
+      },
+      { $sort: { stock: 1 } } // Sort by stock (out of stock first)
+    ]);
+
+    // Calculate statistics
+    const totalProducts = products.length;
+    const outOfStock = products.filter(p => p.stock <= 0).length;
+    const lowStock = products.filter(p => p.stock > 0 && p.stock < 5).length;
+    const inStock = products.filter(p => p.stock >= 5).length;
+
+    // Format response
+    const response = {
+      statistics: {
+        totalProducts,
+        outOfStock,
+        lowStock,
+        inStock
+      },
+      products: products.map(p => ({
+        id: p._id,
+        name: p.name,
+        sku: p.sku,
+        price: p.price,
+        stock: p.stock,
+        image: p.image,
+        category: p.category,
+        status: p.status
+      }))
+    };
+
+    res.status(200).json({ data: response });
+  } catch (error) {
+    console.error('Error fetching product statistics:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+const getUserStats = async (req, res) => {
+  try {
+    console.log("📊 Starting aggregation to get user stats...");
+
+    const userStats = await User.aggregate([
+      {
+        $lookup: {
+          from: 'orders',
+          localField: '_id',
+          foreignField: 'user',
+          as: 'orders'
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          email: 1,
+          role: 1,
+          createdAt: 1,
+          profilePic: 1, // ✅ include it early so it's available later
+          orderCount: { $size: '$orders' },
+          totalSpent: {
+            $reduce: {
+              input: '$orders',
+              initialValue: 0,
+              in: {
+                $add: ['$$value', { $ifNull: ['$$this.total', 0] }]
+              }
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          email: 1,
+          role: 1,
+          createdAt: 1, // ✅ required for sorting
+          joinDate: {
+            $dateToString: {
+              format: '%Y-%m-%d',
+              date: '$createdAt'
+            }
+          },
+          orderCount: 1,
+          totalSpent: { $round: ['$totalSpent', 2] },
+          profilePic: {
+            $ifNull: ['$profilePic', 'https://yourdomain.com/default-avatar.png'] // Optional fallback
+          }
+        }
+      },
+      {
+        $sort: { createdAt: -1 }
+      }
+    ]);
+
+    console.log("✅ Aggregation complete. User stats:");
+    console.log(JSON.stringify(userStats, null, 2));
+
+    res.status(200).json({ data: userStats });
+  } catch (error) {
+    console.error('❌ Error fetching user statistics:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 
 module.exports = {
   addProduct,
@@ -539,5 +894,9 @@ module.exports = {
   getDashboardStats,
   getSalesOverview,
   getSalesByCategory,
-  getRecentOrders
+  getRecentOrders,
+  getAllOrders,
+  salesdata,
+  getUserStats,
+  getProductStats
 };
