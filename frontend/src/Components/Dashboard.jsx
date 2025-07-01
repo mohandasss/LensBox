@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   TrendingUp,
@@ -10,20 +11,22 @@ import {
   Download
 } from 'lucide-react';
 import { PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { getDashboardStats } from '../APIs/AdminAPI';
+import { getDashboardStats, getSalesByCategory, getRecentOrders, getSampleSalesData } from '../APIs/AdminAPI';
 
 const Dashboard = () => {
-
 
   const [orders, setOrders] = useState(null);
   const [products, setProducts] = useState(null);
   const [users, setUsers] = useState(null);
   const [revenue, setRevenue] = useState(null);
+  const [categoryData, setCategoryData] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [sampleSalesData, setSampleSalesData] = useState([]);
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const {orders,products,users,revenue} = await getDashboardStats();
-        console.log(orders,products,users,revenue);
+        const {orders, products, users, revenue} = await getDashboardStats();
         setOrders(orders);
         setProducts(products);
         setUsers(users);
@@ -32,32 +35,71 @@ const Dashboard = () => {
         console.error('Error fetching dashboard stats:', error);
       }
     };
+    const fetchRecentOrders = async () => {
+      try {
+        const response = await getRecentOrders();
+        console.log('Recent orders response:', response);
+        setRecentOrders(response);
+      } catch (error) {
+        console.error('Error fetching recent orders:', error);
+      }
+    };
+
+    const fetchCategoryData = async () => {
+      try {
+        const response = await getSalesByCategory();
+        console.log('Category data response:', response);
+        // Handle the data structure properly
+        const data = response.data || response || [];
+        setCategoryData(data);
+      } catch (error) {
+        console.error('Error fetching category data:', error);
+        setCategoryData([]);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    const fetchSampleSalesData = async () => {
+      try {
+        const response = await getSampleSalesData();
+        console.log('Sample sales data response:', response);
+        setSampleSalesData(response);
+      } catch (error) {
+        console.error('Error fetching sample sales data:', error);
+        setSampleSalesData([]);
+      }
+    };
+
     fetchStats();
+    fetchRecentOrders();
+    fetchCategoryData();
+    fetchSampleSalesData();
   }, []);
-  // Sample data
-  const salesData = [
-    { month: 'Jan', sales: 12000 },
-    { month: 'Feb', sales: 19000 },
-    { month: 'Mar', sales: 15000 },
-    { month: 'Apr', sales: 25000 },
-    { month: 'May', sales: 22000 },
-    { month: 'Jun', sales: 30000 }
-  ];
 
-  const categoryData = [
-    { name: 'Electronics', value: 35, color: '#8b5cf6' },
-    { name: 'Clothing', value: 25, color: '#06b6d4' },
-    { name: 'Books', value: 20, color: '#10b981' },
-    { name: 'Home', value: 15, color: '#f59e0b' },
-    { name: 'Sports', value: 5, color: '#ef4444' }
-  ];
+ 
 
-  const recentOrders = [
-    { id: '#12345', customer: 'John Doe', amount: '$299.99', status: 'Completed', date: '2024-06-30' },
-    { id: '#12346', customer: 'Jane Smith', amount: '$199.50', status: 'Processing', date: '2024-06-30' },
-    { id: '#12347', customer: 'Bob Johnson', amount: '$449.99', status: 'Shipped', date: '2024-06-29' },
-    { id: '#12348', customer: 'Alice Brown', amount: '$89.99', status: 'Pending', date: '2024-06-29' }
-  ];
+  const displayCategoryData = categoryData.length > 0 
+    ? categoryData.map((item) => ({
+        name: item.name,
+        value: Number(item.value) || 0,
+        count: Number(item.count) || 0,
+        color: item.color || '#6b7280',
+        categoryId: item.categoryId
+      }))
+    : [
+        { 
+          name: 'No Data', 
+          value: 100, 
+          color: '#e5e7eb', 
+          count: 0,
+          categoryId: 'no-data'
+        }
+      ];
+
+  console.log('Display category data:', displayCategoryData);
+
+ 
 
   const StatCard = ({ title, value, change, icon: Icon, color }) => (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
@@ -83,6 +125,21 @@ const Dashboard = () => {
       </div>
     </div>
   );
+
+  // Custom tooltip for the pie chart
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+          <p className="font-medium text-gray-900">{data.name}</p>
+          <p className="text-sm text-gray-600">Sales: ₹{data.value.toLocaleString()}</p>
+          <p className="text-sm text-gray-600">Orders: {data.count}</p>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="space-y-6">
@@ -132,13 +189,10 @@ const Dashboard = () => {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-semibold text-gray-900">Sales Overview</h3>
-            <select className="px-3 py-1 border border-gray-300 rounded-lg text-sm">
-              <option>Last 6 months</option>
-              <option>Last year</option>
-            </select>
+            
           </div>
           <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={salesData}>
+            <AreaChart data={sampleSalesData}>
               <defs>
                 <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
@@ -163,25 +217,51 @@ const Dashboard = () => {
 
         {/* Category Distribution */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Sales by Category</h3>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">Sales by Category</h3>
+            {loadingCategories && (
+              <div className="flex items-center text-sm text-gray-500">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
+                Loading...
+              </div>
+            )}
+          </div>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={categoryData}
+                data={displayCategoryData}
                 cx="50%"
                 cy="50%"
                 outerRadius={100}
-                fill="#8884d8"
                 dataKey="value"
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={({ name, count }) => `${name} (${count})`}
+                labelLine={false}
               >
-                {categoryData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
+                {displayCategoryData.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${entry.categoryId || index}`} 
+                    fill={entry.color}
+                  />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip content={<CustomTooltip />} />
             </PieChart>
           </ResponsiveContainer>
+          
+          {/* Legend */}
+          <div className="mt-4 flex flex-wrap gap-4 justify-center">
+            {displayCategoryData.map((entry, index) => (
+              <div key={`legend-${entry.categoryId || index}`} className="flex items-center">
+                <div 
+                  className="w-3 h-3 rounded-full mr-2" 
+                  style={{ backgroundColor: entry.color }}
+                />
+                <span className="text-sm text-gray-600">
+                  {entry.name} ({entry.count})
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -212,12 +292,13 @@ const Dashboard = () => {
                 <tr key={order.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{order.id}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{order.customer}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{order.amount}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{order.amount}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      order.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                      order.status === 'Completed' || order.status === 'confirmed' ? 'bg-green-100 text-green-800' :
                       order.status === 'Processing' ? 'bg-yellow-100 text-yellow-800' :
                       order.status === 'Shipped' ? 'bg-blue-100 text-blue-800' :
+                      order.status === 'Pending' ? 'bg-gray-100 text-gray-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
                       {order.status}
