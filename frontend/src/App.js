@@ -13,6 +13,7 @@ import FormPage from './Page/FormPage';
 import ServiceMotor from './Page/ServiceMotor';
 import ProductDetailsPage from './Page/ProductDetailsPage';
 import CartPage from './Page/CartPage';
+import AdminPage from './Page/AdminPage';
 import ProfilePage from './Page/ProfilePage';
 import GoogleLoginSuccess from './Components/GoogleLoginSuccess';
 import OrderPage from './Page/OrderPage';
@@ -60,9 +61,9 @@ function AppContent() {
       <Route path='/profile' element={<ProfilePage />} /> 
       <Route path='/orders' element={<OrderPage />} /> 
       <Route path='/wishlist' element={<WishlistPage />} /> 
-      
+      <Route path='/admin' element={<AdminPage />} /> 
       <Route path='/product/:id' element={<ProductDetailsPage />} />
-      <Route path='/service-motor' element={<ServiceMotor />} /> 
+      
     </Routes>
   );
 }

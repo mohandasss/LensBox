@@ -1,12 +1,193 @@
 const Product = require("../Models/Products");
+const Order = require("../Models/orderModel");
+const User = require("../Models/UserModel");
 const cloudinary = require("../Config/cloudanary");
-
+  
 
 
 const categorymappedwithid = {
   camera: "507f1f77bcf86cd799439011",
   lens: "507f1f77bcf86cd799439012",
   equipment: "507f1f77bcf86cd799439013",}
+
+
+
+  const getDashboardStats = async (req, res) => {
+    try {
+      const now = new Date();
+      const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+      const sixtyDaysAgo = new Date(now.getTime() - (60 * 24 * 60 * 60 * 1000));
+
+      // Get current period stats (last 30 days)
+      const [currentStats] = await Order.aggregate([
+        {
+          $match: {
+            status: { $ne: 'cancelled' }, // Exclude cancelled orders
+            createdAt: { $gte: thirtyDaysAgo }
+          }
+        },
+        {
+          $unwind: "$items" // Unwind the items array to calculate per-item totals
+        },
+        {
+          $group: {
+            _id: null,
+            totalRevenue: { 
+              $sum: { 
+                $multiply: ["$items.price", "$items.quantity"] 
+              } 
+            },
+            totalOrders: { $sum: 1 }
+          }
+        }
+      ]);
+
+      // Get previous period stats (30-60 days ago)
+      const [previousStats] = await Order.aggregate([
+        {
+          $match: {
+            status: { $ne: 'cancelled' }, // Exclude cancelled orders
+            createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo }
+          }
+        },
+        {
+          $unwind: "$items" // Unwind the items array to calculate per-item totals
+        },
+        {
+          $group: {
+            _id: null,
+            totalRevenue: { 
+              $sum: { 
+                $multiply: ["$items.price", "$items.quantity"] 
+              } 
+            },
+            totalOrders: { $sum: 1 }
+          }
+        }
+      ]);
+
+      // Get total products count
+      const totalProducts = await Product.countDocuments();
+      
+      // Get new products added in current period
+      const newProducts = await Product.countDocuments({
+        createdAt: { $gte: thirtyDaysAgo }
+      });
+
+      // Get active users (last 30 days and previous 30 days)
+      const activeUsers = await User.countDocuments({
+        lastActive: { $gte: thirtyDaysAgo }
+      });
+
+      const previousActiveUsers = await User.countDocuments({
+        lastActive: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo }
+      });
+
+      // Calculate percentage changes
+      const calculateChange = (current, previous) => {
+        if (!previous || previous === 0) return 100; // Handle division by zero
+        return ((current - previous) / previous) * 100;
+      };
+
+      // Get user statistics
+      const [userStats] = await User.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalUsers: { $sum: 1 },
+            newUsers: {
+              $sum: {
+                $cond: [{ $gte: ["$createdAt", thirtyDaysAgo] }, 1, 0]
+              }
+            },
+            adminUsers: {
+              $sum: { $cond: [{ $eq: ["$role", "admin"] }, 1, 0] }
+            }
+          }
+        }
+      ]);
+
+      // Get order statistics
+      const [orderStats] = await Order.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalOrders: { $sum: 1 },
+            completedOrders: { $sum: 1 }, // assume all are completed for now
+            pendingOrders: { $sum: 0 },   // no pending orders yet
+            cancelledOrders: { $sum: 0 }, // no cancelled orders yet
+            totalRevenue: { $sum: "$total" } // summing total field from each order
+          }
+        }
+      ]);
+      
+
+      // Get product statistics
+      const [productStats] = await Product.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalProducts: { $sum: 1 },
+            totalStock: { $sum: "$stock" },
+            averagePrice: { $avg: "$price" },
+            categories: { $addToSet: "$category" }
+          }
+        }
+      ]);
+
+      // Format the response with comprehensive stats
+      const response = {
+        // Revenue Section
+        revenue: {
+          total: orderStats?.totalRevenue || 0,
+          change: calculateChange(
+            orderStats?.totalRevenue || 0,
+            previousStats?.totalRevenue || 0
+          ),
+          currency: "INR"
+        },
+        
+        // Orders Section
+        orders: {
+          total: orderStats?.totalOrders || 0,
+          change: calculateChange(
+            orderStats?.totalOrders || 0,
+            previousStats?.totalOrders || 0
+          ),
+          completed: orderStats?.completedOrders || 0,
+          pending: orderStats?.pendingOrders || 0,
+          cancelled: orderStats?.cancelledOrders || 0
+        },
+        
+        // Products Section
+        products: {
+          total: productStats?.totalProducts || 0,
+          change: calculateChange(
+            newProducts,
+            totalProducts - newProducts
+          ),
+          inStock: productStats?.totalStock || 0,
+          avgPrice: productStats?.averagePrice?.toFixed(2) || 0,
+          categories: productStats?.categories?.length || 0
+        },
+        
+        // Users Section
+        users: {
+          total: userStats?.totalUsers || 0,
+          active: activeUsers,
+          change: calculateChange(activeUsers, previousActiveUsers),
+          newUsers: userStats?.newUsers || 0,
+          admins: userStats?.adminUsers || 0
+        }
+      };
+
+      res.status(200).json({ message: "Dashboard stats", stats: response });
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+      res.status(500).json({ message: "Server error", error: error.message });
+    }
+  };
+  
   
 const addProduct = async (req, res) => {
   try {
@@ -134,19 +315,7 @@ const getAllProducts = async (req, res) => {
   }
 };
 
-/**
- * Search products with flexible querying
- * Supports searching by name, description, and features
- * Can filter by category (optional)
- * 
- * Query Parameters (GET):
- * - q: Search term (required)
- * - category: Category ID to filter by (optional)
- * 
- * Request Body (POST):
- * - searchTerm: Search term (required)
- * - selectedCategory: Category ID to filter by (optional)
- */
+
 const searchProducts = async (req, res) => {
   try {
     // Get search term from query params or request body
@@ -230,6 +399,135 @@ const getProductsByCategory = async (req, res) => {
 };
 
 
+
+
+const getSalesOverview = async (req, res) => {
+  try {
+    const { period = '6m' } = req.query;
+    const months = parseInt(period);
+    
+    if (isNaN(months) || months <= 0) {
+      return res.status(400).json({ message: 'Invalid period parameter' });
+    }
+
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - months);
+
+    const salesData = await Order.aggregate([
+      {
+        $match: {
+          status: { $ne: 'cancelled' },
+          createdAt: { $gte: startDate, $lte: endDate }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' }
+          },
+          totalSales: { $sum: '$total' },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { '_id.year': 1, '_id.month': 1 }
+      }
+    ]);
+
+    // Format the response
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const formattedData = salesData.map(item => ({
+      month: `${monthNames[item._id.month - 1]} ${item._id.year}`,
+      sales: item.totalSales
+    }));
+
+    res.status(200).json({ data: formattedData });
+  } catch (error) {
+    console.error('Error fetching sales overview:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+const getSalesByCategory = async (req, res) => {
+  try {
+    const categoryColors = {
+      'camera': '#8b5cf6',
+      'lens': '#06b6d4',
+      'equipment': '#10b981',
+      'accessories': '#f59e0b',
+      'other': '#6b7280'
+    };
+
+    const salesData = await Order.aggregate([
+      {
+        $match: { status: { $ne: 'cancelled' } }
+      },
+      { $unwind: '$items' },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'items.productId',
+          foreignField: '_id',
+          as: 'product'
+        }
+      },
+      { $unwind: '$product' },
+      {
+        $group: {
+          _id: '$product.category',
+          totalSales: { $sum: { $multiply: ['$items.quantity', '$items.amount'] } },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          name: '$_id',
+          value: { $round: ['$totalSales', 2] },
+          color: {
+            $let: {
+              vars: { category: { $toLower: '$_id' } },
+              in: { $ifNull: [categoryColors[{$toString: '$$category'}] , '#6b7280'] }
+            }
+          }
+        }
+      }
+    ]);
+
+    res.status(200).json({ data: salesData });
+  } catch (error) {
+    console.error('Error fetching sales by category:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+const getRecentOrders = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 5;
+    
+    const orders = await Order.find({})
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .populate('user', 'name email')
+      .lean();
+
+    const formattedOrders = orders.map(order => ({
+      id: order._id,
+      customer: order.customerDetails?.fullName || 'Guest User',
+      amount: order.total,
+      status: order.status || 'Completed',
+      date: order.createdAt.toISOString().split('T')[0]
+    }));
+
+    res.status(200).json({ data: formattedOrders });
+  } catch (error) {
+    console.error('Error fetching recent orders:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 module.exports = {
   addProduct,
   updateProduct,
@@ -238,5 +536,8 @@ module.exports = {
   getAllProducts,
   searchProducts,
   getProductsByCategory,
-
+  getDashboardStats,
+  getSalesOverview,
+  getSalesByCategory,
+  getRecentOrders
 };

@@ -14,7 +14,7 @@ const checkout  = require ("./Routes/checkout.js");
 const wishlistRoutes = require("./Routes/wishlistRoutes.js");
 const orderRoutes = require("./Routes/OrderRoutes.js");
 const subscriberRoutes = require("./Routes/subscriberRoutes.js");
-
+const adminRoutes = require("./Routes/adminRoutes.js");
 const mailRoutes = require("./Routes/mailRoutes.js");
 dotenv.config();
 require('./Config/passport.js');
@@ -70,7 +70,7 @@ app.use("/api/wishlist", wishlistRoutes)
 app.use("/auth", googleLoginRoutes);
 app.use('/api/mail', mailRoutes);
 app.use('/api/', subscriberRoutes);
-
+app.use('/api/admin', adminRoutes);
 
 // Basic Route
 app.get("/", (req, res) => {

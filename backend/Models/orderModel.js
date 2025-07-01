@@ -14,7 +14,7 @@ const orderSchema = new mongoose.Schema({
     country: String,
     zipCode: String,
   },
-
+  status: String,
   startDate: Date,
   endDate: Date,
 

@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { verifyToken } from "../APIs/AuthAPI";
-import { FaHeart } from 'react-icons/fa'
+import { FaHeart } from 'react-icons/fa';
 import { FaCartArrowDown } from "react-icons/fa6";
+
 const Navbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSeller, setIsSeller] = useState(false);
+  const [isAdmin, setAdmin] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     console.log(user);
@@ -27,28 +29,28 @@ const Navbar = () => {
             setIsAuthenticated(true);
             setUser(response.user);
 
-            if (response.user.role === "seller") {
-              setIsSeller(true); // ✅ Set true if seller
+            if (response.user.role === "admin") {
+              setAdmin(true); // Set true if seller
             } else {
-              setIsSeller(false);
+              setAdmin(false);
             }
           } else {
             setIsAuthenticated(false);
             setUser(null);
-            setIsSeller(false);
+            setAdmin(false);
           }
         } catch (error) {
           console.error("Token verification failed:", error);
           if (error.response && error.response.status === 401) {
             setIsAuthenticated(false);
             setUser(null);
-            setIsSeller(false);
+            setAdmin(false);
           }
         }
       } else {
         setIsAuthenticated(false);
         setUser(null);
-        setIsSeller(false);
+        setAdmin(false);
       }
     };
 
@@ -61,8 +63,16 @@ const Navbar = () => {
     setUser(null);
   };
 
+  // Check if we're on admin page for styling
+  const isAdminPage = location.pathname === '/admin';
+  
+  // Dynamic navbar class based on location
+  const navbarClass = isAdminPage 
+    ? "px-4 bg-gray-800 text-white shadow-md" 
+    : "px-4 bg-transparent text-white";
+
   return (
-    <nav className="  px-4 bg-transparent">
+    <nav className={navbarClass}>
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Left side - Logo/Brand */}
@@ -98,114 +108,100 @@ const Navbar = () => {
 
           {/* Center - Navigation Links (Desktop) */}
           <div className="hidden md:flex items-center space-x-6">
-            <Link to="/" className="text-white hover:text-gray-600">
+            <Link to="/" className="text-white hover:text-gray-300">
               Home
             </Link>
-            <Link to="/products" className="text-white hover:text-gray-600">
+            <Link to="/products" className="text-white hover:text-gray-300">
               Products
             </Link>
-            <Link to="/orders" className="text-white hover:text-gray-600">
+            <Link to="/orders" className="text-white hover:text-gray-300">
               Orders
             </Link>
-            <Link to="/about" className="text-white hover:text-gray-600">
+            <Link to="/about" className="text-white hover:text-gray-300">
               About
             </Link>
-            <Link to="/services" className="text-white hover:text-gray-600">
+            <Link to="/services" className="text-white hover:text-gray-300">
               Services
             </Link>
-            <Link to="/contact" className="text-white hover:text-gray-600">
+            <Link to="/contact" className="text-white hover:text-gray-300">
               Contact
             </Link>
 
-            {isSeller && (
+            {isAdmin && (
               <Link
-                to="/seller/panel"
-                className="text-yellow-400 hover:text-yellow-600 font-semibold"
+                to="/admin"
+                className="text-yellow-300 hover:text-yellow-400 font-semibold"
               >
-                Panel
+                Admin
               </Link>
             )}
           </div>
 
-          {/* Right side - Auth Section (Desktop) */}
-          <div className="hidden md:block">
+          {/* Right side - User Auth */}
+          <div className="hidden md:flex items-center space-x-4 relative">
             {isAuthenticated ? (
-              <div className="relative flex items-center gap-4">
-                <Link
-                  to="/wishlist"
-                  className="text-white hover:text-gray-600"
-                  title="Wishlist"
-                >
-                  <span className="text-white hover:text-gray-600">
-                    <FaHeart className="text-2xl text-red-500" />
-                  </span>
+              <>
+                <Link to="/cart" className="text-white hover:text-gray-300">
+                  <FaCartArrowDown className="text-xl" />
                 </Link>
-                
-                <Link
-                  to="/cart"
-                  className="text-white hover:text-gray-600"
-                  title="Cart"
-                >
-                  <span className="text-white hover:text-gray-600">
-                    <FaCartArrowDown className="text-2xl text-yellow-500" />
-                  </span>
+                <Link to="/wishlist" className="text-white hover:text-gray-300 ml-2">
+                  <FaHeart className="text-xl" />
                 </Link>
-                <Link
-                  to="/profile"
-                  className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-gray-300 dark:ring-gray-500"
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center focus:outline-none text-white"
                 >
-                  <img
-                    src={user?.profilePic}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
-                </Link>
+                  {user?.profilePic ? (
+                    <img
+                      src={user.profilePic}
+                      alt="Profile"
+                      className="w-8 h-8 rounded-full border-2 border-white"
+                    />
+                  ) : (
+                    <span className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 border-2 border-white">
+                      {user?.name?.charAt(0) || "U"}
+                    </span>
+                  )}
+                </button>
 
-                <div
-                  className={`absolute right-0 mt-2 ${
-                    isDropdownOpen ? "block" : "hidden"
-                  } bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700 dark:divide-gray-600`}
-                >
-                  <div className="px-4 py-3 text-sm text-gray-900 dark:text-white">
-                    <div>{user?.name}</div>
-                    <div className="font-medium truncate">{user?.email}</div>
-                  </div>
-                  <ul
-                    className="py-2 text-sm text-gray-700 dark:text-gray-200"
-                    aria-labelledby="avatarButton"
-                  >
-                    <li>
-                      <Link
-                        to="/dashboard"
-                        className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-white"
-                      >
-                        Dashboard
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/settings"
-                        className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-white"
-                      >
-                        Settings
-                      </Link>
-                    </li>
-                  </ul>
-                  <div className="py-1">
+                {isDropdownOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200">
+                    <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-200">
+                      <div>{user?.name}</div>
+                      <div className="font-medium truncate">{user?.email}</div>
+                    </div>
+                    <Link
+                      to="/dashboard"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      to="/settings"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Settings
+                    </Link>
+                    <Link
+                      to="/orders"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Orders
+                    </Link>
                     <button
                       onClick={handleSignOut}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-white dark:hover:text-white"
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       Sign out
                     </button>
                   </div>
-                </div>
-              </div>
+                )}
+              </>
             ) : (
-              <div className="flex items-center">
+              <div className="flex items-center space-x-4">
                 <Link
                   to="/login"
-                  className="text-white border border-white px-4 py-2 rounded-md hover:text-gray-600 mr-4"
+                  className="text-white hover:text-gray-300"
                 >
                   Login
                 </Link>
