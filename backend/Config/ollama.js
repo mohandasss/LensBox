@@ -1,7 +1,7 @@
 const axios = require("axios");
-
+const secret = require("../secret");
 const ollama = axios.create({
-  baseURL: process.env.OLLAMA_API || "http://localhost:11434/api/chat", // make sure it's /chat
+  baseURL: secret.OLLAMA_API || "http://localhost:11434/api/chat", // make sure it's /chat
   headers: {
     "Content-Type": "application/json",
   },
