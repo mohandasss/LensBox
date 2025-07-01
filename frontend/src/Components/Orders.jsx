@@ -14,7 +14,9 @@ import {
   Calendar,
   DollarSign,
   ShoppingCart,
-  Users
+  Users,
+  ArrowLeft,
+  ArrowRight
 } from 'lucide-react';
 
 const Index = () => {
@@ -22,27 +24,112 @@ const Index = () => {
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedDate, setSelectedDate] = useState('all');
   const [orders, setOrders] = useState([]);
-
-   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await getOrders();
-        console.log(response);
-        setOrders(response);
-      } catch (error) {
-        console.error('Error fetching orders:', error);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pages: 1,
+    total: 0,
+    limit: 15
+  });
+  // Helper function to generate page numbers with ellipsis
+  const getPageNumbers = () => {
+    const totalPages = pagination.pages;
+    const currentPage = pagination.page;
+    const pageNumbers = [];
+    
+    // Always show first page
+    pageNumbers.push(1);
+    
+    // Calculate start and end page numbers
+    let startPage = Math.max(2, currentPage - 1);
+    let endPage = Math.min(totalPages - 1, currentPage + 1);
+    
+    // Add ellipsis if needed
+    if (startPage > 2) {
+      pageNumbers.push('...');
+    }
+    
+    // Add middle pages
+    for (let i = startPage; i <= endPage; i++) {
+      if (i > 1 && i < totalPages) {
+        pageNumbers.push(i);
       }
-    };
-    fetchOrders();
+    }
+    
+    // Add ellipsis if needed
+    if (endPage < totalPages - 1) {
+      pageNumbers.push('...');
+    }
+    
+    // Always show last page if there is more than one page
+    if (totalPages > 1) {
+      pageNumbers.push(totalPages);
+    }
+    
+    return pageNumbers;
+  };
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchOrders = async (page = 1) => {
+    try {
+      setLoading(true);
+      const response = await getOrders(page);
+      console.log('API Response:', response);
+      
+      const ordersData = response.data || [];
+      const paginationData = response.pagination || {
+        page: page,
+        pages: 1,
+        total: ordersData.length,
+        limit: 15
+      };
+      
+      console.log('Orders Data:', ordersData);
+      console.log('Pagination Data:', paginationData);
+      
+      setOrders(Array.isArray(ordersData) ? ordersData : []);
+      setPagination({
+        page: Number(paginationData.page) || page,
+        pages: Number(paginationData.pages) || 1,
+        total: Number(paginationData.total) || ordersData.length,
+        limit: Number(paginationData.limit) || 15
+      });
+      setError(null);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      setError('Failed to load orders. Please try again.');
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders(pagination.currentPage);
   }, []);
 
-  const statuses = ['Pending', 'Processing', 'Shipped', 'Completed', 'Cancelled'];
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= pagination.pages) {
+      fetchOrders(newPage);
+    }
+  };
 
+  const statuses = ['Pending', 'Processing', 'Shipped', 'Completed', 'Cancelled'];
+  
+  // Client-side filtering for search and status
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.customer.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.email.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!order) return false;
+    
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch = 
+      (order.customer?.toLowerCase().includes(searchLower) || 
+       order.id?.toLowerCase().includes(searchLower) ||
+       order.email?.toLowerCase().includes(searchLower)) ||
+      !searchTerm;
+      
     const matchesStatus = selectedStatus === 'all' || order.status === selectedStatus;
+    
     return matchesSearch && matchesStatus;
   });
 
@@ -274,36 +361,136 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Results Summary */}
-        {filteredOrders.length > 0 && (
-          <div className="mt-6 flex items-center justify-between">
-            <p className="text-sm text-gray-500">
-              Showing {filteredOrders.length} of {orders.length} orders
-            </p>
+        {/* Custom Gradient Pagination */}
+        <div className="mt-8 bg-gradient-to-r from-white/80 to-gray-50/80 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-white/20 transition-all duration-500 hover:shadow-2xl">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+            {/* Results Info */}
             <div className="flex items-center space-x-2">
-              <button className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200">
-                Previous
+              <div className="px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-full border border-blue-100/50">
+                <p className="text-sm font-medium bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
+                  Showing{' '}
+                  <span className="font-bold text-blue-600 transition-colors duration-300">
+                    {filteredOrders.length}
+                  </span>{' '}
+                  of{' '}
+                  <span className="font-bold text-indigo-600 transition-colors duration-300">
+                    {pagination.total}
+                  </span>{' '}
+                  orders
+                  {searchTerm || (selectedStatus && selectedStatus !== 'all') ? (
+                    <span className="text-amber-600 font-medium ml-1">
+                      (filtered)
+                    </span>
+                  ) : null}
+                </p>
+              </div>
+            </div>
+            
+            {/* Pagination Controls */}
+            <div className="flex items-center space-x-2">
+              {/* Previous Button */}
+              <button
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page === 1}
+                className={`group relative px-4 py-2.5 flex items-center space-x-2 text-sm font-medium rounded-xl border transition-all duration-300 transform ${
+                  pagination.page === 1
+                    ? 'text-gray-300 border-gray-200/50 cursor-not-allowed bg-gray-50/30'
+                    : 'text-gray-700 border-gray-200/80 hover:border-blue-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-700 hover:scale-105 hover:shadow-lg active:scale-95'
+                }`}
+              >
+                <ArrowLeft className={`w-4 h-4 transition-transform duration-300 ${
+                  pagination.page !== 1 ? 'group-hover:-translate-x-0.5' : ''
+                }`} />
+                <span className="hidden sm:inline">Previous</span>
               </button>
-              <button className="px-3 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200">
-                1
-              </button>
-              <button className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200">
-                2
-              </button>
-              <button className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200">
-                Next
+              
+              {/* Page Numbers */}
+              <div className="flex items-center space-x-1">
+                {getPageNumbers().map((pageNum, index) => {
+                  if (pageNum === '...') {
+                    return (
+                      <div
+                        key={`ellipsis-${index}`}
+                        className="w-10 h-10 flex items-center justify-center text-gray-400 font-medium"
+                      >
+                        ...
+                      </div>
+                    );
+                  }
+                  
+                  const isActive = pagination.page === pageNum;
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`relative w-10 h-10 flex items-center justify-center text-sm font-semibold rounded-xl transition-all duration-300 transform hover:scale-110 active:scale-95 ${
+                        isActive
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25 ring-2 ring-blue-200/50 scale-105'
+                          : 'text-gray-700 hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 hover:text-gray-900 hover:shadow-md'
+                      }`}
+                    >
+                      {pageNum}
+                      {isActive && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-xl blur opacity-30" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              
+              {/* Next Button */}
+              <button
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page === pagination.pages}
+                className={`group relative px-4 py-2.5 flex items-center space-x-2 text-sm font-medium rounded-xl border transition-all duration-300 transform ${
+                  pagination.page === pagination.pages
+                    ? 'text-gray-300 border-gray-200/50 cursor-not-allowed bg-gray-50/30'
+                    : 'text-gray-700 border-gray-200/80 hover:border-blue-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-700 hover:scale-105 hover:shadow-lg active:scale-95'
+                }`}
+              >
+                <span className="hidden sm:inline">Next</span>
+                <ArrowRight className={`w-4 h-4 transition-transform duration-300 ${
+                  pagination.page !== pagination.pages ? 'group-hover:translate-x-0.5' : ''
+                }`} />
               </button>
             </div>
           </div>
-        )}
+        </div>
 
-        {filteredOrders.length === 0 && (
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading orders...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12 bg-red-50 rounded-lg">
+            <div className="text-red-500 mb-2">
+              <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Error loading orders</h3>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button 
+              onClick={() => fetchOrders(pagination.currentPage)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        ) : filteredOrders.length === 0 ? (
           <div className="text-center py-12">
             <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No orders found</h3>
-            <p className="text-gray-500">Try adjusting your search criteria or filters.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {searchTerm || selectedStatus !== 'all' ? 'No matching orders found' : 'No orders yet'}
+            </h3>
+            <p className="text-gray-500">
+              {searchTerm || selectedStatus !== 'all' 
+                ? 'Try adjusting your search criteria or filters.'
+                : 'New orders will appear here.'}
+            </p>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

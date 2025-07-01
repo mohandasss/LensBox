@@ -82,8 +82,39 @@ export const getOrders = async (page = 1) => {
         page,
       }
     });
+    
+    // Log the full response for debugging
     console.log('Orders API Response:', response.data);
-    return response.data.data;
+    
+    // If the response already has data and pagination, return as is
+    if (response.data.data && response.data.pagination) {
+      return response.data;
+    }
+    
+    // If the response is just an array, create pagination object
+    if (Array.isArray(response.data)) {
+      return {
+        data: response.data,
+        pagination: {
+          page: 1,
+          pages: 1,
+          total: response.data.length,
+          limit: response.data.length || 15
+        }
+      };
+    }
+    
+    // Default fallback
+    return {
+      data: [],
+      pagination: {
+        page: 1,
+        pages: 1,
+        total: 0,
+        limit: 15
+      }
+    };
+    
   } catch (error) {
     console.error('Error fetching orders:', error);
     throw error;
