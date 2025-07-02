@@ -1,5 +1,14 @@
 const router = require("express").Router();
-const { addProduct, updateProduct, deleteProduct,searchProducts, getProductById, getAllProducts, getProductsByCategory  } = require("../Controllers/ProductController");
+const { 
+  addProduct, 
+  updateProduct, 
+  deleteProduct,
+  searchProducts, 
+  getProductById, 
+  getAllProducts, 
+  getProductsByCategory,
+  addBulkProducts 
+} = require("../Controllers/ProductController");
 
 const { authMiddleware } = require("../middlewares/AuthMiddleware");
 
@@ -11,5 +20,7 @@ router.get("/", getAllProducts);
 router.get("/category/:categoryId", getProductsByCategory);
 router.post("/search", searchProducts);
 
+// Bulk product creation endpoint
+router.post("/bulk", authMiddleware, addBulkProducts);
 
 module.exports = router;

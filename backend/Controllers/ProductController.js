@@ -2,8 +2,46 @@ const Product = require("../Models/Products");
 const Order = require("../Models/orderModel");
 const User = require("../Models/UserModel");
 const cloudinary = require("../Config/cloudanary");
-  
+const axios = require('axios');
+const { Readable } = require('stream');
 
+// Function to upload image from URL to Cloudinary
+const uploadFromUrl = async (imageUrl) => {
+  try {
+    // Download the image
+    const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+    const buffer = Buffer.from(response.data, 'binary');
+    
+    // Convert buffer to stream
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: "productsLensbox" },
+      (error, result) => {
+        if (error) throw error;
+        return result;
+      }
+    );
+    
+    // Create a readable stream and pipe to Cloudinary
+    const readableStream = new Readable();
+    readableStream.push(buffer);
+    readableStream.push(null);
+    
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: "productsLensbox" },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      
+      readableStream.pipe(uploadStream);
+    });
+  } catch (error) {
+    console.error('Error uploading image from URL:', error);
+    throw error;
+  }
+};
 
 const categorymappedwithid = {
   camera: "507f1f77bcf86cd799439011",
@@ -883,6 +921,95 @@ const getUserStats = async (req, res) => {
 };
 
 
+
+const addBulkProducts = async (req, res) => {
+  try {
+    const { products } = req.body;
+    console.log('Received products:', JSON.stringify(products, null, 2));
+    
+    // Validate input
+    if (!Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Products array is required and must not be empty' 
+      });
+    }
+
+    // Validate each product and process images
+    const processedProducts = await Promise.all(products.map(async (product, index) => {
+      const { name, price, description, category, stock, seller, features, image } = product;
+      const productIdentifier = name ? `"${name}"` : `at index ${index}`;
+
+      // Check for missing required fields
+      const missingFields = [];
+      if (!name) missingFields.push('name');
+      if (!price) missingFields.push('price');
+      if (!description) missingFields.push('description');
+      if (!category) missingFields.push('category');
+      if (!stock) missingFields.push('stock');
+      if (!seller) missingFields.push('seller');
+      if (!features || !features.length) missingFields.push('features');
+      if (!image) missingFields.push('image');
+
+      if (missingFields.length > 0) {
+        throw new Error(`Product ${productIdentifier} is missing required fields: ${missingFields.join(', ')}`);
+      }
+
+      try {
+        // Generate SKU first (in case image upload fails, we still have the SKU for error tracking)
+        const sku = `SKU-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        
+        // Upload image to Cloudinary if image URL is provided
+        let imageUrl = '';
+        if (image) {
+          try {
+            const uploadedImage = await uploadFromUrl(image);
+            imageUrl = uploadedImage.secure_url;
+          } catch (uploadError) {
+            console.error(`Failed to upload image for product ${productIdentifier}:`, uploadError);
+            throw new Error(`Failed to upload image for product ${productIdentifier}. ${uploadError.message}`);
+          }
+        } else {
+          throw new Error(`No image URL provided for product ${productIdentifier}`);
+        }
+
+        return {
+          sku,
+          name,
+          description,
+          price,
+          category,
+          stock,
+          seller,
+          features: Array.isArray(features) ? features : [features],
+          image: [imageUrl]
+        };
+      } catch (error) {
+        console.error(`Error processing product ${productIdentifier}:`, error);
+        throw error; // Re-throw to be caught by the outer try-catch
+      }
+    }));
+
+    // Insert all products into the database
+    const createdProducts = await Product.insertMany(processedProducts);
+
+    res.status(201).json({
+      success: true,
+      message: `${createdProducts.length} products added successfully`,
+      data: createdProducts
+    });
+
+  } catch (error) {
+    console.error('Error in bulk product creation:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to add products in bulk',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+
 module.exports = {
   addProduct,
   updateProduct,
@@ -898,5 +1025,9 @@ module.exports = {
   getAllOrders,
   salesdata,
   getUserStats,
-  getProductStats
+  getProductStats,
+  addBulkProducts
 };
+
+// Bulk product creation function
+
