@@ -25,6 +25,6 @@ router.post('/purchase-confirmation', authMiddleware, sendPurchaseConfirmationEm
  * @desc    Send email to all subscribers (Admin only)
  * @access  Private/Admin
  */
-router.post('/broadcast', authMiddleware, isAdmin, broadcastEmail);
+
 
 module.exports = router;

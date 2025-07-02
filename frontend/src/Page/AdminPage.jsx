@@ -5,8 +5,9 @@ import Footer from '../Components/Footer';
 import User from '../Components/Users';
 import Products from '../Components/Products';
 import Order from '../Components/Orders';
+import Broadcast from '../Components/Broadcast';
 import { DollarSign, Users, Package, ShoppingCart } from 'lucide-react';
-
+import { FaBroadcastTower } from "react-icons/fa";
 const AdminPage = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -22,6 +23,8 @@ const AdminPage = () => {
         return <Products />;
       case 'orders':
         return <Order />;
+      case 'broadcast':
+        return <Broadcast />;
       case 'dashboard':
       default:
         return <Dashboard />;
@@ -40,7 +43,8 @@ const AdminPage = () => {
               { id: 'dashboard', label: 'Dashboard', icon: DollarSign },
               { id: 'users', label: 'Users', icon: Users },
               { id: 'products', label: 'Products', icon: Package },
-              { id: 'orders', label: 'Orders', icon: ShoppingCart }
+              { id: 'orders', label: 'Orders', icon: ShoppingCart },
+              { id: 'broadcast', label: 'Broadcast', icon: FaBroadcastTower }
             ].map((tab) => {
               const Icon = tab.icon;
               return (

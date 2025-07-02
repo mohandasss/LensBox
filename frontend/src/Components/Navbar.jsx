@@ -171,10 +171,10 @@ const Navbar = () => {
                       <div className="font-medium truncate">{user?.email}</div>
                     </div>
                     <Link
-                      to="/dashboard"
+                      to="/profile"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
-                      Dashboard
+                      Profile
                     </Link>
                     <Link
                       to="/settings"
@@ -270,10 +270,10 @@ const Navbar = () => {
                   <div className="font-medium truncate">{user?.email}</div>
                 </div>
                 <Link
-                  to="/dashboard"
+                  to="/profile"
                   className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                 >
-                  Dashboard
+                  Profile
                 </Link>
                 <Link
                   to="/settings"

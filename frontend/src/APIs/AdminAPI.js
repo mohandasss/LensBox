@@ -121,6 +121,16 @@ export const getOrders = async (page = 1) => {
   }
 };
 
+export const sendBroadcast = async (subject, message) => {
+  try {
+    const response = await axios.post(`${API_URL}/broadcast`, { subject, message });
+    return response.data;
+  } catch (error) {
+    console.error('Error sending broadcast:', error);
+    throw error;
+  }
+};
+
 // Add more admin API functions here as needed
 export default {
   getDashboardStats,
@@ -130,4 +140,5 @@ export default {
   getUserStats,
   getProductsStats,
   getOrders,
+  sendBroadcast
 };

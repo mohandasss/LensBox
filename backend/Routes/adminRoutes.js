@@ -11,6 +11,7 @@ const {
   getUserStats,
   getProductStats
 } = require("../Controllers/ProductController");
+const { broadcastEmail } = require("../Controllers/mailController");
 
 /**
  * @route   GET /api/admin/dashboard/stats
@@ -78,5 +79,14 @@ router.get("/dashboard/product-stats", getProductStats);
  * @access  Private/Admin
  */
 router.get("/dashboard/orders", getAllOrders);
+
+/**
+ * @route   POST /api/admin/mail/broadcast
+ * @desc    Send email to all subscribers (Admin only)
+ * @access  Private/Admin
+ */
+router.post('/broadcast', broadcastEmail);
+
+
 
 module.exports = router;

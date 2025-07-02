@@ -127,10 +127,10 @@ exports.sendWelcomeEmail = async (req, res) => {
 
 
 exports.broadcastEmail = async (req, res) => {
-  const { tittle, message } = req.body;
+  const { subject, message } = req.body;
 
   // Input validation
-  if (!tittle || !message) {
+  if (!subject || !message) {
     return res.status(400).json({ 
       success: false, 
       message: 'Title and message are required' 
@@ -152,11 +152,11 @@ exports.broadcastEmail = async (req, res) => {
     const emailPromises = subscribers.map(subscriber => {
       const emailContent = {
         to: subscriber.email,
-        subject: tittle,
+        subject: subject,
         text: message,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2>${tittle}</h2>
+            <h2>${subject}</h2>
             <div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
               ${message.replace(/\n/g, '<br>')}
             </div>
