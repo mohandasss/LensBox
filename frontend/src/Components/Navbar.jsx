@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { verifyToken } from "../APIs/AuthAPI";
 import { FaHeart } from 'react-icons/fa';
 import { FaCartArrowDown } from "react-icons/fa6";
@@ -10,7 +10,9 @@ const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAdmin, setAdmin] = useState(false);
+  const [isSeller, setSeller] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     console.log(user);
@@ -30,9 +32,14 @@ const Navbar = () => {
             setUser(response.user);
 
             if (response.user.role === "admin") {
-              setAdmin(true); // Set true if seller
+              setAdmin(true);
+              setSeller(false);
+            } else if (response.user.role === "seller") {
+              setSeller(true);
+              setAdmin(false);
             } else {
               setAdmin(false);
+              setSeller(false);
             }
           } else {
             setIsAuthenticated(false);
@@ -59,6 +66,7 @@ const Navbar = () => {
 
   const handleSignOut = () => {
     localStorage.removeItem("token");
+    navigate("/login");
     setIsAuthenticated(false);
     setUser(null);
   };
@@ -133,6 +141,14 @@ const Navbar = () => {
                 className="text-yellow-300 hover:text-yellow-400 font-semibold"
               >
                 Admin
+              </Link>
+            )}
+            {isSeller && (
+              <Link
+                to="/seller"
+                className="text-green-400 hover:text-green-300 font-semibold ml-2"
+              >
+                Seller
               </Link>
             )}
           </div>

@@ -88,6 +88,7 @@ const registerUser = async (req, res) => {
       country,
       role,
     } = req.body;
+    console.log(role);
 
     // 🛑 Validate Required Fields
     if (!name || !email || !password || !phone || !city || !state || !zip || !country) {
@@ -98,9 +99,10 @@ const registerUser = async (req, res) => {
     if (!req.files || !req.files.image) {
       return res.status(400).json({ error: "Profile image is required." });
     }
-    
+   
     
     const imageFile = req.files.image;
+    
 
     // 🔍 Check if User Already Exists
     const existingUser = await User.findOne({ email });
@@ -112,6 +114,7 @@ const registerUser = async (req, res) => {
     const uploadedResponse = await cloudinary.uploader.upload(imageFile.tempFilePath, {
       folder: "profilePictures",
     });
+    
 
     // 🔒 Hash Password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -131,8 +134,9 @@ const registerUser = async (req, res) => {
       },
       profilePic: uploadedResponse.secure_url,
     });
-
+    
     await newUser.save();
+   
 
     // 🔐 Generate JWT Token
     const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, {

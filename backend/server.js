@@ -1,4 +1,5 @@
 const express = require("express");
+const { spawn } = require('child_process');
 const authRoutes = require("./Routes/AuthRoutes.js");
 const connectDB = require("./Config/db.js");
 const dotenv = require("dotenv");
@@ -10,14 +11,41 @@ const brandRoutes = require("./Routes/BrandRoutes.js");
 const fileUpload = require("express-fileupload");
 const cartRoutes = require("./Routes/CartRoutes.js");
 const chatRoute = require("./Routes/ChatRoutes.js");
-const checkout  = require ("./Routes/checkout.js");
+const checkout = require("./Routes/checkout.js");
 const wishlistRoutes = require("./Routes/wishlistRoutes.js");
 const orderRoutes = require("./Routes/OrderRoutes.js");
 const subscriberRoutes = require("./Routes/subscriberRoutes.js");
 const adminRoutes = require("./Routes/adminRoutes.js");
 const mailRoutes = require("./Routes/mailRoutes.js");
+
 dotenv.config();
 require('./Config/passport.js');
+
+// Start Ollama server
+const startOllama = () => {
+  const ollama = spawn('ollama', ['serve']);
+  
+  ollama.stdout.on('data', (data) => {
+    console.log(`Ollama: ${data}`);
+  });
+
+  ollama.stderr.on('data', (data) => {
+    console.error(`Ollama Error: ${data}`);
+  });
+
+  ollama.on('close', (code) => {
+    console.log(`Ollama process exited with code ${code}`);
+  });
+
+  process.on('exit', () => {
+    ollama.kill();
+  });
+
+  return ollama;
+};
+
+// Start the Ollama server
+const ollamaProcess = startOllama();
 const googleLoginRoutes = require('./Routes/googleLogin.js');
 
 const passport = require('passport');

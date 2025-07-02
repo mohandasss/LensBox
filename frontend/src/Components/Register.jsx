@@ -12,6 +12,8 @@ import {
   Globe,
   CheckCircle,
 } from "lucide-react";
+import Navbar from "./Navbar";
+import Footer from "./Footer";
 import { Link } from "react-router-dom";
 import InputField from "./InputField";
 import { register } from "../APIs/AuthAPI";
@@ -27,6 +29,7 @@ const Register = () => {
     country: "",
     phone: "",
     image: "",
+    role: "user", // Default role is user
   });
   const [imageFile, setImageFile] = useState(null); // ✅ Add this line
   const [imagePreview, setImagePreview] = useState("");
@@ -35,6 +38,8 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [role, setRole] = useState("user"); // Default role is user
+
   const videoRef = useRef(null);
   const navigate = useNavigate();
 
@@ -97,6 +102,7 @@ const Register = () => {
       const submissionData = {
         ...formData,
         image: imageFile,
+        role: role || "user" // Use the role state which is always in sync
       };
 
       console.log("Submitting data:", submissionData);
@@ -140,36 +146,57 @@ const Register = () => {
 
   useEffect(() => {
     const video = videoRef.current;
+
+    if (!video) return;
+
+    // Set initial start time at 20s (matching login page)
+    video.currentTime = 20;
+
+    // Play once metadata is loaded
+    const handleLoaded = () => {
+      video.play();
+    };
+
+    // Loop back to 20s when reaching 43s (matching login page)
     const handleTimeUpdate = () => {
-      if (video && video.currentTime >= 30) {
-        video.currentTime = 0;
-        video.play();
+      if (video.currentTime >= 43) {
+        video.currentTime = 20;
+        video.play(); // Ensure continuous playback
       }
     };
-    if (video) video.addEventListener("timeupdate", handleTimeUpdate);
+
+    video.addEventListener("loadedmetadata", handleLoaded);
+    video.addEventListener("timeupdate", handleTimeUpdate);
+
     return () => {
-      if (video) video.removeEventListener("timeupdate", handleTimeUpdate);
+      video.removeEventListener("loadedmetadata", handleLoaded);
+      video.removeEventListener("timeupdate", handleTimeUpdate);
     };
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Video Background */}
-      <div className="fixed inset-0 z-0">
+    <div className="min-h-screen bg-black">
+      <Navbar />
+      <div className="relative w-full h-screen overflow-hidden">
+        {/* Video Background */}
         <video
           ref={videoRef}
-          src="https://res.cloudinary.com/dk5gtjb3k/video/upload/v1750171067/mgz85nxfibtftw5m3oba.mp4"
-          className="w-full h-full object-cover"
-          autoPlay
-          loop
           muted
-        />
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
-      </div>
+          className="absolute top-0 left-0 w-full h-full object-cover z-0"
+          playsInline
+        >
+          <source
+            src="https://res.cloudinary.com/dk5gtjb3k/video/upload/v1750171067/mgz85nxfibtftw5m3oba.mp4"
+            type="video/mp4"
+          />
+        </video>
 
-      {/* White Card Wrapper */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl p-10 backdrop-blur-md">
+        {/* Dark Overlay */}
+        <div className="absolute top-0 left-0 w-full h-full bg-black/60 z-10" />
+
+        {/* Register Card */}
+        <div className="relative z-20 flex justify-center items-center h-full px-4">
+          <div className="w-full max-w-3xl bg-white/90 rounded-2xl shadow-2xl p-10 backdrop-blur-md">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-extrabold text-center mb-4 text-gray-800 mb-2">
@@ -306,6 +333,32 @@ const Register = () => {
                 onChange={handleChange}
                 placeholder="Enter your country"
               />
+              <div className="flex items-center space-x-3 col-span-2">
+      <span className={`text-sm font-medium transition-colors ${role === "user" ? "text-gray-900" : "text-gray-400"}`}>
+        User
+      </span>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          const newRole = role === "user" ? "seller" : "user";
+          setRole(newRole);
+          setFormData(prev => ({ ...prev, role: newRole }));
+        }}
+        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+          role === "seller" ? "bg-blue-600" : "bg-gray-300"
+        }`}
+      >
+        <span
+          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${
+            role === "seller" ? "translate-x-6" : "translate-x-1"
+          }`}
+        />
+      </button>
+      <span className={`text-sm font-medium transition-colors ${role === "seller" ? "text-gray-900" : "text-gray-400"}`}>
+        Seller
+      </span>
+    </div>
             </div>
 
             <button
@@ -355,8 +408,8 @@ const Register = () => {
           </div>
         </div>
       </div>
+    </div>
 
-      {/* Success Popup */}
       {/* Success Popup */}
       {showPopup && (
         <div className="fixed inset-0 flex justify-center items-center z-50">
@@ -379,6 +432,7 @@ const Register = () => {
           </div>
         </div>
       )}
+    
     </div>
   );
 };

@@ -16,7 +16,7 @@ const UserSchema = new mongoose.Schema({
     type: AddressSchema,
     required: false, // ✅ Make this optional
   },
-  role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  role: { type: String, enum: ['user', 'seller', 'admin'], default: 'user' },
   phone: { type: String, required: false }, // ✅ Make this optional
   profilePic: { type: String },
   cloudinaryUrl: { type: String } // Store Cloudinary URL for profile picture
