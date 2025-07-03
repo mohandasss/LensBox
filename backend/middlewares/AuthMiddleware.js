@@ -34,4 +34,25 @@ const isAdmin = (req, res, next) => {
   next();
 };
 
-module.exports = { authMiddleware, isAdmin };
+const isSeller = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {  
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    if (user.role !== "seller") {
+      return res.status(403).json({ message: "Access denied. Seller role required." });
+    }
+    next();
+  } catch (error) {
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Export the middleware functions
+module.exports = {
+  protect: authMiddleware,
+  isAdmin,
+  isSeller,
+  authMiddleware // Keep both for backward compatibility
+};

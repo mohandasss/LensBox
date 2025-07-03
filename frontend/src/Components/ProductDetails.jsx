@@ -4,6 +4,7 @@ import { addToCart } from "../APIs/CartAPI";
 import { addToWishlist } from "../APIs/WishlistAPI";
 import { verifyToken } from "../APIs/AuthAPI";
 import { toast } from "react-toastify";
+import SellerInfo from "./SellerInfo";
 const ProductDetails = ({ product }) => {
   const [selectedImage, setSelectedImage] = useState(
     Array.isArray(product.image) ? product.image[0] : product.image
@@ -114,23 +115,29 @@ const ProductDetails = ({ product }) => {
 
             {/* Rating Stars - improved alignment and spacing */}
             <div className="flex items-center mb-6">
-              {[...Array(5)].map((_, index) => (
-                <svg
-                  key={index}
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="size-5 text-yellow-400"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              ))}
+              {[1, 2, 3, 4, 5].map((star) => {
+                const starClass = star <= Math.round(product.averageRating || 0) 
+                  ? 'text-yellow-400' 
+                  : 'text-gray-300';
+                return (
+                  <svg
+                    key={star}
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className={`size-5 ${starClass}`}
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                );
+              })}
               <span className="ml-2 text-gray-600 text-sm">
-                4.5 (120 reviews)
+                {product.averageRating ? product.averageRating.toFixed(1) : 'No'} 
+                {product.reviewCount ? ` (${product.reviewCount} review${product.reviewCount !== 1 ? 's' : ''})` : ' reviews yet'}
               </span>
             </div>
 
@@ -150,6 +157,12 @@ const ProductDetails = ({ product }) => {
               >
                 {product.stock} units left
               </span>
+            </div>
+
+            {/* Seller Information */}
+            <div className="mt-6">
+              <p className="text-sm font-medium text-gray-500 mb-2">Sold by</p>
+              <SellerInfo productId={product._id} />
             </div>
 
             {/* Quantity - improved select styling */}

@@ -63,13 +63,34 @@ export const getProduct = async (id) => {
 export const getProductsByCategory = async (category) => {
   try {
     const response = await axiosinstance.get(`/category/${category}`);
-    console.log("category", category);
-    console.log("response data:", response.data.products);
-    
-    return response.data.products; 
+    if (response.data) {
+      console.log(response.data);
+      return response.data;
+    }
+    return [];
   } catch (error) {
-    console.error('Error fetching category products:', error);
+    console.error('Error fetching products by category:', error);
     return [];
   }
 };
-export default { getProducts, searchProducts,  getProduct, getProductsByCategory };
+
+export const getSellerInfo = async (productId) => {
+  try {
+    const response = await axiosinstance.get(`/${productId}/seller`);
+    if (response.data) {
+      return response.data;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching seller info:', error);
+    throw error;
+  }
+};
+
+export default { 
+  getProducts, 
+  searchProducts, 
+  getProduct, 
+  getProductsByCategory, 
+  getSellerInfo 
+};

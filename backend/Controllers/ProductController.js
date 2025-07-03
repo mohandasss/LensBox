@@ -1010,9 +1010,61 @@ const addBulkProducts = async (req, res) => {
 };
 
 
+// Get seller information by product ID
+const getSellerInfo = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    console.log(productId);
+
+    // Find the product to get the seller ID
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // Find the seller information
+    const seller = await User.findById(product.seller);
+    if (!seller) {
+      return res.status(404).json({ message: 'Seller not found' });
+    }
+
+    // Calculate average rating from orders
+    const orders = await Order.find({
+      'items.productId': productId,
+      status: 'delivered'
+    });
+
+    let totalRating = 0;
+    let ratingCount = 0;
+
+    orders.forEach(order => {
+      const item = order.items.find(item => item.productId.toString() === productId);
+      if (item && item.rating) {
+        totalRating += item.rating;
+        ratingCount++;
+      }
+    });
+
+    const averageRating = ratingCount > 0 ? (totalRating / ratingCount).toFixed(1) : 0;
+
+    res.status(200).json({
+      seller: {
+        name: seller.name,
+        profilePic: seller.cloudinaryUrl || seller.profilePic || '',
+        averageRating: parseFloat(averageRating),
+        totalRatings: ratingCount
+      }
+    });
+  } catch (error) {
+    console.error('Error getting seller info:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 module.exports = {
   addProduct,
   updateProduct,
+  getSellerInfo,
   deleteProduct,
   getProductById,
   getAllProducts,

@@ -16,7 +16,10 @@ const wishlistRoutes = require("./Routes/wishlistRoutes.js");
 const orderRoutes = require("./Routes/OrderRoutes.js");
 const subscriberRoutes = require("./Routes/subscriberRoutes.js");
 const adminRoutes = require("./Routes/adminRoutes.js");
+const sellerRoutes = require("./Routes/SellerRoutes.js");
+const testSellerRoutes = require("./Routes/TestSellerRoutes.js");
 const mailRoutes = require("./Routes/mailRoutes.js");
+const reviewRoutes = require("./Routes/ReviewRoutes.js");
 
 dotenv.config();
 require('./Config/passport.js');
@@ -99,6 +102,9 @@ app.use("/auth", googleLoginRoutes);
 app.use('/api/mail', mailRoutes);
 app.use('/api/', subscriberRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/seller', sellerRoutes);
+app.use('/api/test-seller', testSellerRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 // Basic Route
 app.get("/", (req, res) => {
