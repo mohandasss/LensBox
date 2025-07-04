@@ -12,7 +12,8 @@ const {
   getSellerRecentOrders,
   getSellerProductPerformance,
   updateProductStatus,
-  updateOrderStatus
+  updateOrderStatus,
+  getSellerRatings
 } = require("../Controllers/SellerController");
 
 /**
@@ -91,5 +92,12 @@ router.put("/products/:id/status", authMiddleware, updateProductStatus);
  * @access  Private/Seller
  */
 router.put("/orders/:id/status", authMiddleware, updateOrderStatus);
+
+/**
+ * @route   GET /api/seller/:sellerId/ratings
+ * @desc    Get seller's average rating and total ratings
+ * @access  Public
+ */
+router.get("/:sellerId/ratings", getSellerRatings);
 
 module.exports = router;

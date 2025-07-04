@@ -164,6 +164,33 @@ export const updateOrderStatus = async (orderId, status) => {
   }
 };
 
+// Get seller's average rating and total ratings
+export const getSellerRatings = async (sellerId) => {
+  try {
+    console.log(`Fetching ratings for seller: ${sellerId}`);
+    const response = await axios.get(`${API_URL}/${sellerId}/ratings`);
+    console.log('Seller ratings response:', response.data);
+    
+    // Handle different response structures
+    const data = response.data.data || response.data;
+    
+    // Ensure we always return an object with the expected structure
+    return {
+      averageRating: data.averageRating || data.avgRating || 0,
+      totalRatings: data.totalRatings || data.ratingCount || 0,
+      ...data // Include any additional data that might be useful
+    };
+  } catch (error) {
+    console.error('Error fetching seller ratings:', error);
+    // Return default values instead of throwing to prevent UI breakage
+    return {
+      averageRating: 0,
+      totalRatings: 0,
+      error: error.response?.data?.message || 'Failed to load ratings'
+    };
+  }
+};
+
 export default {
   getSellerDashboardStats,
   getSellerProducts,
@@ -175,5 +202,6 @@ export default {
   getSellerRecentOrders,
   getSellerProductPerformance,
   updateProductStatus,
-  updateOrderStatus
+  updateOrderStatus,
+  getSellerRatings
 };

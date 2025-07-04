@@ -8,7 +8,8 @@ const {
   getAllProducts, 
   getProductsByCategory,
   addBulkProducts,
-  getSellerInfo
+  getSellerInfo,
+  getRelatedProducts
 } = require("../Controllers/ProductController");
 
 const { authMiddleware } = require("../middlewares/AuthMiddleware");
@@ -26,5 +27,8 @@ router.post("/bulk", authMiddleware, addBulkProducts);
 
 // Get seller information by product ID
 router.get("/:productId/seller", getSellerInfo);
+
+// Add related products endpoint
+router.get("/:productId/related", getRelatedProducts);
 
 module.exports = router;

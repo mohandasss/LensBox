@@ -4,6 +4,7 @@ const User = require("../Models/UserModel");
 const cloudinary = require("../Config/cloudanary");
 const axios = require('axios');
 const { Readable } = require('stream');
+const Review = require('../Models/Review');
 
 // Function to upload image from URL to Cloudinary
 const uploadFromUrl = async (imageUrl) => {
@@ -1028,35 +1029,55 @@ const getSellerInfo = async (req, res) => {
       return res.status(404).json({ message: 'Seller not found' });
     }
 
-    // Calculate average rating from orders
-    const orders = await Order.find({
-      'items.productId': productId,
-      status: 'delivered'
-    });
-
-    let totalRating = 0;
-    let ratingCount = 0;
-
-    orders.forEach(order => {
-      const item = order.items.find(item => item.productId.toString() === productId);
-      if (item && item.rating) {
-        totalRating += item.rating;
-        ratingCount++;
+    // Aggregate all reviews for this seller
+    const result = await Review.aggregate([
+      { $match: { seller: seller._id } },
+      {
+        $group: {
+          _id: null,
+          averageRating: { $avg: "$rating" },
+          totalRatings: { $sum: 1 }
+        }
       }
-    });
-
-    const averageRating = ratingCount > 0 ? (totalRating / ratingCount).toFixed(1) : 0;
+    ]);
+    const averageRating = result[0]?.averageRating || 0;
+    const totalRatings = result[0]?.totalRatings || 0;
 
     res.status(200).json({
       seller: {
         name: seller.name,
         profilePic: seller.cloudinaryUrl || seller.profilePic || '',
-        averageRating: parseFloat(averageRating),
-        totalRatings: ratingCount
+        averageRating: Math.round(averageRating * 10) / 10,
+        totalRatings
       }
     });
   } catch (error) {
     console.error('Error getting seller info:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// @desc    Get random related products from the same category
+// @route   GET /api/products/:productId/related
+// @access  Public
+const getRelatedProducts = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const product = await Product.findById(productId).select('category');
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    // Find other products in the same category, excluding the current product
+    const relatedProducts = await Product.aggregate([
+      { $match: { category: product.category, _id: { $ne: product._id } } },
+      { $sample: { size: 4 } } // Return 4 random products
+    ]);
+    res.status(200).json({
+      success: true,
+      data: relatedProducts
+    });
+  } catch (error) {
+    console.error('Error getting related products:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
@@ -1078,7 +1099,8 @@ module.exports = {
   salesdata,
   getUserStats,
   getProductStats,
-  addBulkProducts
+  addBulkProducts,
+  getRelatedProducts
 };
 
 // Bulk product creation function

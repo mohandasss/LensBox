@@ -6,14 +6,18 @@ const Product = require('../Models/Products');
 // @access  Private
 const createReview = async (req, res) => {
   try {
-    const { rating, comment, productId } = req.body;
-    const userId = req.user._id;
-
+    const { rating, comment, productId ,userId } = req.body;
+   console.log(req.body);
+    
     // Check if product exists
     const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
+    console.log(product);
+
+    const sellerId = product.seller;
+   
 
     // Check if user already reviewed this product
     const alreadyReviewed = await Review.findOne({
@@ -29,6 +33,7 @@ const createReview = async (req, res) => {
     const review = await Review.create({
       user: userId,
       product: productId,
+      seller: sellerId,
       rating: Number(rating),
       comment
     });

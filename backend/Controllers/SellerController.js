@@ -2,6 +2,8 @@ const Product = require("../Models/Products");
 const Order = require("../Models/orderModel");
 const User = require("../Models/UserModel");
 const Category = require("../Models/Category");
+const Review = require("../Models/Review");
+const mongoose = require('mongoose');
 
 // Helper function to generate last 6 months data
 const generateLast6MonthsData = () => {
@@ -517,6 +519,38 @@ const getRandomColor = () => {
   return colors[Math.floor(Math.random() * colors.length)];
 };
 
+// @desc    Get seller's average rating and total ratings
+// @route   GET /api/seller/:sellerId/ratings
+// @access  Public
+const getSellerRatings = async (req, res) => {
+  try {
+    const sellerId = req.params.sellerId;
+    // Aggregate all reviews for this seller
+    const result = await Review.aggregate([
+      { $match: { seller: mongoose.Types.ObjectId(sellerId) } },
+      {
+        $group: {
+          _id: null,
+          averageRating: { $avg: "$rating" },
+          totalRatings: { $sum: 1 }
+        }
+      }
+    ]);
+    const averageRating = result[0]?.averageRating || 0;
+    const totalRatings = result[0]?.totalRatings || 0;
+    res.status(200).json({
+      success: true,
+      data: {
+        averageRating: Math.round(averageRating * 10) / 10,
+        totalRatings
+      }
+    });
+  } catch (error) {
+    console.error("Error getting seller ratings:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 module.exports = {
   getSellerDashboardStats,
   getSellerProducts,
@@ -528,5 +562,6 @@ module.exports = {
   getSellerRecentOrders,
   getSellerProductPerformance,
   updateProductStatus,
-  updateOrderStatus
+  updateOrderStatus,
+  getSellerRatings
 };

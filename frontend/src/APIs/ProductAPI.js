@@ -87,10 +87,24 @@ export const getSellerInfo = async (productId) => {
   }
 };
 
+export const getRelatedProducts = async (productId) => {
+  try {
+    const response = await axiosinstance.get(`/${productId}/related`);
+    if (response.data && response.data.data) {
+      return response.data.data;
+    }
+    return [];
+  } catch (error) {
+    console.error('Error fetching related products:', error);
+    return [];
+  }
+};
+
 export default { 
   getProducts, 
   searchProducts, 
   getProduct, 
   getProductsByCategory, 
-  getSellerInfo 
+  getSellerInfo,
+  getRelatedProducts
 };

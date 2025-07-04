@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+  
 const reviewSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
@@ -9,6 +9,11 @@ const reviewSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Product',
+    required: true
+  },
+  seller: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     required: true
   },
   rating: {
@@ -57,14 +62,38 @@ reviewSchema.statics.getAverageRating = async function(productId) {
   }
 };
 
+// Static method to update seller's totalReviews and avgRating
+reviewSchema.statics.updateSellerStats = async function(sellerId) {
+  const obj = await this.aggregate([
+    { $match: { seller: sellerId } },
+    {
+      $group: {
+        _id: '$seller',
+        avgRating: { $avg: '$rating' },
+        totalReviews: { $sum: 1 }
+      }
+    }
+  ]);
+  try {
+    await require('mongoose').model('User').findByIdAndUpdate(sellerId, {
+      avgRating: obj[0] ? Math.round(obj[0].avgRating * 10) / 10 : 0,
+      totalReviews: obj[0] ? obj[0].totalReviews : 0
+    });
+  } catch (err) {
+    console.error('Error updating seller stats:', err);
+  }
+};
+
 // Call getAverageRating after save
 reviewSchema.post('save', function() {
   this.constructor.getAverageRating(this.product);
+  this.constructor.updateSellerStats(this.seller);
 });
 
 // Call getAverageRating after remove
 reviewSchema.post('remove', function() {
   this.constructor.getAverageRating(this.product);
+  this.constructor.updateSellerStats(this.seller);
 });
 
 module.exports = mongoose.model('Review', reviewSchema);

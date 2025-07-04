@@ -24,7 +24,7 @@ const ReviewForm = ({ productId, onReviewSubmit }) => {
 
     try {
       setIsSubmitting(true);
-      await createReview(productId, { rating, comment });
+      await createReview(productId, rating, comment);
       toast.success('Review submitted successfully');
       setRating(0);
       setComment('');
