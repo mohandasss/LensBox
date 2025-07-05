@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { getHeroProducts } from "../APIs/ProductAPI";
 import { Link } from "react-router-dom";
+import { FaStar } from "react-icons/fa";
 
 const ProductCard = ({ product }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -131,18 +132,26 @@ const ProductCard = ({ product }) => {
         </div>
       </div>
       <div className="p-4 flex-grow flex flex-col min-h-[120px]">
-        <h3 className="text-sm font-medium text-gray-900 line-clamp-1">
-          {product.name}
-        </h3>
-        <p className="text-sm font-medium text-gray-900">
-          {product.description && product.description.length > 40 
-            ? `${product.description.substring(0, 40)}...` 
+        <h3 className="text-base font-semibold text-gray-900 line-clamp-1 mb-1">{product.name}</h3>
+        {/* Rating and review count */}
+        <div className="flex items-center gap-1 mb-2">
+          <div className="flex text-yellow-400">
+            {[1,2,3,4,5].map(star => (
+              <FaStar key={star} className={star <= Math.round(product.averageRating || 0) ? '' : 'text-gray-300'} />
+            ))}
+          </div>
+          <span className="ml-1 text-xs text-gray-700 font-medium">{product.averageRating ? product.averageRating.toFixed(1) : 'N/A'}</span>
+          <span className="mx-1 h-1 w-1 rounded-full bg-gray-300"></span>
+          <span className="text-xs text-gray-500">{product.reviewCount || 0} {product.reviewCount === 1 ? 'review' : 'reviews'}</span>
+        </div>
+        {/* Description */}
+        <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+          {product.description && product.description.length > 60
+            ? `${product.description.substring(0, 60)}...`
             : product.description || 'No description available'}
         </p>
         <div className="mt-auto pt-4 flex items-center gap-2 justify-between">
-          
-          <p className="text-sm font-medium text-gray-900">₹{product.price}</p>
-          
+          <p className="text-sm font-bold text-gray-900">₹{product.price}</p>
         </div>
       </div>
     </div>
