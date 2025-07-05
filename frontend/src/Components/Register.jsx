@@ -17,8 +17,10 @@ import Footer from "./Footer";
 import { Link } from "react-router-dom";
 import InputField from "./InputField";
 import { register } from "../APIs/AuthAPI";
+import { useNotification } from "./NotificationSystem";
 
 const Register = () => {
+  const { showSuccess, showError, showProfileNotification } = useNotification();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -112,10 +114,10 @@ const Register = () => {
 
       if (response) {
         console.log(response.message);
-        setShowPopup(true);
-        setPopupMessage(response.message);
-
-        // "User registered successfully"
+        showProfileNotification(
+          "Account Created!", 
+          "Your account has been successfully created. Welcome to LensBox!"
+        );
 
         setFormData({
           name: "",
@@ -128,17 +130,21 @@ const Register = () => {
           phone: "",
         });
         setTimeout(() => {
-          navigate("/");
-        }, 2000); // 2 seconds delay so user sees the success popup
+          navigate("/", { replace: true });
+        }, 1500); // Reduced delay for faster redirect
         setImagePreview("");
       } else {
-        setPopupMessage("Registration failed. Please try again.");
-        setShowPopup(true);
+        showError(
+          "Registration Failed", 
+          "Failed to create your account. Please try again."
+        );
       }
     } catch (error) {
       console.error("Registration error:", error);
-      setPopupMessage("Something went wrong. Please try again later.");
-      setShowPopup(true);
+      showError(
+        "Registration Error", 
+        error.response?.data?.message || "Something went wrong. Please try again later."
+      );
     } finally {
       setIsSubmitting(false);
     }

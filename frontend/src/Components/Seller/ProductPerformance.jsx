@@ -65,6 +65,9 @@ const ProductPerformance = ({ data = [] }) => {
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Rating
               </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Last Sold
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -96,6 +99,9 @@ const ProductPerformance = ({ data = [] }) => {
                     <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
                     <span className="text-sm text-gray-900">{product.rating}</span>
                   </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">{product.lastSold}</div>
                 </td>
               </tr>
             ))}

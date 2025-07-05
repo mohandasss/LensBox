@@ -3,9 +3,10 @@ import { getCategoriesById } from "../APIs/CategoryAPI";
 import { addToCart } from "../APIs/CartAPI";
 import { addToWishlist } from "../APIs/WishlistAPI";
 import { verifyToken } from "../APIs/AuthAPI";
-import { toast } from "react-toastify";
+import { useNotification } from "./NotificationSystem";
 import SellerInfo from "./SellerInfo";
 const ProductDetails = ({ product }) => {
+  const { showCartNotification, showWishlistNotification, showError } = useNotification();
   const [selectedImage, setSelectedImage] = useState(
     Array.isArray(product.image) ? product.image[0] : product.image
   );
@@ -28,8 +29,16 @@ const ProductDetails = ({ product }) => {
         
       const addedtocart = await addToCart(product._id, quantity, user._id);
       console.log(addedtocart);
+      showCartNotification(
+        "Added to Cart!", 
+        `${product.name} has been added to your cart.`
+      );
     } catch (error) {
       console.error("Failed to add to cart:", error);
+      showError(
+        "Failed to Add to Cart", 
+        "There was an error adding the item to your cart. Please try again."
+      );
     }
   };
 
@@ -50,10 +59,17 @@ const ProductDetails = ({ product }) => {
         console.log(productId);
         console.log(user._id);
         const addedtoWishlist = await addToWishlist(productId, user._id);
-        toast.success("Product added to wishlist");
+        showWishlistNotification(
+          "Added to Wishlist!", 
+          `${product.name} has been added to your wishlist.`
+        );
       console.log(addedtoWishlist);
     } catch (error) {
       console.error("Failed to add to wishlist:", error);
+      showError(
+        "Failed to Add to Wishlist", 
+        "There was an error adding the item to your wishlist. Please try again."
+      );
     }
   };
 

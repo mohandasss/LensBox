@@ -3,7 +3,8 @@ const router = express.Router();
 const { 
   broadcastEmail,
   sendWelcomeEmail,
-  sendPurchaseConfirmationEmail 
+  sendPurchaseConfirmationEmail,
+  sendContactForm
 } = require('../Controllers/mailController');
 const { authMiddleware, isAdmin } = require('../middlewares/AuthMiddleware');
 
@@ -20,6 +21,14 @@ router.post('/welcome', sendWelcomeEmail);
  * @access  Private
  */
 router.post('/purchase-confirmation', authMiddleware, sendPurchaseConfirmationEmail);
+
+/**
+ * @route   POST /api/mail/contact
+ * @desc    Handle contact form submissions
+ * @access  Public
+ */
+router.post('/contact', sendContactForm);
+
 /**
  * @route   POST /api/mail/broadcast
  * @desc    Send email to all subscribers (Admin only)

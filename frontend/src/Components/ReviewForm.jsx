@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { FaStar } from 'react-icons/fa';
 import { createReview } from '../APIs/ReviewAPI';
-import { toast } from 'react-toastify';
+import { useNotification } from './NotificationSystem';
 
 const ReviewForm = ({ productId, onReviewSubmit }) => {
+  const { showReviewNotification, showError, showWarning } = useNotification();
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(null);
   const [comment, setComment] = useState('');
@@ -13,19 +14,22 @@ const ReviewForm = ({ productId, onReviewSubmit }) => {
     e.preventDefault();
     
     if (rating === 0) {
-      toast.error('Please select a rating');
+      showWarning('Rating Required', 'Please select a rating before submitting your review.');
       return;
     }
 
     if (!comment.trim()) {
-      toast.error('Please enter your review');
+      showWarning('Review Required', 'Please enter your review before submitting.');
       return;
     }
 
     try {
       setIsSubmitting(true);
       await createReview(productId, rating, comment);
-      toast.success('Review submitted successfully');
+      showReviewNotification(
+        'Review Submitted!', 
+        'Thank you for your review. It has been submitted successfully.'
+      );
       setRating(0);
       setComment('');
       if (onReviewSubmit) {
@@ -33,7 +37,10 @@ const ReviewForm = ({ productId, onReviewSubmit }) => {
       }
     } catch (error) {
       console.error('Error submitting review:', error);
-      toast.error(error.response?.data?.message || 'Failed to submit review');
+      showError(
+        'Review Submission Failed', 
+        error.response?.data?.message || 'Failed to submit review. Please try again.'
+      );
     } finally {
       setIsSubmitting(false);
     }

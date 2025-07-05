@@ -14,7 +14,11 @@ const orderSchema = new mongoose.Schema({
     country: String,
     zipCode: String,
   },
-  status: String,
+  status: {
+    type: String,
+    enum: ['confirmed', 'shipped', 'delivered', 'cancelled'],
+    default: 'confirmed'
+  },
   startDate: Date,
   endDate: Date,
 

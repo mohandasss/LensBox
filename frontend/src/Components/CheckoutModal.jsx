@@ -24,6 +24,7 @@ import { verifyToken } from "../APIs/AuthAPI";
 import { clearCart } from "../APIs/CartAPI";
 import PaymentSuccess from "./PaymentSuccess";
 import { AnimatePresence } from "framer-motion";
+import { useNotification } from "./NotificationSystem";
 
 // Move InputField outside the component to prevent recreation
 const InputField = React.memo(({
@@ -89,6 +90,7 @@ const CheckoutModal = ({
   onCheckout,
   initialValues = {},
 }) => {
+  const { showPaymentNotification, showError, showSuccess, showShippingNotification } = useNotification();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -292,6 +294,17 @@ const CheckoutModal = ({
 
            const paymentConfirmationResponse = await paymentConfirmation(verificationResponse.orderId);
            console.log("Payment Confirmation Response:", paymentConfirmationResponse);
+           
+           showPaymentNotification(
+             "Payment Successful!", 
+             "Your order has been placed successfully. You'll receive a confirmation email shortly."
+           );
+           
+           showShippingNotification(
+             "Order Confirmed", 
+             "We're preparing your order for shipment. You'll receive tracking details soon."
+           );
+           
             setPaymentSuccess(true);
             
             const timer = setTimeout(() => {
@@ -301,10 +314,29 @@ const CheckoutModal = ({
 
             return () => clearTimeout(timer);
           } catch (error) {
-            setPaymentError(
-              "Payment verification failed. Please contact support with payment ID: " +
-                (razorpayResponse.razorpay_payment_id || "N/A")
-            );
+            // Handle specific inventory errors
+            if (error.response?.data?.message?.includes('Insufficient stock')) {
+              const insufficientItems = error.response.data.insufficientStockItems;
+              let errorMessage = "Some items are out of stock:\n";
+              insufficientItems.forEach(item => {
+                errorMessage += `• ${item.productName}: Requested ${item.requested}, Available ${item.available}\n`;
+              });
+              errorMessage += "\nPlease update your cart and try again.";
+              setPaymentError(errorMessage);
+              showError(
+                "Insufficient Stock", 
+                "Some items in your cart are out of stock. Please update your cart and try again."
+              );
+            } else {
+              setPaymentError(
+                "Payment verification failed. Please contact support with payment ID: " +
+                  (razorpayResponse.razorpay_payment_id || "N/A")
+              );
+              showError(
+                "Payment Failed", 
+                "There was an error processing your payment. Please try again or contact support."
+              );
+            }
           } finally {
             setIsSubmitting(false);
           }
@@ -755,9 +787,9 @@ const CheckoutModal = ({
               {/* Error Display */}
               {(error || paymentError) && (
                 <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl">
-                  <p className="text-sm text-red-700 font-medium">
+                  <div className="text-sm text-red-700 font-medium whitespace-pre-line">
                     {error || paymentError}
-                  </p>
+                  </div>
                 </div>
               )}
               {/* Step Content */}

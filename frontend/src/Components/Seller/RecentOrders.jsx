@@ -1,5 +1,6 @@
 import React from 'react';
 import { CheckCircle, Clock, XCircle, ShoppingCart } from 'lucide-react';
+import OrderStatusUpdater from './OrderStatusUpdater';
 
 const RecentOrders = ({ data = [], showAll = false }) => {
   // Fallback data if no data is provided
@@ -85,7 +86,18 @@ const RecentOrders = ({ data = [], showAll = false }) => {
             {/* Left Side - Profile + Customer Info */}
             <div className="flex items-center space-x-3 flex-1 min-w-0">
               {/* Profile Picture */}
-              <div className={`w-10 h-10 rounded-full ${getProfileColor(order.customer)} flex items-center justify-center text-white font-semibold text-sm`}>
+              {order.customerProfilePic ? (
+                <img 
+                  src={order.customerProfilePic} 
+                  alt={order.customer}
+                  className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div className={`w-10 h-10 rounded-full ${getProfileColor(order.customer)} flex items-center justify-center text-white font-semibold text-sm ${order.customerProfilePic ? 'hidden' : ''}`}>
                 {getInitials(order.customer)}
               </div>
               
@@ -109,8 +121,11 @@ const RecentOrders = ({ data = [], showAll = false }) => {
             
             {/* Right Side - Status & Date */}
             <div className="flex-shrink-0 text-right">
-              <div className="mb-1">
-                {getStatusBadge(order.status)}
+              <div className="mb-2">
+                <OrderStatusUpdater 
+                  order={order} 
+                  onStatusUpdate={() => {}} // No callback needed for recent orders
+                />
               </div>
               <p className="text-xs text-gray-500">
                 {order.date}

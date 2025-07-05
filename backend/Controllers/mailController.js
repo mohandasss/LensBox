@@ -207,5 +207,34 @@ exports.broadcastEmail = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Handle contact form submissions
+ * @route   POST /api/mail/contact
+ * @access  Public
+ */
+exports.sendContactForm = async (req, res) => {
+  const { email, message } = req.body;
+  if (!email || !message) {
+    return res.status(400).json({
+      success: false,
+      message: 'Email and message are required.'
+    });
+  }
+  try {
+    const result = await sendMail({
+      to: 'bwumca24133@brainwareuniversity.ac.in',
+      subject: 'New Contact Form Submission',
+      text: `From: ${email}\n\nMessage:\n${message}`,
+      html: `<p><strong>From:</strong> ${email}</p><p><strong>Message:</strong><br>${message.replace(/\n/g, '<br>')}</p>`
+    });
+    if (!result.success) {
+      return res.status(500).json({ success: false, message: 'Failed to send message', error: result.error });
+    }
+    res.status(200).json({ success: true, message: 'Message sent successfully!' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+  }
+};
+
 
 

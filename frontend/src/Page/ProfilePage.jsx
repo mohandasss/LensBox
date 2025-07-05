@@ -1,25 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { verifyToken, updateUser, deleteUser, uploadAvatar } from "../APIs/AuthAPI";
 import Navbar from "../Components/Navbar";
-import Notification from "../Components/Notification";
 import Footer from "../Components/Footer";
+import { useNotification } from "../Components/NotificationSystem";
 const ProfilePage = () => {
+  const { showProfileNotification, showSuccess, showError, showWarning } = useNotification();
   const [user, setUser] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
   const [isLoading, setLoading] = useState(false);
-  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
-  
-  const showNotification = (message, type = 'success') => {
-    setNotification({ show: true, message, type });
-    setTimeout(() => {
-      setNotification(prev => ({ ...prev, show: false }));
-    }, 3000);
-  };
-  
-  const closeNotification = () => {
-    setNotification(prev => ({ ...prev, show: false }));
-  };
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -76,19 +65,19 @@ const ProfilePage = () => {
     if (file) {
       // Validate file type
       if (!file.type.match('image.*')) {
-        showNotification('Please select an image file (JPEG, PNG)', 'error');
+        showError('Invalid File Type', 'Please select an image file (JPEG, PNG)');
         return;
       }
       
       // Validate file size (max 1MB)
       if (file.size > 1024 * 1024) {
-        showNotification('Image size should be less than 1MB', 'error');
+        showError('File Too Large', 'Image size should be less than 1MB');
         return;
       }
       
       setAvatarFile(file);
       setAvatarPreview(URL.createObjectURL(file));
-      showNotification('Image selected successfully', 'success');
+      showSuccess('Image Selected', 'Profile picture selected successfully');
     }
   };
 
@@ -97,7 +86,7 @@ const ProfilePage = () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        showNotification('Please log in to update your profile', 'error');
+        showError('Authentication Required', 'Please log in to update your profile');
         return;
       }
   
@@ -117,11 +106,11 @@ const ProfilePage = () => {
               ...prev,
               profilePic: avatarResponse.profilePic
             }));
-            showNotification('Profile picture updated successfully', 'success');
+            showSuccess('Profile Picture Updated', 'Your profile picture has been updated successfully');
           }
         } catch (err) {
           console.error("Avatar upload failed:", err);
-          showNotification('Failed to upload profile picture. ' + (err.response?.data?.message || 'Please try again.'), 'error');
+          showError('Upload Failed', 'Failed to upload profile picture. ' + (err.response?.data?.message || 'Please try again.'));
           throw err; // Re-throw to be caught by the outer catch
         }
       }
@@ -142,14 +131,12 @@ const ProfilePage = () => {
       
       await updateUser(token, userData);
       
-      showNotification('Profile updated successfully!', 'success');
+      showProfileNotification('Profile Updated!', 'Your profile has been updated successfully');
       setAvatarFile(null);
       
     } catch (err) {
       console.error("Update failed:", err);
-      if (!notification.show) { // Don't show duplicate error if already shown
-        showNotification(err.response?.data?.message || 'Failed to update profile. Please try again.', 'error');
-      }
+      showError('Update Failed', err.response?.data?.message || 'Failed to update profile. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -158,44 +145,35 @@ const ProfilePage = () => {
   
 
   const handleDeleteAccount = async () => {
-    // Using a custom confirm dialog instead of window.confirm
-    setNotification({
-      show: true,
-      message: 'Are you sure you want to delete your account? This action cannot be undone.',
-      type: 'warning',
-      showConfirm: true,
-      onConfirm: async () => {
-        try {
-          const token = localStorage.getItem("token");
-          if (!token) {
-            showNotification("No authentication token found. Please log in again.", 'error');
-            return;
-          }
-
-          const { user } = await verifyToken(token);
-          
-          setLoading(true);
-          await deleteUser(user._id);
-          
-          // Show success message before redirecting
-          showNotification("Account deleted successfully. Redirecting...", 'success');
-          
-          // Clear token and redirect to login/home after a short delay
-          setTimeout(() => {
-            localStorage.removeItem("token");
-            window.location.href = "/login";
-          }, 1500);
-          
-        } catch (error) {
-          console.error("Error deleting account:", error);
-          showNotification(error.response?.data?.message || "Failed to delete account. Please try again.", 'error');
-          setLoading(false);
+    // Using a simple confirm dialog for now
+    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          showError("Authentication Error", "No authentication token found. Please log in again.");
+          return;
         }
-      },
-      confirmText: 'Yes, delete my account',
-      cancelText: 'Cancel',
-      onClose: () => setNotification(prev => ({ ...prev, show: false }))
-    });
+
+        const { user } = await verifyToken(token);
+        
+        setLoading(true);
+        await deleteUser(user._id);
+        
+        // Show success message before redirecting
+        showSuccess("Account Deleted", "Your account has been deleted successfully. Redirecting...");
+        
+        // Clear token and redirect to login/home after a short delay
+        setTimeout(() => {
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+        }, 1500);
+        
+      } catch (error) {
+        console.error("Error deleting account:", error);
+        showError("Delete Failed", error.response?.data?.message || "Failed to delete account. Please try again.");
+        setLoading(false);
+      }
+    }
   };
 
   const handleLogout = () => {
@@ -206,20 +184,8 @@ const ProfilePage = () => {
   
   if (!user) return <div className="text-white p-6">Loading...</div>;
   return (
-    <div className="relative bg-black min-h-screen">
-      {/* Notification */}
-      {notification.show && (
-        <Notification 
-          message={notification.message} 
-          type={notification.type}
-          onClose={closeNotification}
-        />
-      )}
-      {/* Navbar with higher z-index */}
-      <div className="relative z-50">
-        <Navbar />
-      </div>
-
+    <div className="min-h-screen bg-black">
+      <Navbar />
       {/* Video Background with lower z-index */}
       <video
         autoPlay

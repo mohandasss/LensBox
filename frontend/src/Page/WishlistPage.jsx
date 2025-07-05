@@ -5,10 +5,11 @@ import Navbar from '../Components/Navbar';
 import Footer from '../Components/Footer';
 import { verifyToken } from '../APIs/AuthAPI';
 import { getWishlist, removeFromWishlist } from '../APIs/WishlistAPI';
-import { toast } from 'react-toastify';
 import { addToCart } from '../APIs/CartAPI';
+import { useNotification } from '../Components/NotificationSystem';
 
 const WishlistPage = () => {
+  const { showWishlistNotification, showCartNotification, showError, showSuccess } = useNotification();
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,12 +25,12 @@ const WishlistPage = () => {
         setWishlist(wishlistData);
       } else {
         setError('User not authenticated');
-        toast.error('Please login to view your wishlist');
+        showError('Authentication Required', 'Please login to view your wishlist');
       }
     } catch (error) {
       console.error('Error:', error);
       setError('Failed to load wishlist');
-      toast.error('Failed to load wishlist. Please try again later.');
+      showError('Failed to Load Wishlist', 'Failed to load wishlist. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -46,18 +47,18 @@ const WishlistPage = () => {
       if (user?._id) {
         await removeFromWishlist(user._id, productId);
         setWishlist((prev) => prev.filter((item) => item._id !== productId));
-        toast.success('Removed from wishlist');
+        showSuccess('Removed from Wishlist', 'The item has been removed from your wishlist.');
       }
     } catch (error) {
       console.error('Error removing from wishlist:', error);
-      toast.error('Failed to remove item from wishlist');
+      showError('Failed to Remove Item', 'Failed to remove item from wishlist. Please try again.');
     }
   };
   const handleAddToCart = async (productId, e) => {
     e.stopPropagation();
     try {
       if (!user?._id) {
-        toast.error('Please login to add items to cart');
+        showError('Authentication Required', 'Please login to add items to cart');
         return;
       }
       
@@ -66,13 +67,13 @@ const WishlistPage = () => {
       const response = await addToCart(productId, quantity, user._id);
       
       if (response.success) {
-        toast.success('Added to cart');
+        showCartNotification('Added to Cart!', 'The item has been added to your cart.');
       } else {
-        toast.error(response.message || 'Failed to add to cart');
+        showError('Failed to Add to Cart', response.message || 'Failed to add to cart');
       }
     } catch (error) {
       console.error('Error adding to cart:', error);
-      toast.error('An error occurred while adding to cart');
+      showError('Add to Cart Failed', 'An error occurred while adding to cart. Please try again.');
     } finally {
       setLoading(false);
     }

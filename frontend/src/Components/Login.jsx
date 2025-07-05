@@ -3,7 +3,9 @@ import { FaGoogle, FaApple, FaFacebook } from "react-icons/fa";
 import { login } from "../APIs/AuthAPI";
 import React, { useRef, useEffect, useState } from "react";
 import Navbar from "./Navbar";
+import { useNotification } from "./NotificationSystem";
 const Login = () => {
+  const { showSuccess, showError, showProfileNotification } = useNotification();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -15,9 +17,20 @@ const Login = () => {
     try {
       const response = await login({ email, password });
       console.log(response);
-      navigate("/");
+      showProfileNotification(
+        "Welcome Back!", 
+        "You have successfully logged in to your account."
+      );
+      // Immediate redirect to home page
+      setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 100);
     } catch (error) {
       setError(error.response.data.message);
+      showError(
+        "Login Failed", 
+        error.response?.data?.message || "Invalid email or password. Please try again."
+      );
     } finally {
       setLoading(false);
     }

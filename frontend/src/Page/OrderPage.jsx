@@ -6,10 +6,11 @@ import OrderDetails from "../Components/OrderDetails";
 import PaymentSuccess from "../Components/PaymentSuccess";
 import { verifyToken } from "../APIs/AuthAPI";
 import { getOrders, downloadInvoice } from "../APIs/OrderAPI";
-import { toast } from "react-toastify";
+import { useNotification } from "../Components/NotificationSystem";
 // Sample order data - in a real app, this would come from an API
 
 const OrderPage = () => {
+  const { showSuccess, showError } = useNotification();
   const location = useLocation();
   const navigate = useNavigate();
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
@@ -45,10 +46,10 @@ const OrderPage = () => {
     try {
       setDownloading(true);
       await downloadInvoice(orderId);
-      toast.success("Invoice downloaded successfully!");
+      showSuccess("Invoice Downloaded", "Invoice downloaded successfully!");
     } catch (error) {
       console.error("Download failed:", error);
-      toast.error("Failed to download invoice. Please try again.");
+      showError("Download Failed", "Failed to download invoice. Please try again.");
     } finally {
       setDownloading(false);
     }
@@ -61,15 +62,17 @@ const OrderPage = () => {
 
         if (user?._id) {
           const response = await getOrders(user._id);
-          setOrders(response || []);
+          // Sort orders by createdAt descending (most recent first)
+          const sortedOrders = (response || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          setOrders(sortedOrders);
         } else {
           setError("User not authenticated");
-          toast.error("Please login to view your orders");
+          showError("Authentication Required", "Please login to view your orders");
         }
       } catch (error) {
         console.error("Error:", error);
         setError("Failed to load orders");
-        toast.error("Failed to load orders. Please try again later.");
+        showError("Failed to Load Orders", "Failed to load orders. Please try again later.");
       } finally {
         setLoading(false);
       }

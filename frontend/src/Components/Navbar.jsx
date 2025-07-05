@@ -3,8 +3,10 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { verifyToken } from "../APIs/AuthAPI";
 import { FaHeart } from 'react-icons/fa';
 import { FaCartArrowDown } from "react-icons/fa6";
+import { useNotification } from "./NotificationSystem";
 
-const Navbar = () => {
+const Navbar = ({ bgBlack }) => {
+  const { showProfileNotification } = useNotification();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -66,6 +68,10 @@ const Navbar = () => {
 
   const handleSignOut = () => {
     localStorage.removeItem("token");
+    showProfileNotification(
+      "Logged Out", 
+      "You have been successfully logged out of your account."
+    );
     navigate("/login");
     setIsAuthenticated(false);
     setUser(null);
@@ -80,7 +86,7 @@ const Navbar = () => {
     : "px-4 bg-transparent text-white";
 
   return (
-    <nav className={navbarClass}>
+    <nav className={bgBlack ? 'bg-black px-4 text-white' : navbarClass}>
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Left side - Logo/Brand */}

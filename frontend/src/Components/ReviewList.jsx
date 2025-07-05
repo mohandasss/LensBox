@@ -2,7 +2,7 @@ import React from 'react';
 import { FaStar, FaUserCircle } from 'react-icons/fa';
 import { format } from 'date-fns';
 
-const ReviewList = ({ reviews }) => {
+const ReviewList = ({ reviews, limit = 2, onSeeAll }) => {
   if (!reviews || reviews.length === 0) {
     return (
       <div className="mt-8">
@@ -12,13 +12,15 @@ const ReviewList = ({ reviews }) => {
     );
   }
 
+  const visibleReviews = limit ? reviews.slice(0, limit) : reviews;
+
   return (
     <div className="mt-8">
       <h3 className="text-lg font-semibold text-gray-800 mb-4">
         Reviews ({reviews.length})
       </h3>
       <div className="space-y-6">
-        {reviews.map((review) => (
+        {visibleReviews.map((review) => (
           <div key={review._id} className="border-b border-gray-200 pb-6 last:border-0">
             <div className="flex items-start">
               <div className="flex-shrink-0">
@@ -57,6 +59,16 @@ const ReviewList = ({ reviews }) => {
           </div>
         ))}
       </div>
+      {limit && reviews.length > limit && (
+        <div className="mt-4 text-center">
+          <button
+            className="text-indigo-600 hover:text-indigo-800 font-medium text-sm underline"
+            onClick={onSeeAll}
+          >
+            See All Reviews
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
@@ -14,7 +14,7 @@ const ProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   
-  // Category options for the dropdown
+  // Category options for the dropdown (use category names)
   const categoryOptions = [
     { value: "all", label: "🌍 All Products" },
     { value: "camera", label: "📷 Camera" },
@@ -26,6 +26,8 @@ const ProductsPage = () => {
     category: "",
     query: ""
   });
+  const [debouncedSearch, setDebouncedSearch] = useState({ category: '', query: '' });
+  const debounceTimeout = useRef(null);
 
 
 
@@ -51,12 +53,11 @@ const ProductsPage = () => {
       if (query) {
         // If we have a search query, use the search endpoint with category name
         const results = await searchProducts(categoryName, query);
-        setProducts(results.data || []);
+        setProducts(results.data || results.products || []);
       } else if (categoryName && categoryName !== "all") {
         // If we have a category name, fetch products for that category
         const response = await getProductsByCategory(categoryName);
-        console.log("response",response);
-        setProducts(response || []);
+        setProducts(response.products || response.data || []);
       } else {
         // If no search params or 'all' category, fetch all products
         await fetchProducts();
@@ -73,17 +74,14 @@ const ProductsPage = () => {
   const handleCategoryChange = async (categoryName) => {
     // Update URL with the selected category
     navigate(`/products?category=${categoryName}`, { replace: true });
-    
-    // Update the selected category
     setSelectedCategory(categoryName);
-    
     try {
       setLoading(true);
       if (categoryName === "all") {
         await fetchProducts();
       } else {
         const response = await getProductsByCategory(categoryName);
-        setProducts(response || []);
+        setProducts(response.products || response.data || []);
       }
     } catch (error) {
       console.error('Error changing category:', error);
@@ -121,14 +119,27 @@ const ProductsPage = () => {
     loadInitialData();
   }, [location.search]); // Only depend on location.search
 
+  // Debounced search effect for preference search
+  useEffect(() => {
+    if (debouncedSearch.query.length === 0 && debouncedSearch.category.length === 0) return;
+    setLoading(true);
+    const timeout = setTimeout(() => {
+      handleSearch(debouncedSearch.category, debouncedSearch.query);
+    }, 500);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line
+  }, [debouncedSearch]);
+
   return (
     <div className="min-h-screen bg-black">
       <Navbar />
       <div className="flex flex-col items-center justify-center min-h-[30vh] px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-6xl mx-auto">
           <PreferenceSearch 
-            onSearch={handleSearch}
-            initialCategory={new URLSearchParams(location.search).get('category') || 'camera'}
+            onSearch={(category, query) => {
+              setDebouncedSearch({ category, query });
+            }}
+            initialCategory={new URLSearchParams(location.search).get('category') || 'lens'}
             initialSearch={new URLSearchParams(location.search).get('q') || ''}
           />
         </div>

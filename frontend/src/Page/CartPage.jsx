@@ -7,7 +7,9 @@ import { getCart, updateCartItem, RemoveCartItem } from "../APIs/CartAPI";
 import { Link } from "react-router-dom";
 import { loadRazorpay } from "../utils/razorpay";
 import { clearCart } from "../APIs/CartAPI";
+import { useNotification } from "../Components/NotificationSystem";
 const CartPage = () => {
+  const { showCartNotification, showError, showSuccess } = useNotification();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -63,9 +65,13 @@ const CartPage = () => {
 
   // Handle item removal
   const handleRemoveItem = async (productId) => {
-    await RemoveCartItem(user._id, productId);
-   
-    fetchCart();
+    try {
+      await RemoveCartItem(user._id, productId);
+      showSuccess("Item Removed", "The item has been removed from your cart.");
+      fetchCart();
+    } catch (error) {
+      showError("Failed to Remove Item", "There was an error removing the item from your cart.");
+    }
   };
 
   // Open checkout modal
@@ -100,6 +106,20 @@ const CartPage = () => {
     
     if (!user) {
       await fetchUserProfile();
+    }
+    
+    // Check stock availability before opening checkout
+    const insufficientStockItems = cartItems.filter(item => 
+      item.quantity > (item.productId.stock || 0)
+    );
+    
+    if (insufficientStockItems.length > 0) {
+      alert(`Some items have insufficient stock:\n${
+        insufficientStockItems.map(item => 
+          `• ${item.productId.name}: Requested ${item.quantity}, Available ${item.productId.stock || 0}`
+        ).join('\n')
+      }\n\nPlease update your cart quantities.`);
+      return;
     }
     
     setIsCheckoutOpen(true);
@@ -229,7 +249,7 @@ const CartPage = () => {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col ${isCheckoutOpen ? 'bg-black bg-opacity-100' : 'bg-black'}`}>
+    <div className="min-h-screen bg-black">
       <Navbar />
       <div className={`flex-grow bg-white py-12 transition-opacity duration-300 ${isCheckoutOpen ? 'opacity-30' : 'opacity-100'}`}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -281,27 +301,51 @@ const CartPage = () => {
                         </Link>
                       </div>
                       <div className="flex-1 flex items-end justify-between">
-                        <div className="flex items-center">
-                          <button 
-                            className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50"
-                            onClick={() => handleUpdateQuantity(item._id, item.quantity - 1)}
-                            disabled={item.quantity <= 1}
-                          >
-                            <svg className="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-                            </svg>
-                          </button>
-                          <span className="mx-2 text-gray-700 min-w-[20px] text-center">
-                            {item.quantity}
-                          </span>
-                          <button 
-                            className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 transition-colors"
-                            onClick={() => handleUpdateQuantity(item._id, item.quantity + 1)}
-                          >
-                            <svg className="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                            </svg>
-                          </button>
+                        <div className="flex items-center space-x-4">
+                          <div className="flex items-center">
+                            <button 
+                              className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50"
+                              onClick={() => handleUpdateQuantity(item._id, item.quantity - 1)}
+                              disabled={item.quantity <= 1}
+                            >
+                              <svg className="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                              </svg>
+                            </button>
+                            <span className="mx-2 text-gray-700 min-w-[20px] text-center">
+                              {item.quantity}
+                            </span>
+                            <button 
+                              className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 transition-colors"
+                              onClick={() => handleUpdateQuantity(item._id, item.quantity + 1)}
+                              disabled={item.quantity >= (item.productId.stock || 0)}
+                            >
+                              <svg className="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                              </svg>
+                            </button>
+                          </div>
+                          
+                          {/* Stock Status Indicator */}
+                          <div className="flex items-center space-x-2">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                              item.quantity > (item.productId.stock || 0)
+                                ? 'bg-red-100 text-red-800'
+                                : item.productId.stock < 5
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-green-100 text-green-800'
+                            }`}>
+                              {item.quantity > (item.productId.stock || 0)
+                                ? 'Out of Stock'
+                                : `${item.productId.stock || 0} available`
+                              }
+                            </span>
+                            {item.quantity > (item.productId.stock || 0) && (
+                              <span className="text-xs text-red-600">
+                                (Max: {item.productId.stock || 0})
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <button 
                           type="button" 

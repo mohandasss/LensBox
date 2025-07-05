@@ -9,11 +9,13 @@ const GoogleLoginSuccess = () => {
     const token = params.get("token");
     console.log(token);
     if (token) {
-        navigate("/");
       localStorage.setItem("token", token);
-      
+      // Immediate redirect to home page
+      setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 100);
     } else {
-      navigate("/login");
+      navigate("/login", { replace: true });
     }
   }, [navigate]);
 

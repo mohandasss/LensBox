@@ -19,13 +19,17 @@ import GoogleLoginSuccess from './Components/GoogleLoginSuccess';
 import OrderPage from './Page/OrderPage';
 import WishlistPage from './Page/WishlistPage';
 import SellerPage from './Page/SellerPage';
+import { NotificationProvider } from './Components/NotificationSystem';
+
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
-    </div>
+    <NotificationProvider>
+      <div className="min-h-screen bg-gray-50">
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </div>
+    </NotificationProvider>
   );
 }
 
@@ -65,6 +69,7 @@ function AppContent() {
       <Route path='/admin' element={<AdminPage />} /> 
       <Route path='/product/:id' element={<ProductDetailsPage />} />
       <Route path='/seller' element={<SellerPage />} />
+      
       
     </Routes>
   );
