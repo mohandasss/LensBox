@@ -21,22 +21,25 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-const isAdmin = (req, res, next) => {
-  const user = User.findById(req.userId);
-  if (!user) {  
-    return res.status(401).json({ message: "Unauthorized" });
+const isAdmin = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.userId);
+    if (!user) {  
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    if (user.role !== "admin") {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    next();
+  } catch (error) {
+    console.error('isAdmin middleware error:', error);
+    return res.status(500).json({ message: "Server error" });
   }
-  if (user.role !== "admin") {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-
-  
-  next();
 };
 
 const isSeller = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.userId);
     if (!user) {  
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -45,6 +48,7 @@ const isSeller = async (req, res, next) => {
     }
     next();
   } catch (error) {
+    console.error('isSeller middleware error:', error);
     return res.status(500).json({ message: "Server error" });
   }
 };

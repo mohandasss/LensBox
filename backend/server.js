@@ -20,6 +20,7 @@ const sellerRoutes = require("./Routes/SellerRoutes.js");
 const testSellerRoutes = require("./Routes/TestSellerRoutes.js");
 const mailRoutes = require("./Routes/mailRoutes.js");
 const reviewRoutes = require("./Routes/ReviewRoutes.js");
+const stockNotificationRoutes = require("./Routes/stockNotificationRoutes.js");
 
 dotenv.config();
 require('./Config/passport.js');
@@ -62,7 +63,7 @@ connectDB();
 app.use(
   cors({
     origin: "http://localhost:3000", // Allow only requests from localhost:3000
-    methods: ["GET", "POST", "PUT", "DELETE"], // Allowed HTTP methods
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"], // Allowed HTTP methods
     credentials: true, // Allow cookies
   })
 );
@@ -105,6 +106,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/seller', sellerRoutes);
 app.use('/api/test-seller', testSellerRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/stock-notifications", stockNotificationRoutes);
 
 // Basic Route
 app.get("/", (req, res) => {

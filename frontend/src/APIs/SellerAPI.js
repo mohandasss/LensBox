@@ -126,8 +126,10 @@ export const getSellerRecentOrders = async (limit = 5) => {
 // Get product performance data
 export const getSellerProductPerformance = async () => {
   try {
-    // Use real data endpoint
-    const response = await axios.get(`${TEST_API_URL}/test-dashboard/product-performance`);
+    const response = await axios.get(`${API_URL}/dashboard/product-performance`, {
+      headers: getAuthHeaders()
+    });
+    console.log('Product Performance API response:', response.data);
     return response.data.data;
   } catch (error) {
     console.error('Error fetching product performance:', error);
@@ -189,6 +191,30 @@ export const getSellerRatings = async (sellerId) => {
   }
 };
 
+// Get all seller products with sorting
+export const getAllSellerProducts = async (sort = 'salesCount', order = 'desc') => {
+  try {
+    const response = await axios.get(`${API_URL}/products?sort=${sort}&order=${order}`, {
+      headers: getAuthHeaders()
+    });
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching all seller products:', error);
+    throw error;
+  }
+};
+
+// Get all products for a given sellerId with pagination and sorting
+export const getProductsBySellerId = async (sellerId, { page = 1, limit = 10, sort = 'salesCount', order = 'desc' } = {}) => {
+  try {
+    const response = await axios.get(`${API_URL}/products/by-id/${sellerId}?page=${page}&limit=${limit}&sort=${sort}&order=${order}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching products by sellerId:', error);
+    throw error;
+  }
+};
+
 export default {
   getSellerDashboardStats,
   getSellerProducts,
@@ -201,5 +227,7 @@ export default {
   getSellerProductPerformance,
   updateProductStatus,
   updateOrderStatus,
-  getSellerRatings
+  getSellerRatings,
+  getAllSellerProducts,
+  getProductsBySellerId
 };

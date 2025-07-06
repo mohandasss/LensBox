@@ -69,6 +69,10 @@ const productSchema = new mongoose.Schema({
     lastSoldAt: {
         type: Date,
         default: null
+    },
+    active: {
+        type: Boolean,
+        default: true
     }
 });
 

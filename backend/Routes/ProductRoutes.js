@@ -12,9 +12,9 @@ const {
   getRelatedProducts
 } = require("../Controllers/ProductController");
 
-const { authMiddleware } = require("../middlewares/AuthMiddleware");
+const { authMiddleware, isSeller } = require("../middlewares/AuthMiddleware");
 
-router.post("/", authMiddleware,  addProduct);
+router.post("/", authMiddleware, isSeller, addProduct);
 router.put("/:id", authMiddleware,  updateProduct);
 router.delete("/:id", authMiddleware, deleteProduct);
 router.get("/:id", getProductById);
@@ -30,5 +30,7 @@ router.get("/:productId/seller", getSellerInfo);
 
 // Add related products endpoint
 router.get("/:productId/related", getRelatedProducts);
+
+router.patch("/:id/toggle-active", authMiddleware, isSeller, require("../Controllers/ProductController").toggleProductActive);
 
 module.exports = router;

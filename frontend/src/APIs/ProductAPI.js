@@ -23,8 +23,8 @@ export const getHeroProducts = async () => {
 };
 
 
-export const getProducts = async () => {
-    const response = await axiosinstance.get("/");  
+export const getProducts = async (page = 1, limit = 15) => {
+    const response = await axiosinstance.get(`/?page=${page}&limit=${limit}`);  
     if (response.data) {
        console.log(response.data);
        return response.data;
@@ -34,11 +34,13 @@ export const getProducts = async () => {
 
 };
 
-export const searchProducts = async (selectedCategory, searchTerm) => {
+export const searchProducts = async (selectedCategory, searchTerm, page = 1, limit = 15) => {
   try {
     const response = await axiosinstance.post('/search', {
       searchTerm,
-      selectedCategory
+      selectedCategory,
+      page,
+      limit
     });
     
     console.log("search response", response.data);
@@ -60,9 +62,9 @@ export const getProduct = async (id) => {
   return response.data;
 };
 
-export const getProductsByCategory = async (category) => {
+export const getProductsByCategory = async (category, page = 1, limit = 15) => {
   try {
-    const response = await axiosinstance.get(`/category/${category}`);
+    const response = await axiosinstance.get(`/category/${category}?page=${page}&limit=${limit}`);
     if (response.data) {
       console.log(response.data);
       return response.data;
@@ -100,11 +102,36 @@ export const getRelatedProducts = async (productId) => {
   }
 };
 
+export const addProduct = async (formData) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await axios.post(`${API_URL}`, formData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    if (response.data) {
+      return { success: true, data: response.data };
+    }
+    return { success: false, error: 'Failed to add product' };
+  } catch (error) {
+    console.error('Error adding product:', error);
+    throw error;
+  }
+};
+
 export default { 
   getProducts, 
   searchProducts, 
   getProduct, 
   getProductsByCategory, 
   getSellerInfo,
-  getRelatedProducts
+  getRelatedProducts,
+  addProduct
 };

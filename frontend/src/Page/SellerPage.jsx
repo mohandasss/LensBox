@@ -165,7 +165,7 @@ export default function SellerPage() {
         console.log('Revenue Data:', revenueData);
         console.log('Category Data:', categoryData);
         console.log('Recent Orders:', recentOrders);
-        console.log('Product Performance:', productPerformance);
+        console.log('Product Performance from API:', productPerformance);
         
         setDashboardData({
           stats,
@@ -285,7 +285,7 @@ export default function SellerPage() {
                 <div className="lg:col-span-2">
                   <RecentOrders data={dashboardData.recentOrders} />
                 </div>
-                <QuickActions />
+                <QuickActions onTabChange={setActiveTab} />
               </div>
             )}
 

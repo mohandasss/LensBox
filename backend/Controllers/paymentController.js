@@ -7,6 +7,7 @@ const Product = require("../Models/Products");
 const secret = require("../secret");
 const { sendPurchaseConfirmationEmail } = require('../services/sendMail');
 const { generateInvoicePDFBuffer } = require('./InvoiceController');
+const { sendStockNotifications } = require('./StockNotificationController');
 
 const instance = new Razorpay({
   key_id: secret.RAZORPAY_KEY_ID,

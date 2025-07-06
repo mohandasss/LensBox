@@ -4,6 +4,8 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const cloudinary = require("../Config/cloudanary");
 const axios = require("axios");
+const Otp = require('../Models/Otp');
+const { sendMail } = require('../services/sendMail');
 
 
 const googleCallback = async (req, res) => {
@@ -362,6 +364,154 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// Helper to generate 6-digit OTP
+function generateOtp() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
+// --- Registration OTP ---
+const requestRegisterOtp = async (req, res) => {
+  try {
+    const { name, email, password, phone, city, state, zip, country, role } = req.body;
+    if (!name || !email || !password || !phone || !city || !state || !zip || !country) {
+      return res.status(400).json({ error: 'All fields are required.' });
+    }
+    // Check if user exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email already registered.' });
+    }
+    // Remove any previous OTPs for this email/type
+    await Otp.deleteMany({ email, type: 'register' });
+    // Generate and save OTP
+    const otp = generateOtp();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+    await Otp.create({ email, otp, type: 'register', expiresAt });
+    // Send OTP email
+    await sendMail({
+      to: email,
+      subject: 'Your LensBox Registration OTP',
+      text: `Your OTP for registration is: ${otp}`,
+      html: `<div style='font-family:sans-serif;font-size:18px;'>Your OTP for registration is: <b>${otp}</b></div>`
+    });
+    res.json({ success: true, message: 'OTP sent to email.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to send OTP', error: err.message });
+  }
+};
 
-module.exports = {googleCallback , registerUser,uploadAvatar,updateUser, loginUser, deleteUser, checkAuth };
+const verifyRegisterOtp = async (req, res) => {
+  try {
+    const { email, otp, name, password, phone, city, state, zip, country, role } = req.body;
+    
+    // Validate OTP
+    const found = await Otp.findOne({ email, otp, type: 'register', expiresAt: { $gt: new Date() } });
+    if (!found) return res.status(400).json({ success: false, message: 'Invalid or expired OTP.' });
+    
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: 'Email already registered.' });
+    }
+    
+    // Create user with proper structure
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+      phone,
+      role: role || 'user',
+      address: {
+        city,
+        state,
+        zip,
+        country,
+      },
+      // Set default profile pic or leave empty for now
+      profilePic: '',
+    });
+    
+    await newUser.save();
+    await Otp.deleteMany({ email, type: 'register' });
+    
+    // Generate JWT
+    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    
+    res.json({ 
+      success: true, 
+      message: 'Registration complete.', 
+      token,
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+      }
+    });
+  } catch (err) {
+    console.error('OTP verification error:', err);
+    res.status(500).json({ success: false, message: 'Failed to verify OTP', error: err.message });
+  }
+};
+
+// --- Forgot Password OTP ---
+const requestForgotOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email required.' });
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ error: 'No user with this email.' });
+    if (user.googleId) return res.status(400).json({ error: 'Google users cannot reset password.' });
+    await Otp.deleteMany({ email, type: 'forgot' });
+    const otp = generateOtp();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    await Otp.create({ email, otp, type: 'forgot', expiresAt });
+    await sendMail({
+      to: email,
+      subject: 'Your LensBox Password Reset OTP',
+      text: `Your OTP for password reset is: ${otp}`,
+      html: `<div style='font-family:sans-serif;font-size:18px;'>Your OTP for password reset is: <b>${otp}</b></div>`
+    });
+    res.json({ success: true, message: 'OTP sent to email.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to send OTP', error: err.message });
+  }
+};
+
+const verifyForgotOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const found = await Otp.findOne({ email, otp, type: 'forgot', expiresAt: { $gt: new Date() } });
+    if (!found) return res.status(400).json({ success: false, message: 'Invalid or expired OTP.' });
+    res.json({ success: true, message: 'OTP verified.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to verify OTP', error: err.message });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    const found = await Otp.findOne({ email, otp, type: 'forgot', expiresAt: { $gt: new Date() } });
+    if (!found) return res.status(400).json({ success: false, message: 'Invalid or expired OTP.' });
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ error: 'No user with this email.' });
+    if (user.googleId) return res.status(400).json({ error: 'Google users cannot reset password.' });
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+    await Otp.deleteMany({ email, type: 'forgot' });
+    // Send confirmation email
+    await sendMail({
+      to: email,
+      subject: 'Your LensBox Password Was Changed',
+      text: 'Your password was changed successfully. If this was not you, contact support immediately.',
+      html: `<div style='font-family:sans-serif;font-size:18px;'>Your password was changed successfully. If this was not you, contact support immediately.</div>`
+    });
+    res.json({ success: true, message: 'Password reset successful.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to reset password', error: err.message });
+  }
+};
+
+module.exports = {googleCallback , registerUser,uploadAvatar,updateUser, loginUser, deleteUser, checkAuth, requestRegisterOtp, verifyRegisterOtp, requestForgotOtp, verifyForgotOtp, resetPassword };

@@ -23,7 +23,7 @@ const generateLast6MonthsData = () => {
 // Get seller dashboard statistics
 const getSellerDashboardStats = async (req, res) => {
   try {
-    const sellerId = req.user.id;
+    const sellerId = req.user.userId;
     console.log('🔍 DEBUG: Current user ID from token:', sellerId);
     console.log('🔍 DEBUG: Expected seller ID:', '686559295a8b8364ffd488b0');
     
@@ -94,36 +94,31 @@ const getSellerDashboardStats = async (req, res) => {
 // Get seller's products
 const getSellerProducts = async (req, res) => {
   try {
-    const sellerId = req.user.id;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-    
+    let sellerId = req.user.userId;
+    console.log('Seller ID from token:', sellerId);
+    // Ensure sellerId is an ObjectId
+    if (typeof sellerId === 'string') sellerId = mongoose.Types.ObjectId(sellerId);
+    // Sorting
+    const sortField = req.query.sort || 'createdAt';
+    const sortOrder = req.query.order === 'asc' ? 1 : -1;
+    const sortObj = {};
+    sortObj[sortField] = sortOrder;
+
+    console.log('Fetching products for seller:', sellerId);
     const products = await Product.find({ seller: sellerId })
       .populate('category', 'name')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-    
-    const totalProducts = await Product.countDocuments({ seller: sellerId });
-    const totalPages = Math.ceil(totalProducts / limit);
-    
+      .sort(sortObj);
+    console.log('Products found:', products.length);
+
     res.json({
       success: true,
-      data: products,
-      pagination: {
-        page,
-        pages: totalPages,
-        total: totalProducts,
-        limit
-      }
+      data: products
     });
-    
   } catch (error) {
-    console.error("Error fetching seller products:", error);
+    console.error('Error fetching seller products:', error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch products",
+      message: 'Failed to fetch products',
       error: error.message
     });
   }
@@ -132,7 +127,7 @@ const getSellerProducts = async (req, res) => {
 // Get seller's orders
 const getSellerOrders = async (req, res) => {
   try {
-    const sellerId = req.user.id;
+    const sellerId = req.user.userId;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -233,7 +228,7 @@ const getSellerReviews = async (req, res) => {
 // Get seller analytics
 const getSellerAnalytics = async (req, res) => {
   try {
-    const sellerId = req.user.id;
+    const sellerId = req.user.userId;
     
     // Get seller's products
     const products = await Product.find({ seller: sellerId });
@@ -275,7 +270,7 @@ const getSellerAnalytics = async (req, res) => {
 // Get revenue chart data
 const getSellerRevenueChart = async (req, res) => {
   try {
-    const sellerId = req.user.id;
+    const sellerId = req.user.userId;
     
     // Generate last 6 months data
     const months = generateLast6MonthsData();
@@ -305,7 +300,7 @@ const getSellerRevenueChart = async (req, res) => {
 // Get category-wise sales data
 const getSellerCategoryData = async (req, res) => {
   try {
-    const sellerId = req.user.id;
+    const sellerId = req.user.userId;
     
     // Get seller's products with categories
     const products = await Product.find({ seller: sellerId }).populate('category');
@@ -347,7 +342,7 @@ const getSellerCategoryData = async (req, res) => {
 // Get recent orders
 const getSellerRecentOrders = async (req, res) => {
   try {
-    const sellerId = req.user.id;
+    const sellerId = req.user.userId;
     const limit = parseInt(req.query.limit) || 5;
     
     // Get seller's products
@@ -396,24 +391,61 @@ const getSellerRecentOrders = async (req, res) => {
 // Get product performance data
 const getSellerProductPerformance = async (req, res) => {
   try {
-    const sellerId = req.user.id;
+    const sellerId = req.user.userId;
     
-    // Get seller's products
+    // Get seller's products with real performance data
     const products = await Product.find({ seller: sellerId })
       .populate('category', 'name')
-      .sort({ createdAt: -1 })
+      .sort({ totalRevenue: -1, salesCount: -1 }) // Sort by performance
       .limit(10);
     
-    // Mock performance data
+    // Get additional order data for last sold date
+    const productIds = products.map(p => p._id);
+    
+    // Get last sold date for each product
+    const lastSoldData = await Order.aggregate([
+      {
+        $match: {
+          'items.productId': { $in: productIds },
+          status: { $in: ['confirmed', 'shipped', 'delivered'] }
+        }
+      },
+      {
+        $unwind: '$items'
+      },
+      {
+        $match: {
+          'items.productId': { $in: productIds }
+        }
+      },
+      {
+        $group: {
+          _id: '$items.productId',
+          lastSoldAt: { $max: '$createdAt' }
+        }
+      }
+    ]);
+    
+    // Create a map for quick lookup
+    const lastSoldMap = {};
+    lastSoldData.forEach(item => {
+      lastSoldMap[item._id.toString()] = item.lastSoldAt;
+    });
+    
+    // Format performance data with real values
     const performanceData = products.map(product => ({
       id: product._id,
       name: product.name,
-      category: product.category.name,
-      sales: Math.floor(Math.random() * 50) + 10,
-      revenue: Math.floor(Math.random() * 5000) + 1000,
-      stock: product.stock,
-      rating: (Math.random() * 2 + 3).toFixed(1) // Random rating between 3-5
+      category: product.category?.name || 'Uncategorized',
+      sales: product.salesCount || 0,
+      revenue: product.totalRevenue || 0,
+      stock: product.stock || 0,
+      rating: product.averageRating || 0,
+      lastSold: lastSoldMap[product._id.toString()] 
+        ? new Date(lastSoldMap[product._id.toString()]).toLocaleDateString()
+        : 'Never sold'
     }));
+    console.log('Returning product performance data:', performanceData);
     
     res.json({
       success: true,
@@ -435,7 +467,7 @@ const updateProductStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    const sellerId = req.user.id;
+    const sellerId = req.user.userId;
     
     const product = await Product.findOne({ _id: id, seller: sellerId });
     
@@ -476,7 +508,7 @@ const updateOrderStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    const sellerId = req.user.id;
+    const sellerId = req.user.userId;
     
     // Verify seller owns products in this order
     const products = await Product.find({ seller: sellerId });
@@ -551,6 +583,39 @@ const getSellerRatings = async (req, res) => {
   }
 };
 
+// Get all products for a given sellerId (public or for dashboard use)
+const getProductsBySellerId = async (req, res) => {
+  try {
+    const sellerId = req.params.sellerId;
+    if (!sellerId) return res.status(400).json({ success: false, message: 'Missing sellerId' });
+    // Pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    // Sorting
+    const sortField = req.query.sort || 'salesCount';
+    const sortOrder = req.query.order === 'asc' ? 1 : -1;
+    const sortObj = {};
+    sortObj[sortField] = sortOrder;
+    // Query
+    const total = await Product.countDocuments({ seller: sellerId });
+    const products = await Product.find({ seller: sellerId })
+      .populate('category', 'name')
+      .sort(sortObj)
+      .skip(skip)
+      .limit(limit);
+    const pages = Math.ceil(total / limit);
+    res.json({
+      success: true,
+      data: products,
+      pagination: { page, pages, total, limit }
+    });
+  } catch (error) {
+    console.error('Error fetching products by sellerId:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch products', error: error.message });
+  }
+};
+
 module.exports = {
   getSellerDashboardStats,
   getSellerProducts,
@@ -563,5 +628,6 @@ module.exports = {
   getSellerProductPerformance,
   updateProductStatus,
   updateOrderStatus,
-  getSellerRatings
+  getSellerRatings,
+  getProductsBySellerId,
 };

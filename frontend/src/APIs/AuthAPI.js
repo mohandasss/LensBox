@@ -73,8 +73,6 @@ const uploadAvatar = async (formData, token) => {
   }
 };
 
-
-
 const deleteUser = async (userId) => {
   try {
     const response = await axiosinstance.delete(`/deleteuser/${userId}`);
@@ -101,4 +99,70 @@ const verifyToken = async (token) => {
   }
 };
 
-export { register, login, updateUser, deleteUser, verifyToken, uploadAvatar };
+// OTP Registration endpoints
+const requestRegisterOtp = async (userData) => {
+  try {
+    const response = await axiosinstance.post("/register/request-otp", userData);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const verifyRegisterOtp = async (otpData) => {
+  try {
+    const response = await axiosinstance.post("/register/verify-otp", otpData);
+    if (response.data.token) {
+      localStorage.setItem("token", response.data.token);
+    }
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Forgot Password endpoints
+const requestForgotOtp = async (email) => {
+  try {
+    const response = await axiosinstance.post("/forgot/request-otp", { email });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const verifyForgotOtp = async (email, otp) => {
+  try {
+    const response = await axiosinstance.post("/forgot/verify-otp", { email, otp });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const resetPassword = async (email, otp, newPassword) => {
+  try {
+    const response = await axiosinstance.post("/forgot/reset-password", { 
+      email, 
+      otp, 
+      newPassword 
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export { 
+  register, 
+  login, 
+  updateUser, 
+  deleteUser, 
+  verifyToken, 
+  uploadAvatar,
+  requestRegisterOtp,
+  verifyRegisterOtp,
+  requestForgotOtp,
+  verifyForgotOtp,
+  resetPassword
+};

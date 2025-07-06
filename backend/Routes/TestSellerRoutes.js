@@ -307,6 +307,8 @@ router.get("/test-dashboard/product-performance", async (req, res) => {
       };
     });
     
+    console.log('Product Performance from API:', performanceData);
+    
     res.json({
       success: true,
       data: performanceData

@@ -13,7 +13,8 @@ const {
   getSellerProductPerformance,
   updateProductStatus,
   updateOrderStatus,
-  getSellerRatings
+  getSellerRatings,
+  getProductsBySellerId
 } = require("../Controllers/SellerController");
 
 /**
@@ -25,7 +26,7 @@ router.get("/dashboard/stats", authMiddleware, getSellerDashboardStats);
 
 /**
  * @route   GET /api/seller/products
- * @desc    Get all products for the seller
+ * @desc    Get all products for the seller (supports ?sort=salesCount|totalRevenue|createdAt&order=asc|desc)
  * @access  Private/Seller
  */
 router.get("/products", authMiddleware, getSellerProducts);
@@ -99,5 +100,11 @@ router.put("/orders/:id/status", authMiddleware, updateOrderStatus);
  * @access  Public
  */
 router.get("/:sellerId/ratings", getSellerRatings);
+
+/**
+ * @route   GET /api/seller/products/by-id/:sellerId
+ * @desc    Get all products for a given sellerId (public)
+ */
+router.get('/products/by-id/:sellerId', getProductsBySellerId);
 
 module.exports = router;

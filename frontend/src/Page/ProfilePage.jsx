@@ -69,9 +69,9 @@ const ProfilePage = () => {
         return;
       }
       
-      // Validate file size (max 1MB)
-      if (file.size > 1024 * 1024) {
-        showError('File Too Large', 'Image size should be less than 1MB');
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        showError('File Too Large', 'Image size should be less than 5MB');
         return;
       }
       
@@ -276,7 +276,7 @@ const ProfilePage = () => {
                     </label>
                   </div>
                   <p className="mt-1 text-xs text-gray-500">
-                    JPG, PNG (max 1MB)
+                    JPG, PNG (max 5MB)
                   </p>
                 </div>
 
