@@ -96,6 +96,8 @@ const CheckoutModal = ({
   const [paymentError, setPaymentError] = useState("");
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [orderDetails, setOrderDetails] = useState(null);
+  const [userLocation, setUserLocation] = useState({ lat: null, lng: null });
+  const [locationStatus, setLocationStatus] = useState("");
 
   // Simplified form state management
   const [formData, setFormData] = useState({
@@ -198,6 +200,27 @@ const CheckoutModal = ({
     return (calculateSubtotal() * days).toFixed(2);
   }, [calculateSubtotal, calculateRentalDays]);
 
+  // Geolocation handler
+  const handleGetLocation = () => {
+    setLocationStatus("Getting your location...");
+    if (!navigator.geolocation) {
+      setLocationStatus("Geolocation is not supported by your browser.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+        setLocationStatus("Location captured!");
+      },
+      (error) => {
+        setLocationStatus("Unable to retrieve your location. Please allow location access or enter your address manually.");
+      }
+    );
+  };
+
   const handleSubmit = async () => {
     if (!validateForm()) {
       return;
@@ -221,6 +244,9 @@ const CheckoutModal = ({
           quantity: item.quantity,
           amount: item.productId.price,
         })),
+        // Add lat/lng if available
+        lat: userLocation.lat,
+        lng: userLocation.lng,
       };
 
       const response = await createOrder(orderData);
@@ -384,6 +410,24 @@ const CheckoutModal = ({
                       error={errors.phone}
                       icon={PhoneIcon}
                     />
+                  </div>
+
+                  {/* Geolocation Button */}
+                  <div className="flex items-center space-x-2 mb-2">
+                    <button
+                      type="button"
+                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onClick={handleGetLocation}
+                    >
+                      <MapPinIcon className="h-5 w-5 mr-2" />
+                      Use My Current Location
+                    </button>
+                    {locationStatus && (
+                      <span className="text-sm text-gray-500 ml-2">{locationStatus}</span>
+                    )}
+                    {userLocation.lat && userLocation.lng && (
+                      <span className="text-xs text-green-600 ml-2">Lat: {userLocation.lat.toFixed(4)}, Lng: {userLocation.lng.toFixed(4)}</span>
+                    )}
                   </div>
 
                   <InputField
@@ -552,6 +596,16 @@ const CheckoutModal = ({
                 </div>
               </div>
             </div>
+
+            {/* Visible confirmation of coordinates to be saved */}
+            {userLocation.lat && userLocation.lng && (
+              <div className="my-4 p-3 rounded-lg bg-green-50 border border-green-300 text-green-800 text-sm flex items-center">
+                <svg className="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 11c0 1.104-.896 2-2 2s-2-.896-2-2 .896-2 2-2 2 .896 2 2zm0 0c0 2.21-1.79 4-4 4s-4-1.79-4-4 1.79-4 4-4 4 1.79 4 4zm0 0c0 2.21 1.79 4 4 4s4-1.79 4-4-1.79-4-4-4-4 1.79-4 4z" /></svg>
+                <span>
+                  <b>Location to be saved:</b> Latitude <b>{userLocation.lat.toFixed(6)}</b>, Longitude <b>{userLocation.lng.toFixed(6)}</b>
+                </span>
+              </div>
+            )}
 
             <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
               <button

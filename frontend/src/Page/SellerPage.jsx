@@ -22,6 +22,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 import SellerProducts from '../Components/Seller/SellerProducts';
 import SellerOrders from '../Components/Seller/SellerOrders';
 import SellerReviews from '../Components/Seller/SellerReviews';
+import SellerAnalytics from '../Components/Seller/SellerAnalytics';
 import RevenueChart from '../Components/Seller/RevenueChart';
 import CategoryPieChart from '../Components/Seller/CategoryPieChart';
 import RecentOrders from '../Components/Seller/RecentOrders';
@@ -201,14 +202,7 @@ export default function SellerPage() {
       case 'reviews':
         return <SellerReviews />;
       case 'analytics':
-        return (
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Analytics</h2>
-            <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-              <p className="text-gray-500">Analytics dashboard coming soon</p>
-            </div>
-          </div>
-        );
+        return <SellerAnalytics />;
       case 'dashboard':
       default:
         return (

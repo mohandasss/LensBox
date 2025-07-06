@@ -41,4 +41,15 @@ export const checkStockNotificationStatus = async (productId) => {
     console.error("Error checking stock notification status:", error);
     throw error;
   }
+};
+
+// Manually trigger stock notifications (for sellers)
+export const triggerStockNotifications = async (productId) => {
+  try {
+    const response = await axiosInstance.post(`/stock-notifications/trigger/${productId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error triggering stock notifications:", error);
+    throw error;
+  }
 }; 

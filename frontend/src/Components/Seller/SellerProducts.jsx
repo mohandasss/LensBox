@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { getProductsBySellerId } from '../../APIs/SellerAPI';
 import { verifyToken } from '../../APIs/AuthAPI';
-import { Star, TrendingUp, DollarSign, Package, ArrowDownUp, Calendar, Layers, ChevronLeft, ChevronRight, Image as ImageIcon, Eye, EyeOff, Trash2, X, AlertTriangle } from 'lucide-react';
+import { triggerStockNotifications } from '../../APIs/StockNotificationAPI';
+import { Star, TrendingUp, DollarSign, Package, ArrowDownUp, Calendar, Layers, ChevronLeft, ChevronRight, Image as ImageIcon, Eye, EyeOff, Trash2, X, AlertTriangle, Bell } from 'lucide-react';
 import { useNotification } from '../NotificationSystem';
 import axios from 'axios';
 
@@ -84,6 +85,16 @@ const SellerProducts = () => {
     }
   };
 
+  // Trigger stock notifications handler
+  const handleTriggerNotifications = async (productId) => {
+    try {
+      const result = await triggerStockNotifications(productId);
+      showSuccess('Notifications Sent', `${result.result.sent} notifications sent to waiting customers!`);
+    } catch (error) {
+      showError('Notification Failed', error?.response?.data?.message || 'Could not send notifications.');
+    }
+  };
+
   const openDeleteModal = (product) => {
     setProductToDelete(product);
     setShowDeleteModal(true);
@@ -93,10 +104,16 @@ const SellerProducts = () => {
     <>
       <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-gray-100 animate-fade-in-ios max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Layers className="w-6 h-6 text-blue-500 animate-pop-in" />
-            Your Products
-          </h2>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <Layers className="w-6 h-6 text-blue-500 animate-pop-in" />
+              Your Products
+            </h2>
+            <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
+              <Bell className="w-3 h-3" />
+              Use the bell icon to notify customers when you manually update stock
+            </p>
+          </div>
           <div className="flex items-center gap-2">
             <div className="relative">
               <select
@@ -240,6 +257,15 @@ const SellerProducts = () => {
                           >
                             {product.active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                           </button>
+                          {product.stock > 0 && (
+                            <button
+                              onClick={() => handleTriggerNotifications(product._id)}
+                              className="p-1.5 rounded-full border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors duration-200"
+                              title="Send stock notifications to waiting customers"
+                            >
+                              <Bell className="w-4 h-4" />
+                            </button>
+                          )}
                           <button
                             onClick={() => openDeleteModal(product)}
                             className="p-1.5 rounded-full border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-colors duration-200"
