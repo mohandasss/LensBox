@@ -14,6 +14,14 @@ const orderSchema = new mongoose.Schema({
     country: String,
     zipCode: String,
   },
+  
+  // Location field for heatmap visualization
+  location: {
+    lat: Number,
+    lng: Number,
+    address: String,
+  },
+  
   status: {
     type: String,
     enum: ['confirmed', 'shipped', 'delivered', 'cancelled'],

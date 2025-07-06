@@ -3,7 +3,8 @@ const router = express.Router();
 const { 
   subscribeToStockNotification, 
   unsubscribeFromStockNotification, 
-  checkStockNotificationStatus 
+  checkStockNotificationStatus,
+  manuallyTriggerStockNotifications
 } = require('../Controllers/StockNotificationController');
 const { authMiddleware } = require('../middlewares/AuthMiddleware');
 
@@ -18,5 +19,8 @@ router.delete('/unsubscribe/:productId', unsubscribeFromStockNotification);
 
 // Check notification status
 router.get('/status/:productId', checkStockNotificationStatus);
+
+// Manual trigger for stock notifications (for sellers)
+router.post('/trigger/:productId', manuallyTriggerStockNotifications);
 
 module.exports = router; 

@@ -21,6 +21,7 @@ const testSellerRoutes = require("./Routes/TestSellerRoutes.js");
 const mailRoutes = require("./Routes/mailRoutes.js");
 const reviewRoutes = require("./Routes/ReviewRoutes.js");
 const stockNotificationRoutes = require("./Routes/stockNotificationRoutes.js");
+const heatmapRoutes = require("./Routes/heatmapRoutes.js");
 
 dotenv.config();
 require('./Config/passport.js');
@@ -107,6 +108,7 @@ app.use('/api/seller', sellerRoutes);
 app.use('/api/test-seller', testSellerRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/stock-notifications", stockNotificationRoutes);
+app.use("/api/heatmap", heatmapRoutes);
 
 // Basic Route
 app.get("/", (req, res) => {

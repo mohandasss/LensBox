@@ -133,12 +133,56 @@ const checkStockNotificationStatus = async (req, res) => {
   }
 };
 
+// Manual trigger for stock notifications (for sellers who update DB directly)
+const manuallyTriggerStockNotifications = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { userId } = req.user; // This should be the seller's ID
+
+    // Check if product exists and belongs to the seller
+    const product = await Product.findOne({ _id: productId, seller: userId });
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found or not owned by you'
+      });
+    }
+
+    // Check if product is in stock
+    if (product.stock <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Product is still out of stock. No notifications to send.'
+      });
+    }
+
+    // Send notifications
+    const result = await sendStockNotifications(productId);
+
+    res.json({
+      success: true,
+      message: `Stock notifications triggered for ${product.name}`,
+      productName: product.name,
+      currentStock: product.stock,
+      result
+    });
+
+  } catch (error) {
+    console.error('Error manually triggering stock notifications:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to trigger stock notifications',
+      error: error.message
+    });
+  }
+};
+
 // Send notifications when product comes back in stock (to be called when stock is updated)
 const sendStockNotifications = async (productId) => {
   try {
     const product = await Product.findById(productId);
     if (!product || product.stock <= 0) {
-      return; // Product doesn't exist or still out of stock
+      return { sent: 0, message: 'Product not found or still out of stock' };
     }
 
     // Find all pending notifications for this product
@@ -148,8 +192,11 @@ const sendStockNotifications = async (productId) => {
     }).populate('userId', 'name email');
 
     if (notifications.length === 0) {
-      return; // No notifications to send
+      return { sent: 0, message: 'No pending notifications found' };
     }
+
+    let sentCount = 0;
+    let errorCount = 0;
 
     // Send email notifications
     for (const notification of notifications) {
@@ -212,18 +259,27 @@ const sendStockNotifications = async (productId) => {
         notification.notifiedAt = new Date();
         await notification.save();
 
+        sentCount++;
         console.log(`📧 Stock notification sent to: ${notification.email} for product: ${product.name}`);
 
       } catch (emailError) {
         console.error(`❌ Error sending stock notification to ${notification.email}:`, emailError);
+        errorCount++;
         // Continue with other notifications even if one fails
       }
     }
 
-    console.log(`✅ Sent ${notifications.length} stock notifications for product: ${product.name}`);
+    console.log(`✅ Sent ${sentCount} stock notifications for product: ${product.name}`);
+    return { 
+      sent: sentCount, 
+      errors: errorCount, 
+      total: notifications.length,
+      message: `Successfully sent ${sentCount} notifications`
+    };
 
   } catch (error) {
     console.error('Error sending stock notifications:', error);
+    return { sent: 0, errors: 1, message: 'Failed to send notifications' };
   }
 };
 
@@ -231,5 +287,6 @@ module.exports = {
   subscribeToStockNotification,
   unsubscribeFromStockNotification,
   checkStockNotificationStatus,
+  manuallyTriggerStockNotifications,
   sendStockNotifications
 }; 

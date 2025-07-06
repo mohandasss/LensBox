@@ -8,6 +8,7 @@ const secret = require("../secret");
 const { sendPurchaseConfirmationEmail } = require('../services/sendMail');
 const { generateInvoicePDFBuffer } = require('./InvoiceController');
 const { sendStockNotifications } = require('./StockNotificationController');
+const axios = require('axios');
 
 const instance = new Razorpay({
   key_id: secret.RAZORPAY_KEY_ID,
@@ -30,6 +31,8 @@ const createOrder = async (req, res) => {
       endDate,
       items,
       userId, // Add this - should come from frontend
+      lat, // Add location data
+      lng, // Add location data
     } = req.body;
 
     const amount = parseInt(Number(total) * 100);
@@ -55,7 +58,7 @@ const createOrder = async (req, res) => {
 
     const razorpayOrder = await instance.orders.create(options);
 
-    // Save all the data in TempOrder INCLUDING userId
+    // Save all the data in TempOrder INCLUDING userId and location
     await tempOrderModel.create({
       razorpayOrderId: razorpayOrder.id,
       orderData: {
@@ -72,8 +75,12 @@ const createOrder = async (req, res) => {
         endDate,
         total,
         items,
+        lat, // Add location data
+        lng, // Add location data
       },
     });
+
+    console.log('Temp order created with location:', { lat, lng });
 
     res.status(200).json({ 
       success: true, 
@@ -208,7 +215,28 @@ const verifyAndCreateOrder = async (req, res) => {
       }
     }
 
+    // Get location coordinates for the order
+    let location = null;
+    console.log('Processing location data from orderData:', { 
+      lat: orderData.lat, 
+      lng: orderData.lng,
+      hasLat: !!orderData.lat,
+      hasLng: !!orderData.lng
+    });
+    
+    if (orderData.lat && orderData.lng) {
+      location = {
+        lat: orderData.lat,
+        lng: orderData.lng,
+        address: `${orderData.addressLine1 || ''}, ${orderData.addressLine2 || ''}, ${orderData.city || ''}, ${orderData.state || ''}, ${orderData.country || ''}, ${orderData.zipCode || ''}`.replace(/, +/g, ', ').replace(/^, |, $/g, '').trim()
+      };
+      console.log('Location data created:', location);
+    } else {
+      console.log('No location data found in orderData');
+    }
+
     // Create new order
+    console.log('[ORDER DEBUG] Saving order with location:', location);
     const newOrder = new Order({
       user: orderData.userId, // This should now be available
       customerDetails: {
@@ -221,6 +249,7 @@ const verifyAndCreateOrder = async (req, res) => {
         country: orderData.country,
         zipCode: orderData.zipCode,
       },
+      location: location, // Add location data if available
       startDate: orderData.startDate,
       endDate: orderData.endDate,
       items: orderData.items,
@@ -230,12 +259,34 @@ const verifyAndCreateOrder = async (req, res) => {
         paymentId: razorpay_payment_id,
         signature: razorpay_signature,
       },
-      
       status: 'confirmed'
     });
 
     await newOrder.save();
     console.log("New order created:", newOrder._id);
+    console.log("Order location data:", newOrder.location);
+    
+    // Reverse geocode to get city name if location exists and no city yet
+    if (newOrder.location && newOrder.location.lat && newOrder.location.lng && !newOrder.location.city) {
+      try {
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${newOrder.location.lat}&lon=${newOrder.location.lng}&zoom=10&addressdetails=1`;
+        const response = await axios.get(url, { headers: { 'User-Agent': 'lensbox-app/1.0' } });
+        const address = response.data.address || {};
+        let city = address.city || address.town || address.village || address.hamlet || address.state || address.county;
+        if (!city && response.data.display_name) {
+          city = response.data.display_name.split(',')[0];
+        }
+        if (city) {
+          newOrder.location.city = city;
+          await newOrder.save();
+          console.log('[ORDER DEBUG] Reverse geocoded city:', city);
+        } else {
+          console.log('[ORDER DEBUG] No city found in reverse geocode response:', response.data.address, response.data.display_name);
+        }
+      } catch (geoErr) {
+        console.error('[ORDER DEBUG] Reverse geocoding failed:', geoErr.message);
+      }
+    }
     
     await tempOrder.deleteOne();
     
