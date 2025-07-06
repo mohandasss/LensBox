@@ -12,6 +12,12 @@ secretfront.js
 /build
 /dist
 
+HEATMAP_SETUP.md
+package-lock.json
+package.json
+
+
+
 # Environment Variables
 .env
 .env.local
