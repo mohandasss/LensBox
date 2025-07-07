@@ -4,12 +4,16 @@ const {
   updateProduct, 
   deleteProduct,
   searchProducts, 
+  searchSuggestions,
   getProductById, 
   getAllProducts, 
   getProductsByCategory,
   addBulkProducts,
   getSellerInfo,
-  getRelatedProducts
+  getRelatedProducts,
+  toggleProductActive,
+  getProductNames,
+  getMostPopularProducts
 } = require("../Controllers/ProductController");
 
 const { authMiddleware, isSeller } = require("../middlewares/AuthMiddleware");
@@ -31,6 +35,14 @@ router.get("/:productId/seller", getSellerInfo);
 // Add related products endpoint
 router.get("/:productId/related", getRelatedProducts);
 
-router.patch("/:id/toggle-active", authMiddleware, isSeller, require("../Controllers/ProductController").toggleProductActive);
+router.patch("/:id/toggle-active", authMiddleware, isSeller, toggleProductActive);
+
+// Place this before any dynamic :id routes
+router.get("/names", getProductNames);
+
+// Search suggestions endpoint
+router.get("/suggestions", searchSuggestions);
+
+router.get("/popular", getMostPopularProducts);
 
 module.exports = router;

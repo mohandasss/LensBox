@@ -7,6 +7,7 @@ import ProductCard from "../Components/ProductCard";
 import { getProducts, getProductsByCategory } from "../APIs/ProductAPI";
 import { searchProducts } from "../APIs/ProductAPI";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { getAllCategories } from "../APIs/CategoryAPI";
 
 const ProductsPage = () => {
   const location = useLocation();
@@ -21,13 +22,7 @@ const ProductsPage = () => {
   const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(1);
   
-  // Category options for the dropdown (use category names)
-  const categoryOptions = [
-    { value: "all", label: "🌍 All Products" },
-    { value: "camera", label: "📷 Camera" },
-    { value: "lens", label: "🔍 Lens" },
-    { value: "equipment", label: "⚙️ Equipment" }
-  ];
+  const [categoryOptions, setCategoryOptions] = useState([]);
   
   const [searchParams, setSearchParams] = useState({
     category: "",
@@ -59,13 +54,13 @@ const ProductsPage = () => {
     try {
       setLoading(true);
       if (query) {
-        // If we have a search query, use the search endpoint with category name
+        // Always use search endpoint for queries
         const results = await searchProducts(categoryName, query, pageNum, limit);
         setProducts(results.data || results.products || []);
         setTotal(results.total || results.data?.length || 0);
         setPages(results.pages || Math.ceil((results.total || results.data?.length || 0) / limit));
       } else if (categoryName && categoryName !== "all") {
-        // If we have a category name, fetch products for that category
+        // If only category is present, fetch by category
         const response = await getProductsByCategory(categoryName, pageNum, limit);
         setProducts(response.products || response.data || []);
         setTotal(response.total || response.products?.length || 0);
@@ -170,6 +165,22 @@ const ProductsPage = () => {
     // eslint-disable-next-line
   }, [debouncedSearch]);
 
+  // Fetch categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categories = await getAllCategories();
+        setCategoryOptions([
+          { value: "all", label: "🌍 All Products" },
+          ...categories.map(cat => ({ value: cat._id || cat.id, label: cat.name }))
+        ]);
+      } catch (err) {
+        setCategoryOptions([{ value: "all", label: "🌍 All Products" }]);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   return (
     <div className="min-h-screen bg-black">
       <Navbar />
@@ -190,17 +201,19 @@ const ProductsPage = () => {
             <h1 className="text-3xl sm:text-4xl font-bold text-white">
               Products
             </h1>
-            <select
-              value={selectedCategory}
-              onChange={(e) => handleCategoryChange(e.target.value)}
-              className="bg-gray-900 text-white px-4 py-2 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer hover:bg-gray-800 transition-all duration-200 shadow-md"
-            >
-              {categoryOptions.map((option) => (
-                <option key={option.value} value={option.value}>
+            <div className="flex items-center gap-2 ml-4">
+              {categoryOptions.map(option => (
+                <button
+                  key={option.value}
+                  onClick={() => handleCategoryChange(option.value)}
+                  className={`px-4 py-1.5 rounded-full border text-sm font-medium transition-all duration-200 shadow-sm
+                    ${selectedCategory === option.value ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-blue-50'}`}
+                  style={{minWidth: 80}}
+                >
                   {option.label}
-                </option>
+                </button>
               ))}
-            </select>
+            </div>
           </div>
 
           {loading ? (

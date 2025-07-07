@@ -24,63 +24,94 @@ const generateLast6MonthsData = () => {
 const getSellerDashboardStats = async (req, res) => {
   try {
     const sellerId = req.user.userId;
-    console.log('🔍 DEBUG: Current user ID from token:', sellerId);
-    console.log('🔍 DEBUG: Expected seller ID:', '686559295a8b8364ffd488b0');
-    
     // Get seller's products
     const products = await Product.find({ seller: sellerId });
     const productIds = products.map(p => p._id);
-    
-    // Get orders containing seller's products
-    const orders = await Order.find({
-      'items.productId': { $in: productIds }
+    if (!productIds.length) {
+      return res.json({
+        success: true,
+        stats: {
+          revenue: { total: '₹0', change: 0 },
+          products: { total: 0, change: 0 },
+          orders: { total: 0, change: 0 },
+          rating: { total: 0, change: 0 }
+        }
+      });
+    }
+    // Date ranges
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+    const sixtyDaysAgo = new Date(now.getTime() - (60 * 24 * 60 * 60 * 1000));
+    // Get orders for current and previous periods
+    const currentOrders = await Order.find({
+      'items.productId': { $in: productIds },
+      createdAt: { $gte: thirtyDaysAgo }
     }).populate('items.productId');
-    
-    // Calculate stats
-    const totalProducts = products.length;
-    const activeProducts = products.filter(p => p.stock > 0).length;
-    
-    // Calculate revenue from seller's products only
-    let totalRevenue = 0;
-    let totalOrders = 0;
-    
-    orders.forEach(order => {
+    const previousOrders = await Order.find({
+      'items.productId': { $in: productIds },
+      createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo }
+    }).populate('items.productId');
+    // Calculate stats for current period
+    let currentRevenue = 0;
+    let currentOrderCount = 0;
+    currentOrders.forEach(order => {
       order.items.forEach(item => {
-        if (productIds.some(id => id.toString() === item.productId._id.toString())) {
-          totalRevenue += item.amount;
-          totalOrders += item.quantity;
+        const itemProductId = item.productId?._id?.toString?.() || item.productId?.toString?.();
+        if (itemProductId && productIds.map(id=>id.toString()).includes(itemProductId)) {
+          const amt = typeof item.amount === 'number' ? item.amount : parseFloat(item.amount) || 0;
+          currentRevenue += amt;
+          currentOrderCount += item.quantity || 0;
         }
       });
     });
-    
-    // Calculate average rating (mock data for now)
-    const averageRating = 4.8;
-    
-    // Calculate percentage changes (mock data)
+    // Calculate stats for previous period
+    let previousRevenue = 0;
+    let previousOrderCount = 0;
+    previousOrders.forEach(order => {
+      order.items.forEach(item => {
+        const itemProductId = item.productId?._id?.toString?.() || item.productId?.toString?.();
+        if (itemProductId && productIds.map(id=>id.toString()).includes(itemProductId)) {
+          const amt = typeof item.amount === 'number' ? item.amount : parseFloat(item.amount) || 0;
+          previousRevenue += amt;
+          previousOrderCount += item.quantity || 0;
+        }
+      });
+    });
+    // Products
+    const totalProducts = products.length;
+    const newProducts = products.filter(p => p.createdAt >= thirtyDaysAgo).length;
+    const previousProducts = products.filter(p => p.createdAt >= sixtyDaysAgo && p.createdAt < thirtyDaysAgo).length;
+    // Rating
+    const seller = await User.findById(sellerId);
+    const averageRating = seller?.avgRating || 0;
+    // For rating change, you may need to implement historical rating tracking. For now, set to 0.
+    // Calculate percentage changes
+    const calculateChange = (current, previous) => {
+      if (!previous || previous === 0) return current > 0 ? 100 : 0;
+      return ((current - previous) / previous) * 100;
+    };
     const stats = {
       revenue: {
-        total: `₹${totalRevenue.toLocaleString()}`,
-        change: 12
+        total: `₹${currentRevenue.toLocaleString()}`,
+        change: calculateChange(currentRevenue, previousRevenue)
       },
       products: {
         total: totalProducts,
-        change: 8
+        change: calculateChange(newProducts, previousProducts)
       },
       orders: {
-        total: totalOrders,
-        change: 15
+        total: currentOrderCount,
+        change: calculateChange(currentOrderCount, previousOrderCount)
       },
       rating: {
         total: averageRating,
-        change: 2
+        change: 0 // Needs historical data for real change
       }
     };
-    
     res.json({
       success: true,
       stats
     });
-    
   } catch (error) {
     console.error("Error fetching seller dashboard stats:", error);
     res.status(500).json({
@@ -267,26 +298,62 @@ const getSellerAnalytics = async (req, res) => {
   }
 };
 
-// Get revenue chart data
+// Get real revenue chart data for seller
 const getSellerRevenueChart = async (req, res) => {
   try {
     const sellerId = req.user.userId;
-    
-    // Generate last 6 months data
+    // Get seller's products
+    const products = await Product.find({ seller: sellerId });
+    const productIds = products.map(p => p._id);
+    if (!productIds.length) {
+      // Return 6 months of zero data
+      const months = generateLast6MonthsData();
+      return res.json({
+        success: true,
+        data: months.map(m => ({ month: m.month, revenue: 0, orders: 0 }))
+      });
+    }
+    // Aggregate orders by month for the last 6 months
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+    const pipeline = [
+      { $match: {
+          'items.productId': { $in: productIds },
+          createdAt: { $gte: sixMonthsAgo }
+        }
+      },
+      { $unwind: '$items' },
+      { $match: { 'items.productId': { $in: productIds } } },
+      { $project: {
+          month: { $dateToString: { format: '%b-%Y', date: '$createdAt' } },
+          amount: '$items.amount',
+          quantity: '$items.quantity',
+          productId: '$items.productId'
+        }
+      },
+      { $group: {
+          _id: '$month',
+          revenue: { $sum: { $multiply: [ { $ifNull: ['$amount', 0] }, { $ifNull: ['$quantity', 1] } ] } },
+          orders: { $sum: 1 }
+        }
+      },
+      { $sort: { '_id': 1 } }
+    ];
+    const agg = await Order.aggregate(pipeline);
+    // Fill in months with zero if missing
     const months = generateLast6MonthsData();
-    
-    // Mock revenue data for each month
-    const revenueData = months.map((month, index) => ({
-      month: month.month,
-      revenue: Math.floor(Math.random() * 5000) + 3000, // Random revenue between 3000-8000
-      orders: Math.floor(Math.random() * 50) + 20 // Random orders between 20-70
+    const monthMap = {};
+    agg.forEach(m => { monthMap[m._id] = m; });
+    const result = months.map(m => ({
+      month: m.month + '-' + m.fullDate.getFullYear(),
+      revenue: monthMap[m.month + '-' + m.fullDate.getFullYear()]?.revenue || 0,
+      orders: monthMap[m.month + '-' + m.fullDate.getFullYear()]?.orders || 0
     }));
-    
     res.json({
       success: true,
-      data: revenueData
+      data: result
     });
-    
   } catch (error) {
     console.error("Error fetching revenue chart data:", error);
     res.status(500).json({
@@ -365,7 +432,7 @@ const getSellerRecentOrders = async (req, res) => {
       );
       
       return {
-        id: order._id.toString().slice(-8),
+        id: order._id.toString(),
         customer: order.user.name,
         amount: sellerItems.reduce((sum, item) => sum + item.amount, 0),
         status: order.status || 'confirmed',

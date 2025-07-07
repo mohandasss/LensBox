@@ -7,7 +7,7 @@ import Footer from "../Components/Footer";
 import { Link } from "react-router-dom";
 import ChatButton from "../Components/ChatButton";
 import TestimonialsSection from "../Components/TestimonialsSection";
-import HeroProducts from "../Components/HeroProducts";
+import HeroProducts, { MostPopularProducts } from "../Components/HeroProducts";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -136,6 +136,7 @@ const HomePage = () => {
               <button className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors">
                 Explore Services
               </button>
+              <MostPopularProducts />
             </div>
           </div>
         </div>

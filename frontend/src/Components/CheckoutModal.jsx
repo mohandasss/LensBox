@@ -98,6 +98,7 @@ const CheckoutModal = ({
   const [orderDetails, setOrderDetails] = useState(null);
   const [userLocation, setUserLocation] = useState({ lat: null, lng: null });
   const [locationStatus, setLocationStatus] = useState("");
+  const [showLocationPopup, setShowLocationPopup] = useState(false);
 
   // Simplified form state management
   const [formData, setFormData] = useState({
@@ -135,6 +136,14 @@ const CheckoutModal = ({
       }));
     }
   }, [initialValues]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setShowLocationPopup(true);
+    } else {
+      setShowLocationPopup(false);
+    }
+  }, [isOpen]);
 
   // Simple input change handler
   const handleInputChange = useCallback((e) => {
@@ -219,6 +228,13 @@ const CheckoutModal = ({
         setLocationStatus("Unable to retrieve your location. Please allow location access or enter your address manually.");
       }
     );
+  };
+
+  const handleLocationPermission = (allow) => {
+    setShowLocationPopup(false);
+    if (allow) {
+      handleGetLocation();
+    }
   };
 
   const handleSubmit = async () => {
@@ -412,23 +428,34 @@ const CheckoutModal = ({
                     />
                   </div>
 
-                  {/* Geolocation Button */}
-                  <div className="flex items-center space-x-2 mb-2">
-                    <button
-                      type="button"
-                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      onClick={handleGetLocation}
-                    >
-                      <MapPinIcon className="h-5 w-5 mr-2" />
-                      Use My Current Location
-                    </button>
-                    {locationStatus && (
-                      <span className="text-sm text-gray-500 ml-2">{locationStatus}</span>
-                    )}
-                    {userLocation.lat && userLocation.lng && (
-                      <span className="text-xs text-green-600 ml-2">Lat: {userLocation.lat.toFixed(4)}, Lng: {userLocation.lng.toFixed(4)}</span>
-                    )}
-                  </div>
+                  {/* Location Permission Popup */}
+                  {showLocationPopup && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm">
+                      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center animate-fade-in">
+                        <div className="flex flex-col items-center space-y-4">
+                          <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 mb-2">
+                            <MapPinIcon className="h-7 w-7 text-blue-600" />
+                          </span>
+                          <h3 className="text-lg font-semibold text-gray-900">Allow Location Access?</h3>
+                          <p className="text-gray-600 text-sm">To deliver your order accurately, we can use your current location. Would you like to share your location?</p>
+                          <div className="flex space-x-3 mt-4">
+                            <button
+                              className="px-5 py-2 rounded-lg bg-blue-600 text-white font-medium shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                              onClick={() => handleLocationPermission(true)}
+                            >
+                              Yes, use my location
+                            </button>
+                            <button
+                              className="px-5 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium shadow hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all"
+                              onClick={() => handleLocationPermission(false)}
+                            >
+                              No, thanks
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <InputField
                     id="addressLine1"

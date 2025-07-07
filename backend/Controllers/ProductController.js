@@ -416,20 +416,163 @@ const getAllProducts = async (req, res) => {
 };
 
 
+const searchSuggestions = async (req, res) => {
+  try {
+    console.log('Search suggestions request received:', {
+      query: req.query,
+      body: req.body,
+      params: req.params
+    });
+
+    const query = req.query.q || req.body.q || '';
+    
+    if (!query || query.trim() === '') {
+      console.log('Empty query, returning empty suggestions');
+      return res.status(200).json({
+        success: true,
+        data: []
+      });
+    }
+    
+    console.log('Processing search suggestions for query:', query);
+
+    // First, try to find exact matches at the start of the name
+    const exactMatchPipeline = [
+      {
+        $match: {
+          active: true,
+          name: { $regex: `^${query}`, $options: 'i' }
+        }
+      },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      { $unwind: '$categoryInfo' },
+      {
+        $project: {
+          _id: 0,
+          id: '$_id',
+          name: 1,
+          category: '$categoryInfo.name',
+          score: 2 // High score for exact start matches
+        }
+      }
+    ];
+
+    // If we don't have enough exact matches, find partial matches
+    const partialMatchPipeline = [
+      {
+        $match: {
+          active: true,
+          $and: [
+            { name: { $regex: query, $options: 'i' } },
+            { name: { $not: { $regex: `^${query}`, $options: 'i' } } }
+          ]
+        }
+      },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      { $unwind: '$categoryInfo' },
+      {
+        $project: {
+          _id: 0,
+          id: '$_id',
+          name: 1,
+          category: '$categoryInfo.name',
+          score: 1 // Lower score for partial matches
+        }
+      }
+    ];
+
+    console.log('Running exact match pipeline...');
+    const exactMatches = await Product.aggregate(exactMatchPipeline);
+    console.log(`Found ${exactMatches.length} exact matches`);
+
+    let suggestions = exactMatches;
+    
+    // If we need more suggestions, get partial matches
+    if (exactMatches.length < 5) {
+      const limit = 5 - exactMatches.length;
+      console.log(`Fetching up to ${limit} partial matches...`);
+      
+      const partialMatches = await Product.aggregate([
+        ...partialMatchPipeline.slice(0, 1), // Take the match stage
+        { $limit: limit },
+        ...partialMatchPipeline.slice(1) // Take the rest of the pipeline
+      ]);
+      
+      console.log(`Found ${partialMatches.length} partial matches`);
+      suggestions = [...exactMatches, ...partialMatches];
+    }
+
+    console.log('Total suggestions found:', suggestions.length);
+    console.log('Sample suggestions:', suggestions.slice(0, 2));
+
+    res.status(200).json({
+      success: true,
+      data: suggestions
+    });
+  } catch (error) {
+    console.error('Search suggestions error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      query: req.query,
+      body: req.body
+    });
+    
+    // Check if this is a MongoDB error
+    if (error.name === 'MongoServerError') {
+      console.error('MongoDB Error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Database error occurred while fetching suggestions',
+        ...(process.env.NODE_ENV === 'development' && { details: error.message })
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get search suggestions',
+      ...(process.env.NODE_ENV === 'development' && { 
+        details: error.message,
+        stack: error.stack 
+      })
+    });
+  }
+};
+
 const searchProducts = async (req, res) => {
   try {
-    // Get search term from query params or request body
-    const search = req.query.q || req.body.searchTerm;
-    const category = req.query.category || req.body.selectedCategory;
-    const page = parseInt(req.query.page) || parseInt(req.body.page) || 1;
-    const limit = parseInt(req.query.limit) || parseInt(req.body.limit) || 15;
+    // Get search parameters from both query params and request body
+    const searchTerm = req.query.q || req.body.searchTerm || req.body.q;
+    const category = req.query.category || req.body.selectedCategory || req.body.category;
+    const page = parseInt(req.query.page || req.body.page || '1');
+    const limit = parseInt(req.query.limit || req.body.limit || '15');
     const skip = (page - 1) * limit;
 
     // Validate search term exists
-    if (!search || typeof search !== 'string' || search.trim() === '') {
+    if (!searchTerm || typeof searchTerm !== 'string' || searchTerm.trim() === '') {
       return res.status(400).json({ 
+        success: false,
         error: 'Search term is required',
-        example: '/api/products/search?q=camera' 
+        example: { 
+          GET: '/api/products/search?q=camera&category=lens&page=1&limit=15',
+          POST: '{"searchTerm": "camera", "category": "lens", "page": 1, "limit": 15}'
+        } 
       });
     }
 
@@ -437,15 +580,16 @@ const searchProducts = async (req, res) => {
     const searchQuery = {
       active: true, // Only search active products
       $or: [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { features: { $in: [new RegExp(search, 'i')] } }
+        { name: { $regex: searchTerm, $options: 'i' } },
+        { description: { $regex: searchTerm, $options: 'i' } },
+        { features: { $in: [new RegExp(searchTerm, 'i')] } },
+        { sku: { $regex: searchTerm, $options: 'i' } }
       ]
     };
 
     // Add category filter if provided
-    if (category) {
-      searchQuery.category = category;
+    if (category && category !== 'all') {
+      searchQuery.category = categorymappedwithid[category] || category;
     }
 
     // Execute search with pagination
@@ -453,17 +597,28 @@ const searchProducts = async (req, res) => {
     const products = await Product.find(searchQuery)
       .skip(skip)
       .limit(limit)
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .populate('category', 'name');
+
+    // Calculate pagination info
+    const totalPages = Math.ceil(total / limit);
+    const hasNextPage = page < totalPages;
+    const hasPreviousPage = page > 1;
 
     // Return results
-    res.json({
+    res.status(200).json({
       success: true,
-      count: products.length,
-      total,
-      pages: Math.ceil(total / limit),
-      currentPage: page,
-      limit,
-      data: products
+      message: 'Search completed successfully',
+      data: products,
+      meta: {
+        total,
+        count: products.length,
+        page,
+        limit,
+        totalPages,
+        hasNextPage,
+        hasPreviousPage
+      }
     });
     
   } catch (error) {
@@ -471,6 +626,7 @@ const searchProducts = async (req, res) => {
     res.status(500).json({ 
       success: false,
       error: 'Search failed',
+      message: 'An error occurred while processing your search',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
@@ -491,25 +647,22 @@ const getProductByCategory = async (req, res) => {
 
 const getProductsByCategory = async (req, res) => {
   try {
-    console.log(req.params);
-    const category = req.params.categoryId;
+    const categoryId = req.params.categoryId;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 15;
     const skip = (page - 1) * limit;
-    
-    const categoryId = categorymappedwithid[category];
-    
-    // Add validation for invalid category
-    if (!categoryId) {
-      return res.status(400).json({ message: "Invalid category" });
+
+    // Validate categoryId is a valid ObjectId
+    if (!categoryId || !categoryId.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: "Invalid category ID" });
     }
-    
+
     const total = await Product.countDocuments({ category: categoryId, active: true });
     const products = await Product.find({ category: categoryId, active: true })
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
-    
+
     res.status(200).json({ 
       message: "Products found", 
       products,
@@ -519,7 +672,7 @@ const getProductsByCategory = async (req, res) => {
       limit
     });
   } catch (error) {
-    console.error('Error fetching products:', error); // Better error logging
+    console.error('Error fetching products:', error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -1187,6 +1340,40 @@ const toggleProductActive = async (req, res) => {
   }
 };
 
+const getProductNames = async (req, res) => {
+  try {
+    const q = req.query.q || '';
+    if (!q || typeof q !== 'string' || q.trim() === '') {
+      return res.status(400).json({ error: 'Query parameter q is required' });
+    }
+    const names = await Product.find({
+      name: { $regex: q, $options: 'i' },
+      active: true
+    })
+      .limit(10)
+      .select('name -_id');
+    res.json({ names: names.map(n => n.name) });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch product names' });
+  }
+};
+
+const getMostPopularProducts = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 7;
+    // Sort by salesCount descending, then by createdAt descending for tie-breaker
+    const products = await Product.find({ active: true })
+      .sort({ salesCount: -1, createdAt: -1 })
+      .limit(limit);
+    res.status(200).json({
+      success: true,
+      data: products
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch most popular products', error: error.message });
+  }
+};
+
 module.exports = {
   addProduct,
   updateProduct,
@@ -1195,6 +1382,7 @@ module.exports = {
   getProductById,
   getAllProducts,
   searchProducts,
+  searchSuggestions,
   getProductsByCategory,
   getDashboardStats,
   getSalesOverview,
@@ -1206,7 +1394,9 @@ module.exports = {
   getProductStats,
   addBulkProducts,
   getRelatedProducts,
-  toggleProductActive
+  toggleProductActive,
+  getProductNames,
+  getMostPopularProducts
 };
 
 // Bulk product creation function

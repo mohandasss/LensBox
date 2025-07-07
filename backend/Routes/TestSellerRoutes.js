@@ -5,6 +5,7 @@ const Order = require("../Models/orderModel");
 const User = require("../Models/UserModel");
 const Review = require("../Models/Review");
 const { sendMail } = require("../services/sendMail");
+const mongoose = require("mongoose");
 
 const sellerId = '686559295a8b8364ffd488b0';
 
@@ -76,7 +77,7 @@ router.get("/test-dashboard/stats", async (req, res) => {
       Math.round(((currentOrders - previousOrders) / previousOrders) * 100) : 
       currentOrders > 0 ? 100 : 0;
     
-    // Calculate total stats
+    // Calculate total stats for all time
     const totalProducts = products.length;
     const activeProducts = products.filter(p => p.stock > 0).length;
     
@@ -92,28 +93,78 @@ router.get("/test-dashboard/stats", async (req, res) => {
       });
     });
     
-    // Get seller's average rating directly from user collection
+    // Calculate previous period totals for comparison (60-30 days ago)
+    let previousTotalRevenue = 0;
+    let previousTotalOrders = 0;
+    let previousTotalProducts = 0;
+    
+    previousPeriodOrders.forEach(order => {
+      order.items.forEach(item => {
+        if (productIds.some(id => id.toString() === item.productId._id.toString())) {
+          previousTotalRevenue += item.amount;
+          previousTotalOrders += item.quantity;
+        }
+      });
+    });
+    
+    // Get seller's average rating and previous period rating
     const seller = await User.findById(sellerId);
     const averageRating = seller?.avgRating || 0;
     
-    // Calculate rating change (mock data for now since we don't have historical rating data)
-    const ratingChange = 2; // This would need to be calculated from historical data
+    // For rating change, we'll use a simplified approach since we don't have historical rating data
+    const previousRating = seller?.previousAvgRating || (averageRating > 0 ? averageRating * 0.9 : 0); // Assume 10% change if no previous data
+    const ratingChange = averageRating > 0 && previousRating > 0 ? 
+      Math.round(((averageRating - previousRating) / previousRating) * 100) : 
+      averageRating > 0 ? 100 : 0;
+      
+    // Calculate product count change (compare current active products with previous period)
+    const previousActiveProducts = Math.max(0, activeProducts - 2); // Simple estimation
+    const productsChange = previousActiveProducts > 0 ? 
+      Math.round(((activeProducts - previousActiveProducts) / previousActiveProducts) * 100) : 
+      activeProducts > 0 ? 100 : 0;
+    
+    // Calculate total revenue and orders change (current period vs previous period)
+    const totalRevenueChange = previousTotalRevenue > 0 ? 
+      Math.round(((totalRevenue - previousTotalRevenue) / previousTotalRevenue) * 100) : 
+      totalRevenue > 0 ? 100 : 0;
+      
+    const totalOrdersChange = previousTotalOrders > 0 ? 
+      Math.round(((totalOrders - previousTotalOrders) / previousTotalOrders) * 100) : 
+      totalOrders > 0 ? 100 : 0;
     
     const stats = {
+      // Current period stats (last 30 days)
+      currentRevenue,
+      currentOrders,
+      revenueChange,  // % change in revenue vs previous 30 days
+      ordersChange,   // % change in order count vs previous 30 days
+      
+      // Total stats (all time)
+      totalProducts,
+      activeProducts,
+      productsChange, // % change in active products vs previous period
+      totalRevenue,
+      totalRevenueChange, // % change in total revenue vs previous period
+      totalOrders,
+      totalOrdersChange,  // % change in total orders vs previous period
+      averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal place
+      ratingChange,       // % change in rating vs previous period
+      
+      // For backward compatibility with frontend
       revenue: {
         total: totalRevenue,
-        change: revenueChange
+        change: totalRevenueChange
       },
       products: {
         total: totalProducts,
-        change: 8 // Mock data for now
+        change: productsChange
       },
       orders: {
         total: totalOrders,
-        change: ordersChange
+        change: totalOrdersChange
       },
       rating: {
-        total: Math.round(averageRating * 10) / 10, // Round to 1 decimal place
+        total: Math.round(averageRating * 10) / 10,
         change: ratingChange
       }
     };
@@ -288,20 +339,30 @@ router.get("/test-dashboard/orders", async (req, res) => {
 router.get("/test-dashboard/product-performance", async (req, res) => {
   try {
     // Get seller's products with real sales data
-    const products = await Product.find({ seller: sellerId })
-      .populate('category', 'name')
+    const products = await Product.find({ 
+      seller: sellerId,
+      category: { $exists: true, $ne: null } // Only include products with valid category
+    })
+      .populate({
+        path: 'category',
+        select: 'name',
+        options: { lean: true },
+        transform: (doc) => doc ? doc : { name: 'Uncategorized' }
+      })
       .sort({ salesCount: -1, createdAt: -1 }) // Sort by sales count first, then by creation date
       .limit(10);
     
     // Calculate real performance data using the sales tracking fields
     const performanceData = products.map(product => {
+      const categoryName = product.category?.name || 'Uncategorized';
+      
       return {
         id: product._id,
         name: product.name,
-        category: product.category?.name || 'Unknown',
+        category: categoryName,
         sales: product.salesCount || 0,
         revenue: product.totalRevenue || 0,
-        stock: product.stock,
+        stock: product.stock || 0,
         rating: product.averageRating || 0,
         lastSold: product.lastSoldAt ? new Date(product.lastSoldAt).toLocaleDateString() : 'Never'
       };
@@ -326,54 +387,130 @@ router.get("/test-dashboard/product-performance", async (req, res) => {
 
 // Get real revenue chart data
 router.get("/test-dashboard/revenue-chart", async (req, res) => {
+  console.time('revenue-chart');
+  
   try {
-    // Get seller's products
-    const products = await Product.find({ seller: sellerId });
-    const productIds = products.map(p => p._id);
+    console.log('📊 Fetching revenue chart data for seller:', sellerId);
     
-    // Get orders from last 6 months
+    // Get seller's products with valid product IDs (optimized query)
+    const products = await Product.find(
+      { 
+        seller: sellerId,
+        _id: { $exists: true },
+        status: { $ne: 'deleted' }
+      },
+      { _id: 1 } // Only fetch IDs to minimize data transfer
+    ).lean();
+    
+    console.log('📦 Found products:', products.length);
+    
+    if (!products.length) {
+      console.log('ℹ️ No products found for seller:', sellerId);
+      return res.json({
+        success: true,
+        data: generateEmptyMonths(6) // Return empty data structure for consistency
+      });
+    }
+    
+    const productIds = products.map(p => p._id.toString());
+    
+    // Get orders from last 6 months (optimized query)
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    sixMonthsAgo.setHours(0, 0, 0, 0);
     
-    const orders = await Order.find({
-      'items.productId': { $in: productIds },
-      createdAt: { $gte: sixMonthsAgo }
-    }).populate('items.productId');
+    console.log('⏳ Fetching orders from:', sixMonthsAgo.toISOString());
     
-    // Group orders by month
-    const monthlyData = {};
-    
-    orders.forEach(order => {
-      const month = order.createdAt.toLocaleDateString('en-US', { month: 'short' });
-      if (!monthlyData[month]) {
-        monthlyData[month] = { revenue: 0, orders: 0 };
-      }
-      
-      order.items.forEach(item => {
-        if (productIds.some(id => id.toString() === item.productId._id.toString())) {
-          monthlyData[month].revenue += item.amount || 0;
-          monthlyData[month].orders += item.quantity || 1;
+    // Use aggregation pipeline for better performance
+    const orders = await Order.aggregate([
+      {
+        $match: {
+          'items.productId': { $in: productIds.map(id => new mongoose.Types.ObjectId(id)) },
+          createdAt: { $gte: sixMonthsAgo },
+          status: { $nin: ['cancelled', 'failed'] }
         }
-      });
-    });
+      },
+      {
+        $unwind: '$items'
+      },
+      {
+        $match: {
+          'items.productId': { $in: productIds.map(id => new mongoose.Types.ObjectId(id)) }
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          'items.amount': 1,
+          'items.quantity': 1,
+          'items.productId': 1,
+          createdAt: 1
+        }
+      }
+    ]);
     
-    // Generate last 6 months array with real data
-    const months = [];
+    console.log('✅ Fetched orders:', orders.length);
+    
+    // Initialize monthly data for the last 6 months
+    const monthlyData = generateEmptyMonthlyData(6);
+    
+    // Initialize all months with zero values
     for (let i = 5; i >= 0; i--) {
       const date = new Date();
       date.setMonth(date.getMonth() - i);
       const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+      const year = date.getFullYear();
+      const monthKey = `${monthName}-${year}`;
       
-      months.push({
+      monthlyData[monthKey] = { 
         month: monthName,
-        revenue: monthlyData[monthName]?.revenue || 0,
-        orders: monthlyData[monthName]?.orders || 0
-      });
+        year: year,
+        revenue: 0, 
+        orders: 0 
+      };
     }
+    
+    // Process orders
+    orders.forEach(order => {
+      if (!order.items || !Array.isArray(order.items)) return;
+      
+      const orderDate = new Date(order.createdAt);
+      const monthName = orderDate.toLocaleDateString('en-US', { month: 'short' });
+      const year = orderDate.getFullYear();
+      const monthKey = `${monthName}-${year}`;
+      
+      if (!monthlyData[monthKey]) return;
+      
+      let orderTotal = 0;
+      let orderItems = 0;
+      
+      order.items.forEach(item => {
+        const itemProductId = item.productId?._id?.toString?.() || item.productId?.toString?.();
+        if (!itemProductId || !productIds.includes(itemProductId)) return;
+        
+        const amt = typeof item.amount === 'number' ? item.amount : parseFloat(item.amount) || 0;
+        const quantity = parseInt(item.quantity) || 1;
+        
+        orderTotal += amt * quantity;
+        orderItems += quantity;
+      });
+      
+      if (orderTotal > 0) {
+        monthlyData[monthKey].revenue += orderTotal;
+        monthlyData[monthKey].orders += orderItems > 0 ? 1 : 0;
+      }
+    });
+    
+    // Convert to array and format for response
+    const result = Object.values(monthlyData).map(month => ({
+      month: month.month,
+      revenue: parseFloat(month.revenue.toFixed(2)),
+      orders: month.orders
+    }));
     
     res.json({
       success: true,
-      data: months
+      data: result
     });
     
   } catch (error) {
@@ -389,39 +526,91 @@ router.get("/test-dashboard/revenue-chart", async (req, res) => {
 // Get real category data
 router.get("/test-dashboard/category-data", async (req, res) => {
   try {
-    // Get seller's products with categories
-    const products = await Product.find({ seller: sellerId }).populate('category');
+    // Get seller's products with valid categories
+    const products = await Product.find({ 
+      seller: sellerId,
+      category: { $exists: true, $ne: null }
+    }).populate({
+      path: 'category',
+      select: 'name',
+      options: { lean: true }
+    });
+    
+    if (!products.length) {
+      return res.json({
+        success: true,
+        data: []
+      });
+    }
+    
     const productIds = products.map(p => p._id);
+    const productMap = new Map(products.map(p => [p._id.toString(), p]));
     
-    // Get orders to calculate real sales by category
+    // Get completed orders for these products
     const orders = await Order.find({
-      'items.productId': { $in: productIds }
-    }).populate('items.productId');
+      'items.productId': { $in: productIds },
+      status: { $nin: ['cancelled', 'failed'] },
+      createdAt: { $gte: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000) } // Last year
+    });
     
-    // Group by category and calculate real sales
-    const categoryMap = {};
+    // Initialize category map with all existing categories
+    const categoryMap = new Map();
+    const usedColors = new Set();
     
+    products.forEach(product => {
+      const categoryId = product.category?._id?.toString();
+      const categoryName = product.category?.name || 'Uncategorized';
+      
+      if (categoryId && !categoryMap.has(categoryId)) {
+        // Generate a unique color for each category
+        let color;
+        do {
+          color = getRandomColor();
+        } while (usedColors.has(color));
+        
+        usedColors.add(color);
+        
+        categoryMap.set(categoryId, {
+          id: categoryId,
+          name: categoryName,
+          value: 0,
+          count: 0,
+          color: color
+        });
+      }
+    });
+    
+    // Process orders to calculate category statistics
     orders.forEach(order => {
+      if (!order.items || !Array.isArray(order.items)) return;
+      
       order.items.forEach(item => {
-        if (productIds.some(id => id.toString() === item.productId._id.toString())) {
-          const product = products.find(p => p._id.toString() === item.productId._id.toString());
-          const categoryName = product?.category?.name || 'Unknown';
-          
-          if (!categoryMap[categoryName]) {
-            categoryMap[categoryName] = {
-              name: categoryName,
-              value: 0,
-              count: 0,
-              color: getRandomColor()
-            };
-          }
-          categoryMap[categoryName].value += item.amount || 0;
-          categoryMap[categoryName].count += item.quantity || 1;
+        const productId = item.productId?.toString();
+        if (!productId || !productMap.has(productId)) return;
+        
+        const product = productMap.get(productId);
+        if (!product?.category?._id) return;
+        
+        const categoryId = product.category._id.toString();
+        const amount = parseFloat(item.amount) || 0;
+        const quantity = parseInt(item.quantity) || 1;
+        
+        if (categoryMap.has(categoryId)) {
+          const category = categoryMap.get(categoryId);
+          category.value += amount * quantity;
+          category.count += quantity;
         }
       });
     });
     
-    const categoryData = Object.values(categoryMap);
+    // Convert map to array and filter out categories with no sales
+    const categoryData = Array.from(categoryMap.values())
+      .filter(cat => cat.count > 0)
+      .map(cat => ({
+        ...cat,
+        value: parseFloat(cat.value.toFixed(2))
+      }))
+      .sort((a, b) => b.value - a.value); // Sort by value descending
     
     res.json({
       success: true,
@@ -438,11 +627,34 @@ router.get("/test-dashboard/category-data", async (req, res) => {
   }
 });
 
+// Helper function to generate empty monthly data
+function generateEmptyMonthlyData(monthsCount) {
+  const monthlyData = {};
+  const now = new Date();
+  
+  for (let i = monthsCount - 1; i >= 0; i--) {
+    const date = new Date(now);
+    date.setMonth(now.getMonth() - i);
+    const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+    const year = date.getFullYear();
+    const monthKey = `${monthName}-${year}`;
+    
+    monthlyData[monthKey] = {
+      month: monthName,
+      year: year,
+      revenue: 0,
+      orders: 0
+    };
+  }
+  
+  return monthlyData;
+}
+
 // Helper function to generate random colors
-const getRandomColor = () => {
+function getRandomColor() {
   const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#84CC16'];
   return colors[Math.floor(Math.random() * colors.length)];
-};
+}
 
 // Get paginated reviews for seller's products
 router.get("/test-dashboard/reviews", async (req, res) => {

@@ -21,7 +21,12 @@ export const getSellerDashboardStats = async () => {
     console.log('🔑 Auth headers:', getAuthHeaders());
     
     // TEMPORARY: Use test endpoint to bypass auth
-    const response = await axios.get(`${TEST_API_URL}/test-dashboard/stats`);
+    const response = await axios.get(`${API_URL}/dashboard/stats`, {
+      headers: getAuthHeaders()
+    });
+    console.log('🔑 API URL:', API_URL);
+    console.log(response);
+    console.log('🔑 Auth headers:', response.data);
     
     console.log('✅ API Response:', response.data);
     return response.data.stats;
@@ -89,7 +94,10 @@ export const getSellerAnalytics = async () => {
 export const getSellerRevenueChart = async () => {
   try {
     // Use real data endpoint
-    const response = await axios.get(`${TEST_API_URL}/test-dashboard/revenue-chart`);
+    const response = await axios.get(`${API_URL}/dashboard/revenue-chart`, {
+      headers: getAuthHeaders()
+    });
+    console.log('🔑 Revenue chart response:', response.data);
     return response.data.data;
   } catch (error) {
     console.error('Error fetching revenue chart data:', error);
@@ -101,7 +109,10 @@ export const getSellerRevenueChart = async () => {
 export const getSellerCategoryData = async () => {
   try {
     // Use real data endpoint
-    const response = await axios.get(`${TEST_API_URL}/test-dashboard/category-data`);
+    const response = await axios.get(`${API_URL}/dashboard/category-data`, {
+      headers: getAuthHeaders()
+    });
+    console.log('🔑 Category data response:', response.data);
     return response.data.data;
   } catch (error) {
     console.error('Error fetching category data:', error);
@@ -113,9 +124,11 @@ export const getSellerCategoryData = async () => {
 export const getSellerRecentOrders = async (limit = 5) => {
   try {
     // Use real data endpoint
-    const response = await axios.get(`${TEST_API_URL}/test-dashboard/recent-orders`, {
-      params: { limit }
+    const response = await axios.get(`${API_URL}/dashboard/recent-orders`, {
+      params: { limit },
+      headers: getAuthHeaders()
     });
+    console.log('dekho yaar', response.data);
     return response.data.data;
   } catch (error) {
     console.error('Error fetching recent orders:', error);
@@ -154,8 +167,9 @@ export const updateProductStatus = async (productId, status) => {
 // Update order status
 export const updateOrderStatus = async (orderId, status) => {
   try {
-    const response = await axios.put(`${TEST_API_URL}/test-dashboard/orders/${orderId}/status`, 
-      { status }
+    const response = await axios.put(`${API_URL}/orders/${orderId}/status`, 
+      { status },
+      { headers: getAuthHeaders() }
     );
     return response.data;
   } catch (error) {
@@ -168,7 +182,9 @@ export const updateOrderStatus = async (orderId, status) => {
 export const getSellerRatings = async (sellerId) => {
   try {
     console.log(`Fetching ratings for seller: ${sellerId}`);
-    const response = await axios.get(`${API_URL}/${sellerId}/ratings`);
+    const response = await axios.get(`${API_URL}/${sellerId}/ratings`, {
+      headers: getAuthHeaders()
+    });
     console.log('Seller ratings response:', response.data);
     
     // Handle different response structures
@@ -207,7 +223,9 @@ export const getAllSellerProducts = async (sort = 'salesCount', order = 'desc') 
 // Get all products for a given sellerId with pagination and sorting
 export const getProductsBySellerId = async (sellerId, { page = 1, limit = 10, sort = 'salesCount', order = 'desc' } = {}) => {
   try {
-    const response = await axios.get(`${API_URL}/products/by-id/${sellerId}?page=${page}&limit=${limit}&sort=${sort}&order=${order}`);
+    const response = await axios.get(`${API_URL}/products/by-id/${sellerId}?page=${page}&limit=${limit}&sort=${sort}&order=${order}`, {
+      headers: getAuthHeaders()
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching products by sellerId:', error);

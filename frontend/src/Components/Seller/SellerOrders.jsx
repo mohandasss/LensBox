@@ -20,7 +20,12 @@ const SellerOrders = () => {
       setLoading(true);
       const response = await getSellerOrders(page, 10);
       console.log('📋 Fetched orders for Orders tab:', response);
-      setOrders(response.orders);
+      // Map orders to ensure both _id and id are present for each order
+      const mappedOrders = response.orders.map(order => ({
+        ...order,
+        _id: order.id,
+      }));
+      setOrders(mappedOrders);
       setPagination(response.pagination);
       setError(null);
     } catch (error) {
@@ -44,7 +49,7 @@ const SellerOrders = () => {
   const handleStatusUpdate = (orderId, newStatus) => {
     setOrders(prevOrders => 
       prevOrders.map(order => 
-        order.id === orderId 
+        order._id === orderId 
           ? { ...order, status: newStatus }
           : order
       )
@@ -142,7 +147,7 @@ const SellerOrders = () => {
       {/* Orders List */}
       <div className="space-y-4 mb-6">
         {orders.map((order) => (
-          <div key={order.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+          <div key={order._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
             {/* Left Side - Profile + Customer Info */}
             <div className="flex items-center space-x-3 flex-1 min-w-0">
               {/* Profile Picture */}

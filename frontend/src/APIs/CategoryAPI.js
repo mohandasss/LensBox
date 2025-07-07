@@ -18,4 +18,13 @@ export const getCategoriesById = async (id) => {
   }
 };
 
+export const getAllCategories = async () => {
+  const response = await axiosinstance.get(`/`);
+  if (response.data) {
+    return response.data.categories;
+  } else {
+    return [];
+  }
+};
+
 

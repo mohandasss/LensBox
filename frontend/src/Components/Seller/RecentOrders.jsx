@@ -86,19 +86,24 @@ const RecentOrders = ({ data = [], showAll = false }) => {
             {/* Left Side - Profile + Customer Info */}
             <div className="flex items-center space-x-3 flex-1 min-w-0">
               {/* Profile Picture */}
-              {order.customerProfilePic ? (
-                <img 
-                  src={order.customerProfilePic} 
-                  alt={order.customer}
-                  className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
-                  }}
-                />
-              ) : null}
-              <div className={`w-10 h-10 rounded-full ${getProfileColor(order.customer)} flex items-center justify-center text-white font-semibold text-sm ${order.customerProfilePic ? 'hidden' : ''}`}>
-                {getInitials(order.customer)}
+              <div className="relative">
+                {order.customerProfilePic ? (
+                  <img 
+                    src={order.customerProfilePic} 
+                    alt={order.customer}
+                    className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      const fallback = e.target.nextElementSibling;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div 
+                  className={`w-10 h-10 rounded-full ${getProfileColor(order.customer)} flex items-center justify-center text-white font-semibold text-sm ${order.customerProfilePic ? 'hidden' : ''}`}
+                >
+                  {getInitials(order.customer)}
+                </div>
               </div>
               
               {/* Customer & Product Info */}

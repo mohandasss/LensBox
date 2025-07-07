@@ -126,6 +126,14 @@ export const addProduct = async (formData) => {
   }
 };
 
+export const getMostPopularProducts = async (limit = 7) => {
+  const response = await axiosinstance.get(`/popular?limit=${limit}`);
+  if (response.data && Array.isArray(response.data.data)) {
+    return response.data.data;
+  }
+  return [];
+};
+
 export default { 
   getProducts, 
   searchProducts, 

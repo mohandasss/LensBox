@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { getHeroProducts } from "../APIs/ProductAPI";
+import { getHeroProducts, getMostPopularProducts } from "../APIs/ProductAPI";
 import { Link } from "react-router-dom";
 import { FaStar } from "react-icons/fa";
 
@@ -281,6 +281,93 @@ const HeroProducts = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
       </button>
+    </div>
+  );
+};
+
+export const MostPopularProducts = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const containerRef = useRef(null);
+  const cardWidth = 256; // w-64 = 256px
+  const cardsToShow = 4; // Number of cards to show at once
+  const gap = 32; // gap-x-8 = 2rem = 32px
+
+  const nextSlide = () => {
+    setCurrentIndex(prev => Math.min(prev + 1, Math.max(products.length - cardsToShow, 0)));
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex(prev => Math.max(prev - 1, 0));
+  };
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const data = await getMostPopularProducts();
+        setProducts(data);
+      } catch (error) {
+        console.error("Error fetching most popular products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const transformValue = `translateX(-${currentIndex * (cardWidth + gap)}px)`;
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-80 bg-gray-100 rounded-lg animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Most Popular</h2>
+        <div className="flex gap-2">
+          <button
+            onClick={prevSlide}
+            className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 shadow transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={currentIndex === 0}
+            aria-label="Previous"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button
+            onClick={nextSlide}
+            className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 shadow transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={currentIndex >= Math.max(products.length - cardsToShow, 0)}
+            aria-label="Next"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div className="relative">
+        <div
+          className="flex gap-8 transition-transform duration-500"
+          style={{ transform: transformValue }}
+          ref={containerRef}
+        >
+          {products.map((product) => (
+            <ProductCard key={product._id} product={product} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

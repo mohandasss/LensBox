@@ -36,30 +36,6 @@ import {
   getSellerProductPerformance
 } from '../APIs/SellerAPI';
 
-// Sample data
-const revenueData = [
-  { month: 'Jan', revenue: 4500, orders: 45 },
-  { month: 'Feb', revenue: 6200, orders: 62 },
-  { month: 'Mar', revenue: 5800, orders: 58 },
-  { month: 'Apr', revenue: 7200, orders: 72 },
-  { month: 'May', revenue: 8900, orders: 89 },
-  { month: 'Jun', revenue: 9500, orders: 95 }
-];
-
-const productCategoryData = [
-  { name: 'Cameras', value: 35, color: '#3B82F6' },
-  { name: 'Lenses', value: 25, color: '#10B981' },
-  { name: 'Tripods', value: 20, color: '#F59E0B' },
-  { name: 'Lighting', value: 15, color: '#EF4444' },
-  { name: 'Others', value: 5, color: '#8B5CF6' }
-];
-
-const orderStatusData = [
-  { name: 'Active', value: 45, color: '#10B981' },
-  { name: 'Pending', value: 25, color: '#F59E0B' },
-  { name: 'Completed', value: 30, color: '#3B82F6' }
-];
-
 // Animated Counter Component
 const AnimatedCounter = ({ value, prefix = '', suffix = '' }) => {
   const [count, setCount] = useState(0);
