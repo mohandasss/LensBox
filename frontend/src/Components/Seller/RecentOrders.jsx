@@ -13,6 +13,8 @@ const RecentOrders = ({ data = [], showAll = false }) => {
   ];
   
   const orders = data.length > 0 ? data : fallbackOrders;
+  console.log("recent orders",orders);
+  
 
   const getStatusBadge = (status) => {
     switch(status?.toLowerCase()) {

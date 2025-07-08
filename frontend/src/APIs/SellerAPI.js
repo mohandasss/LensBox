@@ -54,10 +54,11 @@ export const getSellerProducts = async (page = 1, limit = 10) => {
 // Get seller orders with pagination
 export const getSellerOrders = async (page = 1, limit = 10) => {
   try {
-    const response = await axios.get(`${TEST_API_URL}/test-dashboard/orders`, {
-      params: { page, limit }
+    const response = await axios.get(`${API_URL}/orders`, {
+      params: { page, limit },
+      headers: getAuthHeaders()
     });
-    return response.data.data;
+    return response.data;
   } catch (error) {
     console.error('Error fetching seller orders:', error);
     throw error;
@@ -67,10 +68,11 @@ export const getSellerOrders = async (page = 1, limit = 10) => {
 // Get seller reviews with pagination
 export const getSellerReviews = async (page = 1, limit = 10) => {
   try {
-    const response = await axios.get(`${TEST_API_URL}/test-dashboard/reviews`, {
-      params: { page, limit }
+    const response = await axios.get(`${API_URL}/reviews`, {
+      params: { page, limit },
+      headers: getAuthHeaders()
     });
-    return response.data.data;
+    return response.data;
   } catch (error) {
     console.error('Error fetching seller reviews:', error);
     throw error;
@@ -166,6 +168,8 @@ export const updateProductStatus = async (productId, status) => {
 
 // Update order status
 export const updateOrderStatus = async (orderId, status) => {
+  console.log(orderId,status);
+  
   try {
     const response = await axios.put(`${API_URL}/orders/${orderId}/status`, 
       { status },

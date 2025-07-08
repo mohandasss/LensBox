@@ -21,11 +21,8 @@ const SellerOrders = () => {
       const response = await getSellerOrders(page, 10);
       console.log('📋 Fetched orders for Orders tab:', response);
       // Map orders to ensure both _id and id are present for each order
-      const mappedOrders = response.orders.map(order => ({
-        ...order,
-        _id: order.id,
-      }));
-      setOrders(mappedOrders);
+      
+      setOrders(response.data);
       setPagination(response.pagination);
       setError(null);
     } catch (error) {
@@ -47,9 +44,9 @@ const SellerOrders = () => {
   };
 
   const handleStatusUpdate = (orderId, newStatus) => {
-    setOrders(prevOrders => 
-      prevOrders.map(order => 
-        order._id === orderId 
+    setOrders(prevOrders =>
+      prevOrders.map(order =>
+        order._id === orderId || order.id === orderId
           ? { ...order, status: newStatus }
           : order
       )
@@ -92,20 +89,23 @@ const SellerOrders = () => {
 
   // Helper function to generate profile picture initials
   const getInitials = (name) => {
+    if (!name) return ""; // Prevent errors if name is undefined/null
     return name
       .split(' ')
+      .filter(Boolean)
       .map(word => word[0])
       .join('')
       .toUpperCase()
       .slice(0, 2);
   };
-
+  
   // Helper function to generate profile picture background color
   const getProfileColor = (name) => {
     const colors = [
       'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-pink-500', 
       'bg-indigo-500', 'bg-yellow-500', 'bg-red-500', 'bg-teal-500'
     ];
+    if (!name) return colors[0]; // Default color if name is missing
     const index = name.length % colors.length;
     return colors[index];
   };
@@ -140,7 +140,7 @@ const SellerOrders = () => {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Order Management</h2>
         <div className="text-sm text-gray-600">
-          Total Orders: <span className="font-semibold">{pagination.totalOrders}</span>
+          Total Orders: <span className="font-semibold">{pagination.total}</span>
         </div>
       </div>
 
@@ -151,9 +151,9 @@ const SellerOrders = () => {
             {/* Left Side - Profile + Customer Info */}
             <div className="flex items-center space-x-3 flex-1 min-w-0">
               {/* Profile Picture */}
-              {order.customerProfilePic ? (
+              {order.customerDetails.profilePic ? (
                 <img 
-                  src={order.customerProfilePic} 
+                  src={order.customerDetails.profilePic} 
                   alt={order.customer}
                   className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
                   onError={(e) => {
@@ -162,44 +162,34 @@ const SellerOrders = () => {
                   }}
                 />
               ) : null}
-              <div className={`w-10 h-10 rounded-full ${getProfileColor(order.customer)} flex items-center justify-center text-white font-semibold text-sm ${order.customerProfilePic ? 'hidden' : ''}`}>
-                {getInitials(order.customer)}
-              </div>
+              
               
               {/* Customer & Product Info */}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">
-                  {order.customer}
+                  {order.customerDetails.fullName
+                  }
                 </p>
                 <p className="text-xs text-gray-500 truncate">
                   {order.product}
                 </p>
-                {order.customerEmail && (
+                {order.user.email && (
                   <p className="text-xs text-gray-400 truncate">
-                    {order.customerEmail}
+                    {order.user.email}
                   </p>
                 )}
               </div>
             </div>
             
-            {/* Center - Amount */}
-            <div className="flex-shrink-0 mx-4">
-              <p className="text-sm font-semibold text-gray-900">
-                ₹{order.amount?.toLocaleString()}
-              </p>
-            </div>
-            
-            {/* Right Side - Status & Date */}
-            <div className="flex-shrink-0 text-right">
-              <div className="mb-2">
-                <OrderStatusUpdater 
-                  order={order} 
-                  onStatusUpdate={handleStatusUpdate}
-                />
+            {/* Total, Status, Date */}
+            <div className="flex flex-col items-end min-w-[120px]">
+              <div className="font-bold text-gray-900">
+                Total: ₹{order.items.reduce((sum, item) => sum + item.amount * item.quantity, 0)}
               </div>
-              <p className="text-xs text-gray-500">
-                {order.date}
-              </p>
+              <div className="mb-1">
+                <OrderStatusUpdater order={order} onStatusUpdate={handleStatusUpdate} />
+              </div>
+              <div className="text-xs text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</div>
             </div>
           </div>
         ))}

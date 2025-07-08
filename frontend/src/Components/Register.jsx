@@ -20,6 +20,10 @@ import {
 import { FaGoogle, FaApple, FaFacebook } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
+import { register } from "../APIs/AuthAPI";
+import { useNotification } from "./NotificationSystem";
+import OtpModal from "./OtpModal";
+import { requestRegisterOtp, verifyRegisterOtp } from "../APIs/AuthAPI";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -48,6 +52,8 @@ const Register = () => {
 
   const navigate = useNavigate();
   const videoRef = useRef(null);
+  const notification = useNotification();
+
   const handleImageUpload = (file) => {
     if (!file) return;
 
@@ -106,12 +112,56 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate submission
-    setTimeout(() => {
+    setOtpError(null);
+    try {
+      // Prepare data for OTP request (exclude image)
+      const otpRequestData = { ...formData };
+      delete otpRequestData.image;
+      // Request OTP
+      await requestRegisterOtp(otpRequestData);
+      setPendingRegistration({ ...formData, imageFile });
+      setShowOtpModal(true);
+    } catch (error) {
+      let msg = "Failed to send OTP. Please try again.";
+      if (error.response && error.response.data && error.response.data.message) {
+        msg = error.response.data.message;
+      }
+      notification.showError("OTP Error", msg);
+    } finally {
       setIsSubmitting(false);
-      alert('Registration successful! (Demo)');
-    }, 2000);
+    }
+  };
+
+  const handleVerifyOtp = async (otp) => {
+    setOtpLoading(true);
+    setOtpError(null);
+    try {
+      // Send all registration fields (except image) along with OTP
+      const verifyData = { ...pendingRegistration };
+      delete verifyData.imageFile;
+      verifyData.otp = otp;
+      await verifyRegisterOtp(verifyData);
+      // Optionally, handle image upload after registration if needed
+      setShowOtpModal(false);
+      notification.showSuccess("Registration successful!", "You can now log in.");
+      setTimeout(() => {
+        navigate("/login");
+      }, 1200);
+    } catch (error) {
+      let msg = "OTP verification failed. Please try again.";
+      if (error.response && error.response.data && error.response.data.message) {
+        msg = error.response.data.message;
+      }
+      setOtpError(msg);
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleCloseOtpModal = () => {
+    setShowOtpModal(false);
+    setPendingRegistration(null);
+    setOtpError(null);
   };
 
   const InputField = ({ icon: Icon, label, name, type = "text", value, onChange, placeholder, showPassword, onTogglePassword }) => (
@@ -531,6 +581,14 @@ const Register = () => {
           </div>
         </div>
       </div>
+      <OtpModal
+        isOpen={showOtpModal}
+        onClose={handleCloseOtpModal}
+        onVerify={handleVerifyOtp}
+        email={pendingRegistration?.email || formData.email}
+        loading={otpLoading}
+        error={otpError}
+      />
     </div>
   );
 };

@@ -18,17 +18,17 @@ const SellerInfo = ({ productId }) => {
       try {
         setLoading(true);
         setError(null);
-        
+
         // Fetch seller info
         const data = await getSellerInfo(productId);
-        
+
         console.log("data", data);
         if (!data || !data.seller) {
           throw new Error('No seller information available');
         }
-        
+
         setSeller(data.seller);
-        
+
         // Fetch seller ratings
       } catch (err) {
         console.error('Error in SellerInfo:', err);
@@ -99,7 +99,7 @@ const SellerInfo = ({ productId }) => {
             <h3 className="text-sm font-semibold text-gray-900 truncate">
               {seller.name || 'Unknown Seller'}
             </h3>
-            
+
             {(seller.averageRating > 0 || seller.totalRatings > 0) && (
               <div className="flex items-center gap-1.5 ml-3 flex-shrink-0">
                 <div className="flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-full">
@@ -114,7 +114,7 @@ const SellerInfo = ({ productId }) => {
               </div>
             )}
           </div>
-          
+
           {seller.error && (
             <p className="text-xs text-red-500 mt-1">{seller.error}</p>
           )}

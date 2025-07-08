@@ -19,7 +19,7 @@ const SellerReviews = () => {
       setLoading(true);
       const response = await getSellerReviews(page, 10);
       console.log('⭐ Fetched reviews:', response);
-      setReviews(response.reviews);
+      setReviews(response.data);
       setPagination(response.pagination);
       setError(null);
     } catch (error) {

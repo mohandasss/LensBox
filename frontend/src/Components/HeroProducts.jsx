@@ -49,18 +49,15 @@ const ProductCard = ({ product }) => {
   }, [hasMultipleImages, currentImageIndex]);
 
   return (
-    <div className="group relative bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 h-full flex flex-col w-full">
+    <div className="group relative bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 h-full flex flex-col w-full min-h-[400px] max-h-[400px]">
       {/* Image Container - Fixed Aspect Ratio */}
-      <div className="relative pb-[100%] bg-gray-100">
+      <div className="relative pb-[66.66%] bg-gray-100 min-h-[220px] max-h-[220px]">
         <div className="absolute inset-0">
           <img
-            src={
-              Array.isArray(product.image)
-                ? product.image[0]
-                : product.image || "https://via.placeholder.com/300"
-            }
+            src={images[currentImageIndex]}
             alt={product.name || "Product"}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-center rounded-t-lg"
+            style={{ minHeight: '220px', maxHeight: '220px' }}
             onError={(e) => {
               e.target.onerror = null;
               e.target.src = "https://via.placeholder.com/300";
@@ -121,9 +118,8 @@ const ProductCard = ({ product }) => {
                     e.stopPropagation();
                     setCurrentImageIndex(index);
                   }}
-                  className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
-                    index === currentImageIndex ? "bg-white w-4" : "bg-white/50"
-                  }`}
+                  className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${index === currentImageIndex ? "bg-white w-4" : "bg-white/50"
+                    }`}
                   aria-label={`View image ${index + 1} of ${images.length}`}
                 />
               ))}
@@ -136,7 +132,7 @@ const ProductCard = ({ product }) => {
         {/* Rating and review count */}
         <div className="flex items-center gap-1 mb-2">
           <div className="flex text-yellow-400">
-            {[1,2,3,4,5].map(star => (
+            {[1, 2, 3, 4, 5].map(star => (
               <FaStar key={star} className={star <= Math.round(product.averageRating || 0) ? '' : 'text-gray-300'} />
             ))}
           </div>
@@ -238,7 +234,7 @@ const HeroProducts = () => {
 
         <div className="relative px-2">
           <div className="overflow-hidden">
-            <div 
+            <div
               ref={containerRef}
               className="flex transition-transform duration-300 ease-in-out pb-4 gap-8"
               style={{ transform: transformValue }}
@@ -256,25 +252,23 @@ const HeroProducts = () => {
       </div>
 
       {/* Navigation Buttons - Close to content box */}
-      <button 
+      <button
         onClick={prevSlide}
         disabled={currentIndex === 0}
-        className={`absolute -left-10 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/80 hover:bg-black text-white flex items-center justify-center shadow-lg transition-all duration-200 ${
-          currentIndex === 0 ? 'opacity-50 cursor-not-allowed' : 'opacity-100 hover:scale-110'
-        }`}
+        className={`absolute -left-10 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/80 hover:bg-black text-white flex items-center justify-center shadow-lg transition-all duration-200 ${currentIndex === 0 ? 'opacity-50 cursor-not-allowed' : 'opacity-100 hover:scale-110'
+          }`}
         aria-label="Previous products"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
       </button>
-      
-      <button 
+
+      <button
         onClick={nextSlide}
         disabled={currentIndex >= products.length - cardsToShow}
-        className={`absolute -right-10 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/80 hover:bg-black text-white flex items-center justify-center shadow-lg transition-all duration-200 ${
-          currentIndex >= products.length - cardsToShow ? 'opacity-50 cursor-not-allowed' : 'opacity-100 hover:scale-110'
-        }`}
+        className={`absolute -right-10 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/80 hover:bg-black text-white flex items-center justify-center shadow-lg transition-all duration-200 ${currentIndex >= products.length - cardsToShow ? 'opacity-50 cursor-not-allowed' : 'opacity-100 hover:scale-110'
+          }`}
         aria-label="Next products"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -306,6 +300,8 @@ export const MostPopularProducts = () => {
     const fetchProducts = async () => {
       try {
         const data = await getMostPopularProducts();
+        console.log(data);
+
         setProducts(data);
       } catch (error) {
         console.error("Error fetching most popular products:", error);
@@ -331,43 +327,75 @@ export const MostPopularProducts = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Most Popular</h2>
-        <div className="flex gap-2">
-          <button
-            onClick={prevSlide}
-            className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 shadow transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={currentIndex === 0}
-            aria-label="Previous"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <button
-            onClick={nextSlide}
-            className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 shadow transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={currentIndex >= Math.max(products.length - cardsToShow, 0)}
-            aria-label="Next"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
-      </div>
+    <div className="relative max-w-7xl mx-auto px-4 py-12">
       <div className="relative">
-        <div
-          className="flex gap-8 transition-transform duration-500"
-          style={{ transform: transformValue }}
-          ref={containerRef}
-        >
-          {products.map((product) => (
-            <ProductCard key={product._id} product={product} />
-          ))}
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-white">Most Polular</h2>
+          <Link
+            to="/products"
+            className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center whitespace-nowrap"
+          >
+            See all
+            <svg
+              className="w-4 h-4 ml-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </Link>
+        </div>
+
+        <div className="relative px-2">
+          <div className="overflow-hidden">
+            <div
+              ref={containerRef}
+              className="flex transition-transform duration-300 ease-in-out pb-4 gap-8"
+              style={{ transform: transformValue }}
+            >
+              {products.map((product) => (
+                <div key={product._id} className="flex-none w-64">
+                  <Link to={`/product/${product._id}`} className="block">
+                    <ProductCard product={product} />
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Navigation Buttons - Close to content box */}
+      <button
+        onClick={prevSlide}
+        disabled={currentIndex === 0}
+        className={`absolute -left-10 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white hover:bg-black text-black flex items-center justify-center shadow-lg transition-all duration-200 ${currentIndex === 0 ? 'opacity-50 cursor-not-allowed' : 'opacity-100 hover:scale-110'
+          }`}
+        aria-label="Previous products"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+
+      <button
+        onClick={nextSlide}
+        disabled={currentIndex >= products.length - cardsToShow}
+        className={`absolute -right-10 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white hover:bg-black text-black flex items-center justify-center shadow-lg transition-all duration-200 ${currentIndex >= products.length - cardsToShow ? 'opacity-50 cursor-not-allowed' : 'opacity-100 hover:scale-110'
+          }`}
+        aria-label="Next products"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
     </div>
   );
 };

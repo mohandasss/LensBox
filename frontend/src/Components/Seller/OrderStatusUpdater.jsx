@@ -28,14 +28,14 @@ const OrderStatusUpdater = ({ order, onStatusUpdate }) => {
 
     setIsUpdating(true);
     try {
-      const response = await updateOrderStatus(order.id, newStatus);
-      
+      const response = await updateOrderStatus(order._id, newStatus);
+
       if (response.success) {
         showSuccess(
-          'Status Updated', 
+          'Status Updated',
           `Order status changed to ${newStatus}. Email notification sent to customer.`
         );
-        
+
         // Call the parent callback to update the order in the list
         if (onStatusUpdate) {
           onStatusUpdate(order._id, newStatus);
@@ -46,7 +46,7 @@ const OrderStatusUpdater = ({ order, onStatusUpdate }) => {
     } catch (error) {
       console.error('Error updating order status:', error);
       showError(
-        'Update Failed', 
+        'Update Failed',
         error.response?.data?.message || 'Failed to update order status'
       );
     } finally {
@@ -97,7 +97,7 @@ const OrderStatusUpdater = ({ order, onStatusUpdate }) => {
               nextValidStatuses.map((status) => {
                 const option = statusOptions.find(opt => opt.value === status);
                 const OptionIcon = option.icon;
-                
+
                 return (
                   <button
                     key={status}
@@ -125,8 +125,8 @@ const OrderStatusUpdater = ({ order, onStatusUpdate }) => {
 
       {/* Backdrop to close dropdown */}
       {isOpen && (
-        <div 
-          className="fixed inset-0 z-40" 
+        <div
+          className="fixed inset-0 z-40"
           onClick={() => setIsOpen(false)}
         />
       )}

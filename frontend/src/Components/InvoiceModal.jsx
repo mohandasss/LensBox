@@ -4,7 +4,7 @@ import { downloadInvoice } from '../APIs/OrderAPI';
 
 const InvoiceModal = ({ isOpen, onClose, order }) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  
+
   if (!isOpen) return null;
 
   const handleDownload = async () => {
