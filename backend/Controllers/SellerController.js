@@ -59,8 +59,9 @@ const getSellerDashboardStats = async (req, res) => {
         const itemProductId = item.productId?._id?.toString?.() || item.productId?.toString?.();
         if (itemProductId && productIds.map(id=>id.toString()).includes(itemProductId)) {
           const amt = typeof item.amount === 'number' ? item.amount : parseFloat(item.amount) || 0;
-          currentRevenue += amt;
-          currentOrderCount += item.quantity || 0;
+          const qty = item.quantity || 1;
+          currentRevenue += amt * qty;
+          currentOrderCount += qty;
         }
       });
     });
@@ -72,8 +73,9 @@ const getSellerDashboardStats = async (req, res) => {
         const itemProductId = item.productId?._id?.toString?.() || item.productId?.toString?.();
         if (itemProductId && productIds.map(id=>id.toString()).includes(itemProductId)) {
           const amt = typeof item.amount === 'number' ? item.amount : parseFloat(item.amount) || 0;
-          previousRevenue += amt;
-          previousOrderCount += item.quantity || 0;
+          const qty = item.quantity || 1;
+          previousRevenue += amt * qty;
+          previousOrderCount += qty;
         }
       });
     });
@@ -81,10 +83,11 @@ const getSellerDashboardStats = async (req, res) => {
     const totalProducts = products.length;
     const newProducts = products.filter(p => p.createdAt >= thirtyDaysAgo).length;
     const previousProducts = products.filter(p => p.createdAt >= sixtyDaysAgo && p.createdAt < thirtyDaysAgo).length;
-    // Rating
-    const seller = await User.findById(sellerId);
-    const averageRating = seller?.avgRating || 0;
-    // For rating change, you may need to implement historical rating tracking. For now, set to 0.
+    // Rating: calculate average for current and previous 30 days
+    const currentReviews = await Review.find({ seller: sellerId, createdAt: { $gte: thirtyDaysAgo } });
+    const previousReviews = await Review.find({ seller: sellerId, createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo } });
+    const avgRatingCurrent = currentReviews.length > 0 ? (currentReviews.reduce((sum, r) => sum + r.rating, 0) / currentReviews.length) : 0;
+    const avgRatingPrevious = previousReviews.length > 0 ? (previousReviews.reduce((sum, r) => sum + r.rating, 0) / previousReviews.length) : 0;
     // Calculate percentage changes
     const calculateChange = (current, previous) => {
       if (!previous || previous === 0) return current > 0 ? 100 : 0;
@@ -104,8 +107,8 @@ const getSellerDashboardStats = async (req, res) => {
         change: calculateChange(currentOrderCount, previousOrderCount)
       },
       rating: {
-        total: averageRating,
-        change: 0 // Needs historical data for real change
+        total: avgRatingCurrent,
+        change: calculateChange(avgRatingCurrent, avgRatingPrevious)
       }
     };
     res.json({
@@ -171,7 +174,7 @@ const getSellerOrders = async (req, res) => {
     const orders = await Order.find({
       'items.productId': { $in: productIds }
     })
-    .populate('user', 'name email')
+    .populate('user', 'name email profilePic') // <-- Add profilePic here
     .populate('items.productId', 'name price')
     .sort({ createdAt: -1 })
     .skip(skip)
@@ -182,9 +185,21 @@ const getSellerOrders = async (req, res) => {
       const sellerItems = order.items.filter(item => 
         productIds.some(id => id.toString() === item.productId._id.toString())
       );
-      
+      // Build customerDetails with profilePic
+      const customerDetails = {
+        fullName: order.customerDetails?.fullName || order.user?.name || '',
+        phone: order.customerDetails?.phone || '',
+        addressLine1: order.customerDetails?.addressLine1 || '',
+        addressLine2: order.customerDetails?.addressLine2 || '',
+        city: order.customerDetails?.city || '',
+        state: order.customerDetails?.state || '',
+        country: order.customerDetails?.country || '',
+        zipCode: order.customerDetails?.zipCode || '',
+        profilePic: order.user?.profilePic || '' // <-- Add profilePic here
+      };
       return {
         ...order.toObject(),
+        customerDetails, // <-- Overwrite with new customerDetails
         items: sellerItems,
         total: sellerItems.reduce((sum, item) => sum + item.amount, 0)
       };
@@ -220,32 +235,43 @@ const getSellerOrders = async (req, res) => {
 // Get seller's reviews (placeholder)
 const getSellerReviews = async (req, res) => {
   try {
-    // This would typically come from a reviews collection
-    // For now, return mock data
-    const mockReviews = [
-      {
-        id: 1,
-        customer: "John Doe",
-        product: "Canon EOS R5",
-        rating: 5,
-        comment: "Excellent camera quality!",
-        date: "2024-01-15"
-      },
-      {
-        id: 2,
-        customer: "Jane Smith", 
-        product: "Sony FX3",
-        rating: 4,
-        comment: "Good performance, fast delivery",
-        date: "2024-01-10"
-      }
-    ];
-    
+    const sellerId = req.user.userId;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    // Find reviews for this seller
+    const reviews = await Review.find({ seller: sellerId })
+      .populate('user', 'name email profilePic')
+      .populate('product', 'name')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    const totalReviews = await Review.countDocuments({ seller: sellerId });
+    const totalPages = Math.ceil(totalReviews / limit);
+    // Format reviews for frontend
+    const formattedReviews = reviews.map(r => ({
+      id: r._id,
+      user: r.user?.name || 'Unknown',
+      userEmail: r.user?.email || '',
+      userProfilePic: r.user?.profilePic || '',
+      product: r.product?.name || 'Unknown',
+      rating: r.rating,
+      comment: r.comment,
+      date: r.createdAt.toLocaleDateString(),
+      timeAgo: r.createdAt.toLocaleTimeString()
+    }));
+    console.log('Formatted reviews:', formattedReviews);
     res.json({
       success: true,
-      data: mockReviews
+      data: formattedReviews,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalReviews,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      }
     });
-    
   } catch (error) {
     console.error("Error fetching seller reviews:", error);
     res.status(500).json({
@@ -260,34 +286,54 @@ const getSellerReviews = async (req, res) => {
 const getSellerAnalytics = async (req, res) => {
   try {
     const sellerId = req.user.userId;
-    
     // Get seller's products
     const products = await Product.find({ seller: sellerId });
     const productIds = products.map(p => p._id);
-    
     // Get orders for analytics
     const orders = await Order.find({
       'items.productId': { $in: productIds }
     }).populate('items.productId');
-    
-    // Generate analytics data
+    // Calculate total revenue and total orders
+    let totalRevenue = 0;
+    let totalOrders = 0;
+    let totalQuantity = 0;
+    const productSales = {};
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        if (productIds.some(id => id.toString() === item.productId._id.toString())) {
+          const amt = typeof item.amount === 'number' ? item.amount : parseFloat(item.amount) || 0;
+          const qty = item.quantity || 1;
+          totalRevenue += amt * qty;
+          totalQuantity += qty;
+          // Track sales per product for topProducts
+          const prodName = item.productId.name || 'Unknown';
+          if (!productSales[prodName]) productSales[prodName] = { sales: 0, revenue: 0 };
+          productSales[prodName].sales += qty;
+          productSales[prodName].revenue += amt * qty;
+        }
+      });
+      totalOrders += 1;
+    });
+    // Calculate average order value
+    const averageOrderValue = totalOrders > 0 ? (totalRevenue / totalOrders) : 0;
+    // Top products by sales
+    const topProducts = Object.entries(productSales)
+      .map(([name, stats]) => ({ name, ...stats }))
+      .sort((a, b) => b.sales - a.sales)
+      .slice(0, 3);
+    // Dummy monthly growth for now
+    const monthlyGrowth = 0;
     const analytics = {
-      totalRevenue: 42000,
-      totalOrders: 156,
-      averageOrderValue: 269,
-      topProducts: [
-        { name: "Canon EOS R5", sales: 25, revenue: 12500 },
-        { name: "Sony FX3", sales: 18, revenue: 9000 },
-        { name: "Nikon Z6 II", sales: 15, revenue: 7500 }
-      ],
-      monthlyGrowth: 12.5
+      totalRevenue,
+      totalOrders,
+      averageOrderValue,
+      topProducts,
+      monthlyGrowth
     };
-    
     res.json({
       success: true,
       data: analytics
     });
-    
   } catch (error) {
     console.error("Error fetching seller analytics:", error);
     res.status(500).json({
@@ -420,7 +466,7 @@ const getSellerRecentOrders = async (req, res) => {
     const orders = await Order.find({
       'items.productId': { $in: productIds }
     })
-    .populate('user', 'name')
+    .populate('user', 'name email profilePic')
     .populate('items.productId', 'name')
     .sort({ createdAt: -1 })
     .limit(limit);
@@ -430,11 +476,15 @@ const getSellerRecentOrders = async (req, res) => {
       const sellerItems = order.items.filter(item => 
         productIds.some(id => id.toString() === item.productId._id.toString())
       );
-      
+      const totalAmount = sellerItems.reduce((sum, item) => sum + (item.amount * (item.quantity || 1)), 0);
+      const totalQuantity = sellerItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
       return {
         id: order._id.toString(),
         customer: order.user.name,
-        amount: sellerItems.reduce((sum, item) => sum + item.amount, 0),
+        customerProfilePic: order.user.profilePic || '',
+        customerEmail: order.user.email || '',
+        amount: totalAmount,
+        quantity: totalQuantity,
         status: order.status || 'confirmed',
         date: order.createdAt.toLocaleDateString()
       };

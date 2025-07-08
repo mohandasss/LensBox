@@ -1,48 +1,52 @@
 const router = require("express").Router();
-const { 
-  addProduct, 
-  updateProduct, 
-  deleteProduct,
-  searchProducts, 
-  searchSuggestions,
-  getProductById, 
-  getAllProducts, 
-  getProductsByCategory,
-  addBulkProducts,
-  getSellerInfo,
-  getRelatedProducts,
-  toggleProductActive,
-  getProductNames,
-  getMostPopularProducts
+const {    
+   addProduct,
+   updateProduct,
+   deleteProduct,
+   searchProducts,
+   searchSuggestions,
+   getProductById,
+   getAllProducts,
+   getProductsByCategory,
+   addBulkProducts,
+   getSellerInfo,
+   getRelatedProducts,
+   toggleProductActive,
+   getProductNames,
+   getMostPopularProducts,
+   getTopTenProductsBySalesCount  // Added this in main destructuring
 } = require("../Controllers/ProductController");
 
 const { authMiddleware, isSeller } = require("../middlewares/AuthMiddleware");
 
-router.post("/", authMiddleware, isSeller, addProduct);
-router.put("/:id", authMiddleware,  updateProduct);
-router.delete("/:id", authMiddleware, deleteProduct);
-router.get("/:id", getProductById);
-router.get("/", getAllProducts);
-router.get("/category/:categoryId", getProductsByCategory);
+// IMPORTANT: Static routes MUST come before dynamic routes
+// Static routes (exact matches)
+router.get("/names", getProductNames);
+router.get("/suggestions", searchSuggestions);
+router.get("/popular", getMostPopularProducts);
+router.get("/top-sales", getTopTenProductsBySalesCount);  // Fixed: moved before /:id
+
+// Search route
 router.post("/search", searchProducts);
 
 // Bulk product creation endpoint
 router.post("/bulk", authMiddleware, addBulkProducts);
 
-// Get seller information by product ID
-router.get("/:productId/seller", getSellerInfo);
+// Main CRUD routes
+router.post("/", authMiddleware, isSeller, addProduct);
+router.get("/", getAllProducts);
 
-// Add related products endpoint
-router.get("/:productId/related", getRelatedProducts);
-
+// Dynamic routes MUST come after static routes
+router.get("/:id", getProductById);
+router.put("/:id", authMiddleware, updateProduct);
+router.delete("/:id", authMiddleware, deleteProduct);
 router.patch("/:id/toggle-active", authMiddleware, isSeller, toggleProductActive);
 
-// Place this before any dynamic :id routes
-router.get("/names", getProductNames);
+// Routes with specific parameters
+router.get("/category/:categoryId", getProductsByCategory);
+router.get("/:productId/seller", getSellerInfo);
+router.get("/:productId/related", getRelatedProducts);
 
-// Search suggestions endpoint
-router.get("/suggestions", searchSuggestions);
-
-router.get("/popular", getMostPopularProducts);
+console.log('ProductRoutes loaded');
 
 module.exports = router;

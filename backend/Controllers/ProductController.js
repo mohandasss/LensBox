@@ -6,6 +6,7 @@ const axios = require('axios');
 const { Readable } = require('stream');
 const Review = require('../Models/Review');
 const { sendStockNotifications } = require('./StockNotificationController');
+const { log } = require("console");
 
 // Function to upload image from URL to Cloudinary
 const uploadFromUrl = async (imageUrl) => {
@@ -1360,17 +1361,93 @@ const getProductNames = async (req, res) => {
 
 const getMostPopularProducts = async (req, res) => {
   try {
+    console.log(req.query);
     const limit = parseInt(req.query.limit) || 7;
+    
+    
     // Sort by salesCount descending, then by createdAt descending for tie-breaker
     const products = await Product.find({ active: true })
       .sort({ salesCount: -1, createdAt: -1 })
       .limit(limit);
+    if (!products || products.length === 0) {
+      return res.status(404).json({ success: false, message: 'No popular products found' });
+    }
     res.status(200).json({
       success: true,
       data: products
     });
   } catch (error) {
+    console.error('Error in getMostPopularProducts:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch most popular products', error: error.message });
+  }
+};
+
+// Get top 10 products by salesCount (high to low)
+const getTopTenProductsBySalesCount = async (req, res) => {
+  console.log('getTopTenProductsBySalesCount called');
+  try {
+    console.log('Querying for active products...');
+    
+    // Add proper validation and error handling
+    const products = await Product.find({ 
+      active: true,
+      salesCount: { $exists: true, $gte: 0 } // Ensure salesCount field exists
+    })
+    .select('name price description image category stock seller salesCount averageRating reviewCount sku') // Select only needed fields
+    .sort({ salesCount: -1 })
+    .limit(10)
+    .populate('category', 'name') // Populate category if needed
+    .populate('seller', 'name email') // Populate seller if needed
+    .lean(); // Use lean() for better performance
+
+    console.log('Query result:', products);
+    
+    // Check if products exist
+    if (!products || products.length === 0) {
+      console.log('No products found');
+      return res.status(200).json({ 
+        success: true, 
+        message: 'No products found',
+        data: []
+      });
+    }
+
+    console.log(`Found ${products.length} products`);
+    
+    // Return success response
+    res.status(200).json({
+      success: true,
+      count: products.length,
+      message: 'Top products fetched successfully',
+      data: products
+    });
+
+  } catch (error) {
+    console.error('Error in getTopTenProductsBySalesCount:', error);
+    
+    // More detailed error handling
+    if (error.name === 'CastError') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid query parameters',
+        error: error.message 
+      });
+    }
+    
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Data validation error',
+        error: error.message 
+      });
+    }
+
+    // Generic server error
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch top products', 
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
 };
 
@@ -1396,8 +1473,8 @@ module.exports = {
   getRelatedProducts,
   toggleProductActive,
   getProductNames,
-  getMostPopularProducts
+  getMostPopularProducts,
+  getTopTenProductsBySalesCount
 };
-
 // Bulk product creation function
 
