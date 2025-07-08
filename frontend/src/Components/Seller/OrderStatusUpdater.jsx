@@ -20,7 +20,7 @@ const OrderStatusUpdater = ({ order, onStatusUpdate }) => {
 
   const handleStatusUpdate = async (newStatus) => {
     console.log('newStatus', newStatus);
-    console.log('order.status', order.id);
+    console.log('order.status', order._id);
     if (newStatus === order.status) {
       setIsOpen(false);
       return;
@@ -29,6 +29,8 @@ const OrderStatusUpdater = ({ order, onStatusUpdate }) => {
     setIsUpdating(true);
     try {
       const response = await updateOrderStatus(order._id, newStatus);
+      console.log(order);
+      
 
       if (response.success) {
         showSuccess(
@@ -38,7 +40,7 @@ const OrderStatusUpdater = ({ order, onStatusUpdate }) => {
 
         // Call the parent callback to update the order in the list
         if (onStatusUpdate) {
-          onStatusUpdate(order._id, newStatus);
+          onStatusUpdate(order._id || order.id, newStatus);
         }
       } else {
         showError('Update Failed', response.message || 'Failed to update order status');

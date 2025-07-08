@@ -35,7 +35,7 @@ const StatsCard = ({ icon: Icon, title, value, change, prefix = '', suffix = '',
       {change && (
         <div className={`flex items-center space-x-1 text-sm ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
           {trend === 'up' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
-          <span>{change}%</span>
+          <span>{Number(change).toFixed(1)}%</span>
         </div>
       )}
     </div>

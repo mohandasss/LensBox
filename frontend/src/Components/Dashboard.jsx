@@ -156,28 +156,28 @@ const Dashboard = () => {
         <StatCard
           title="Total Revenue"
           value={revenue?.total}
-          change={revenue?.change}
+          change={revenue?.change !== undefined ? Number(revenue.change).toFixed(1) : '0.0'}
           icon={DollarSign}
           color="bg-violet-500"
         />
         <StatCard
           title="Total Orders"
           value={orders?.total}
-          change={orders?.change}
+          change={orders?.change !== undefined ? Number(orders.change).toFixed(1) : '0.0'}
           icon={ShoppingCart}
           color="bg-blue-500"
         />
         <StatCard
           title="Total Products"
           value={products?.total}
-          change={products?.change}
+          change={products?.change !== undefined ? Number(products.change).toFixed(1) : '0.0'}
           icon={Package2} 
           color="bg-green-500"
         />
         <StatCard
           title="Active Users"
           value={users?.total}
-          change={users?.change}
+          change={users?.change !== undefined ? Number(users.change).toFixed(1) : '0.0'}
           icon={UserCheck}
           color="bg-orange-500"
         />

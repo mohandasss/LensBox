@@ -82,7 +82,7 @@ const ProductPerformance = ({ data = [] }) => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
-                      <span className="text-sm text-gray-900">{product.rating}</span>
+                      <span className="text-sm text-gray-900">{product.rating !== undefined ? Number(product.rating).toFixed(1) : '0.0'}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

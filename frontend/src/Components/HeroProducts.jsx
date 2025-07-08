@@ -333,7 +333,7 @@ export const MostPopularProducts = () => {
           <h2 className="text-2xl font-bold text-white">Most Polular</h2>
           <Link
             to="/products"
-            className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center whitespace-nowrap"
+            className="text-white hover:text-indigo-800 text-sm font-medium flex items-center whitespace-nowrap"
           >
             See all
             <svg
@@ -376,7 +376,7 @@ export const MostPopularProducts = () => {
       <button
         onClick={prevSlide}
         disabled={currentIndex === 0}
-        className={`absolute -left-10 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white hover:bg-black text-black flex items-center justify-center shadow-lg transition-all duration-200 ${currentIndex === 0 ? 'opacity-50 cursor-not-allowed' : 'opacity-100 hover:scale-110'
+        className={`absolute -left-10 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white hover:bg-gray-400 text-black flex items-center justify-center shadow-lg transition-all duration-200 ${currentIndex === 0 ? 'opacity-50 cursor-not-allowed' : 'opacity-100 hover:scale-110'
           }`}
         aria-label="Previous products"
       >
@@ -388,7 +388,7 @@ export const MostPopularProducts = () => {
       <button
         onClick={nextSlide}
         disabled={currentIndex >= products.length - cardsToShow}
-        className={`absolute -right-10 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white hover:bg-black text-black flex items-center justify-center shadow-lg transition-all duration-200 ${currentIndex >= products.length - cardsToShow ? 'opacity-50 cursor-not-allowed' : 'opacity-100 hover:scale-110'
+        className={`absolute -right-10 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white hover:bg-gray-400 text-black flex items-center justify-center shadow-lg transition-all duration-200 ${currentIndex >= products.length - cardsToShow ? 'opacity-50 cursor-not-allowed' : 'opacity-100 hover:scale-110'
           }`}
         aria-label="Next products"
       >

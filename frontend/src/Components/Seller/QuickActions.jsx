@@ -20,6 +20,16 @@ const QuickActions = ({ onTabChange }) => {
   const [images, setImages] = useState([]);
   const [imagePreview, setImagePreview] = useState([]);
 
+  // Remove image by index
+  const handleRemoveImage = (index) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+    setImagePreview(prev => {
+      // Clean up the object URL to prevent memory leaks
+      URL.revokeObjectURL(prev[index]);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
   const actions = [
     {
       icon: Plus,
@@ -66,11 +76,11 @@ const QuickActions = ({ onTabChange }) => {
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    setImages(files);
+    setImages(prev => [...prev, ...files]);
     
-    // Create preview URLs
+    // Create preview URLs and append
     const previews = files.map(file => URL.createObjectURL(file));
-    setImagePreview(previews);
+    setImagePreview(prev => [...prev, ...previews]);
   };
 
   const handleCloseModal = () => {
@@ -223,6 +233,7 @@ const QuickActions = ({ onTabChange }) => {
                   />
                   <button
                     type="button"
+                    onClick={() => handleRemoveImage(index)}
                     className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-red-600 shadow-lg"
                   >
                     <X className="w-3 h-3" />
