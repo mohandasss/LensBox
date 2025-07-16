@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import { loadRazorpay } from "../utils/razorpay";
 import { clearCart } from "../APIs/CartAPI";
 import { useNotification } from "../Components/NotificationSystem";
+import config from "../Components/secretfront";
 const CartPage = () => {
   const { showCartNotification, showError, showSuccess } = useNotification();
   const [cartItems, setCartItems] = useState([]);
@@ -172,7 +173,7 @@ const CartPage = () => {
       }
 
       const options = {
-        key: 'rzp_test_eH00x9FPKVU1eq', // Replace with your Razorpay key
+        key: config.RAZORPAY_KEY_ID, // Use env variable
         amount: orderData.amount.toString(),
         currency: orderData.currency,
         name: 'LensBox',
