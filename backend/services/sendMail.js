@@ -1,13 +1,11 @@
 // services/sendMail.js
 const transporter = require('../Config/mailer');
-const secret = require('../secret');
 const Order = require('../Models/orderModel');
 const { getEmailHeader, getEmailFooter } = require('./emailTemplates');
 
-
 const sendMail = async ({ to, subject, text, html, attachments }) => {
   const mailOptions = {
-    from: `"LensBox" <${secret.MAIL_USER}>`,
+    from: `"LensBox" <${process.env.MAIL_USER}>`,
     to,
     subject,
     text,

@@ -1,7 +1,7 @@
 const ollama = require("../Config/ollama");
 const fs = require("fs");
 const path = require("path");
-const secret = require("../secret");
+
 exports.handleChat = async (req, res) => {
   const userInput = req.body.message;
   console.log(userInput);
@@ -12,7 +12,7 @@ exports.handleChat = async (req, res) => {
 
     // Chat-style message format (better for user/system separation)
     const ollamaRes = await ollama.post("", {
-      model: secret.OLLAMA_MODEL || "phi",
+      model: process.env.OLLAMA_MODEL || "phi",
       messages: [
         {
           role: "system",

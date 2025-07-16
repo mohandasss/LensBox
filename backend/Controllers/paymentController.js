@@ -4,15 +4,14 @@ const crypto = require("crypto");
 const Order = require("../Models/orderModel");
 const tempOrderModel = require("../Models/tempOrderModel");
 const Product = require("../Models/Products");
-const secret = require("../secret");
 const { sendPurchaseConfirmationEmail } = require('../services/sendMail');
 const { generateInvoicePDFBuffer } = require('./InvoiceController');
 const { sendStockNotifications } = require('./StockNotificationController');
 const axios = require('axios');
 
 const instance = new Razorpay({
-  key_id: secret.RAZORPAY_KEY_ID,
-  key_secret: secret.RAZORPAY_KEY_SECRET,
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
 const createOrder = async (req, res) => {
@@ -107,7 +106,7 @@ const verifyAndCreateOrder = async (req, res) => {
 
     // Create expected signature
     const expectedSignature = crypto
-      .createHmac("sha256", secret.RAZORPAY_KEY_SECRET)
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest("hex");
 
