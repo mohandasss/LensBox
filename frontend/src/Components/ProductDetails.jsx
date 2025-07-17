@@ -131,7 +131,7 @@ const ProductDetails = ({ product }) => {
       }
     } catch (error) {
       console.error("Error handling stock notification:", error);
-      const errorMessage = error.response?.data?.message || "Failed to update notification preference";
+      const errorMessage = error.response?.data?.message || "Failed to update notification preference";-
       showError("Notification Error", errorMessage);
     } finally {
       setIsSubscribing(false);
