@@ -53,6 +53,7 @@ const Register = () => {
   const navigate = useNavigate();
   const videoRef = useRef(null);
   const notification = useNotification();
+  const BACKEND_BASE_API = process.env.REACT_APP_BACKEND_BASE_API;
 
   const handleImageUpload = (file) => {
     if (!file) return;
@@ -543,7 +544,7 @@ const Register = () => {
                   </div>
                 </div>
                 <div className="flex justify-center space-x-4">
-                  <a href="http://localhost:5000/api/auth/google">
+                  <a href={`${BACKEND_BASE_API}auth/google`}>
                     <button
                       type="button"
                       className="p-3 rounded-xl border border-gray-300 hover:border-gray-400 bg-white hover:bg-gray-50 transition-all duration-300 transform hover:scale-110"

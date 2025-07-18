@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useState, useEffect, useCallback, useMemo, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import config from "../secretfront";
+
 import { paymentConfirmation } from "../../APIs/SubscriberAPI";
 import {
   XMarkIcon,

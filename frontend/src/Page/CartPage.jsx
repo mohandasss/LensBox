@@ -173,7 +173,7 @@ const CartPage = () => {
       }
 
       const options = {
-        key: config.RAZORPAY_KEY_ID, // Use env variable
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Use env variable
         amount: orderData.amount.toString(),
         currency: orderData.currency,
         name: 'LensBox',

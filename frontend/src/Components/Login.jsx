@@ -8,6 +8,8 @@ import { useNotification } from "./NotificationSystem";
 import OtpModal from "./OtpModal";
 import PasswordResetModal from "./PasswordResetModal";
 
+const BACKEND_BASE_API = process.env.REACT_APP_BACKEND_BASE_API;
+
 const Login = () => {
   const { showSuccess, showError, showProfileNotification } = useNotification();
   const [email, setEmail] = useState("");
@@ -305,7 +307,7 @@ const Login = () => {
 
               {/* Social Login */}
               <div className="flex justify-center space-x-4">
-                <Link to="http://localhost:5000/api/auth/google">
+                <Link to={`${BACKEND_BASE_API}auth/google`}>
                   <button
                     type="button"
                     className="p-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-300 transform hover:scale-110 active:scale-95"
