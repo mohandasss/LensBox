@@ -19,5 +19,5 @@ __pycache__/
 *.pyc
 
 # Optional
-package-lock.json
+
 LensBox.git/
