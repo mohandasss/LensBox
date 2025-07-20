@@ -115,8 +115,12 @@ app.get("/", (req, res) => {
   res.send("Hello, world!");
 });
 
-// Server Listener
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  res.send("Server is running");
-});
+// Only start the server if not running in Vercel (i.e., not in a serverless environment)
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
+
+module.exports = app;
