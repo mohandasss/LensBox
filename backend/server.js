@@ -69,7 +69,10 @@ connectDB();
 // CORS Configuration
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "https://frontend-6f00pf2nf-bwumca24133-5151s-projects.vercel.app",
+    origin: [
+      "https://frontend-eight-omega-86.vercel.app",
+      "https://frontend-6f00pf2nf-bwumca24133-5151s-projects.vercel.app"
+    ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
   })
