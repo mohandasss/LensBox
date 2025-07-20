@@ -856,7 +856,7 @@ router.put("/test-dashboard/orders/:orderId/status", async (req, res) => {
                 </div>
                 
                 <div style="text-align: center; margin-top: 30px;">
-                  <a href="http://localhost:3000/orders" style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; display: inline-block; font-weight: bold;">
+                  <a href="${process.env.REACT_APP_FRONTEND_BASE_API || 'http://localhost:3000'}/orders" style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; display: inline-block; font-weight: bold;">
                     View Order Details
                   </a>
                 </div>

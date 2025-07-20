@@ -95,11 +95,11 @@ const getEmailFooter = () => `
             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
               <tr>
                 <td style="padding: 0 0 15px 0;">
-                  <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}" style="color: #ffffff; text-decoration: none; margin: 0 10px; display: inline-block;">Shop</a>
+                  <a href="${process.env.REACT_APP_FRONTEND_BASE_API || 'http://localhost:3000'}" style="color: #ffffff; text-decoration: none; margin: 0 10px; display: inline-block;">Shop</a>
                   <span style="color: #666666; margin: 0 5px;">|</span>
-                  <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}/about" style="color: #ffffff; text-decoration: none; margin: 0 10px; display: inline-block;">About Us</a>
+                  <a href="${process.env.REACT_APP_FRONTEND_BASE_API || 'http://localhost:3000'}/about" style="color: #ffffff; text-decoration: none; margin: 0 10px; display: inline-block;">About Us</a>
                   <span style="color: #666666; margin: 0 5px;">|</span>
-                  <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}/contact" style="color: #ffffff; text-decoration: none; margin: 0 10px; display: inline-block;">Contact</a>
+                  <a href="${process.env.REACT_APP_FRONTEND_BASE_API || 'http://localhost:3000'}/contact" style="color: #ffffff; text-decoration: none; margin: 0 10px; display: inline-block;">Contact</a>
                 </td>
               </tr>
               <tr>
@@ -110,9 +110,9 @@ const getEmailFooter = () => `
               <tr>
                 <td style="color: #888888; padding: 0; font-size: 12px; line-height: 1.5;">
                   You're receiving this email because you signed up for updates from LensBox.<br>
-                  <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}/unsubscribe" style="color: #aaaaaa; text-decoration: underline;">Unsubscribe</a> 
+                  <a href="${process.env.REACT_APP_FRONTEND_BASE_API || 'http://localhost:3000'}/unsubscribe" style="color: #aaaaaa; text-decoration: underline;">Unsubscribe</a> 
                   <span style="color: #666666; margin: 0 5px;">|</span>
-                  <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}/preferences" style="color: #aaaaaa; text-decoration: underline;">Email Preferences</a>
+                  <a href="${process.env.REACT_APP_FRONTEND_BASE_API || 'http://localhost:3000'}/preferences" style="color: #aaaaaa; text-decoration: underline;">Email Preferences</a>
                 </td>
               </tr>
             </table>

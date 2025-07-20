@@ -62,7 +62,7 @@ const googleCallback = async (req, res) => {
     });
 
     // 5. Redirect to frontend with token (or return JSON)
-    res.redirect(`http://localhost:3000?token=${token}`);
+    res.redirect(`${process.env.REACT_APP_FRONTEND_BASE_API || 'http://localhost:3000'}?token=${token}`);
     // Or: res.json({ token, user });
 
   } catch (err) {

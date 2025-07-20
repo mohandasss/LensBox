@@ -238,7 +238,7 @@ const sendStockNotifications = async (productId) => {
                 </div>
                 
                 <div style="text-align: center; margin-top: 30px;">
-                  <a href="http://localhost:3000/product/${product._id}" style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; display: inline-block; font-weight: bold;">
+                  <a href="${process.env.REACT_APP_FRONTEND_BASE_API || 'http://localhost:3000'}/product/${product._id}" style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; display: inline-block; font-weight: bold;">
                     Rent Now
                   </a>
                 </div>

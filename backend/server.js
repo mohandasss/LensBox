@@ -63,7 +63,7 @@ connectDB();
 // CORS Configuration
 app.use(
   cors({
-    origin: "http://localhost:3000", // Allow only requests from localhost:3000
+    origin: process.env.REACT_APP_FRONTEND_BASE_API || "http://localhost:3000", // Allow only requests from frontend
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"], // Allowed HTTP methods
     credentials: true, // Allow cookies
   })
