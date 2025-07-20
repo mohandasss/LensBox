@@ -49,8 +49,13 @@ const startOllama = () => {
   return ollama;
 };
 
-// Start the Ollama server
-const ollamaProcess = startOllama();
+// Only start Ollama in development environment and not in production or serverless environments
+if (process.env.NODE_ENV !== 'production' && require.main === module) {
+  console.log("Starting Ollama in development mode");
+  startOllama();
+} else {
+  console.log("Skipping Ollama in production environment");
+}
 const googleLoginRoutes = require('./Routes/googleLogin.js');
 
 const passport = require('passport');
@@ -80,16 +85,6 @@ app.use(
     limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size (5MB)
   })
 );
-
-// Conditionally start Ollama only in development
-// Only start Ollama in development environment
-if (process.env.NODE_ENV !== 'production') {
-  console.log("Starting Ollama in development mode");
-  startOllama();
-} else {
-  console.log("Skipping Ollama in production environment");
-}
-
 
 
 app.use(session({
