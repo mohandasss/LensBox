@@ -59,7 +59,7 @@ const SellerProducts = () => {
     
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/products/${productToDelete._id}`, {
+      await axios.delete(`${process.env.REACT_APP_BACKEND_BASE_API}/api/products/${productToDelete._id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setProducts(products.filter(p => p._id !== productToDelete._id));
@@ -75,7 +75,7 @@ const SellerProducts = () => {
   const handleToggleActive = async (productId) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.patch(`http://localhost:5000/api/products/${productId}/toggle-active`, {}, {
+      const res = await axios.patch(`${process.env.REACT_APP_BACKEND_BASE_API}/api/products/${productId}/toggle-active`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setProducts(products.map(p => p._id === productId ? { ...p, active: res.data.active } : p));

@@ -37,7 +37,7 @@ const PreferenceSearch = ({ onSearch, initialCategory = "all", initialSearch = "
 
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/products/suggestions?q=${encodeURIComponent(query)}`,
+          `${process.env.REACT_APP_BACKEND_BASE_API}/api/products/suggestions?q=${encodeURIComponent(query)}`,
           {
             headers: {
               'Content-Type': 'application/json',

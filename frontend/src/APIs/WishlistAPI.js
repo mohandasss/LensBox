@@ -1,6 +1,6 @@
 import axios from "axios";
 import {getProduct} from "./ProductAPI";
-const API_URL = "http://localhost:5000/api/wishlist";
+const API_URL = `${process.env.REACT_APP_BACKEND_BASE_API}/api/wishlist`;
 
 // Create axios instance with default config
 const axiosInstance = axios.create({
