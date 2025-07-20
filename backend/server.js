@@ -61,11 +61,12 @@ const app = express();
 connectDB();
 
 // CORS Configuration
+// CORS Configuration
 app.use(
   cors({
-    origin: process.env.REACT_APP_FRONTEND_BASE_API || "http://localhost:3000", // Allow only requests from frontend
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"], // Allowed HTTP methods
-    credentials: true, // Allow cookies
+    origin: process.env.FRONTEND_URL || "https://frontend-6f00pf2nf-bwumca24133-5151s-projects.vercel.app",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    credentials: true,
   })
 );
 
@@ -79,6 +80,17 @@ app.use(
     limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size (5MB)
   })
 );
+
+// Conditionally start Ollama only in development
+if (process.env.NODE_ENV !== 'production') {
+  // Your existing Ollama startup code
+  console.log("Starting Ollama in development mode");
+  startOllama();
+} else {
+  console.log("Skipping Ollama in production environment");
+}
+
+
 
 
 app.use(session({
