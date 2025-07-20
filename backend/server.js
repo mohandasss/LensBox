@@ -82,14 +82,13 @@ app.use(
 );
 
 // Conditionally start Ollama only in development
+// Only start Ollama in development environment
 if (process.env.NODE_ENV !== 'production') {
-  // Your existing Ollama startup code
   console.log("Starting Ollama in development mode");
   startOllama();
 } else {
   console.log("Skipping Ollama in production environment");
 }
-
 
 
 
