@@ -118,5 +118,5 @@ app.get("/", (req, res) => {
 // Server Listener
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  // Server is running
+  res.send("Server is running");
 });
