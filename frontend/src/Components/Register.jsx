@@ -17,6 +17,7 @@ import {
   Shield,
   UserPlus
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { FaGoogle, FaApple, FaFacebook } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
@@ -544,14 +545,14 @@ const Register = () => {
                   </div>
                 </div>
                 <div className="flex justify-center space-x-4">
-                  <a href={`${BACKEND_BASE_API}auth/google`}>
+                  <Link to={`${process.env.REACT_APP_BACKEND_BASE_API}/auth/google`}>
                     <button
                       type="button"
                       className="p-3 rounded-xl border border-gray-300 hover:border-gray-400 bg-white hover:bg-gray-50 transition-all duration-300 transform hover:scale-110"
                     >
                       <FaGoogle className="text-red-500 w-5 h-5" />
                     </button>
-                  </a>
+                  </Link>
                   <button
                     type="button"
                     className="p-3 rounded-xl border border-gray-300 hover:border-gray-400 bg-white hover:bg-gray-50 transition-all duration-300 transform hover:scale-110"
