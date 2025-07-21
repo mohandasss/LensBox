@@ -8,6 +8,8 @@ const router = express.Router();
 // Start Google Auth
 router.get('/google', passport.authenticate('google', {
   scope: ['profile', 'email']
+
+  
 }));
 
 // Callback after Google login
