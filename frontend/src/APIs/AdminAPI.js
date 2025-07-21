@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = `${process.env.REACT_APP_BACKEND_BASE_API}api/admin`;
+const API_URL = `${process.env.REACT_APP_BACKEND_BASE_API}/api/admin`;
     
 
 // Get dashboard statistics

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { verifyToken } from './AuthAPI';
-const API_URL = `${process.env.REACT_APP_BACKEND_BASE_API}api/reviews`;
+const API_URL = `${process.env.REACT_APP_BACKEND_BASE_API}/api/reviews`;
 
 // Create a new review
 export const createReview = async (productId, rating, comment) => {

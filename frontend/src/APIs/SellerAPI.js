@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const API_URL = `${process.env.REACT_APP_BACKEND_BASE_API}api/seller`;
-const TEST_API_URL = `${process.env.REACT_APP_BACKEND_BASE_API}api/test-seller`;
+const API_URL = `${process.env.REACT_APP_BACKEND_BASE_API}/api/seller`;
+const TEST_API_URL = `${process.env.REACT_APP_BACKEND_BASE_API}/api/test-seller`;
 
 // Helper function to get auth token
 const getAuthToken = () => {
