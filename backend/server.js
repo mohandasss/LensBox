@@ -72,7 +72,7 @@ app.use(
     origin: [
       "https://frontend-eight-omega-86.vercel.app",
       "https://lens-box-azure.vercel.app",
-      "localhost:3000",
+      "http://localhost:3000",
     ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,

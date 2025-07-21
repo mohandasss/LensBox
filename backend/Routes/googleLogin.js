@@ -50,7 +50,7 @@ router.get('/google/callback', passport.authenticate('google', { session: false 
       );
 
       // Redirect to frontend with token
-      res.redirect(`${process.env.REACT_APP_FRONTEND_BASE_API || 'http://localhost:3000'}google-login-success?token=${token}`);
+      res.redirect(`${process.env.REACT_APP_FRONTEND_BASE_API || 'http://localhost:3000'}/google-login-success?token=${token}`);
     } catch (error) {
       console.error('Error in Google OAuth callback:', error);
       next(error);
