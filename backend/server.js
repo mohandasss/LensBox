@@ -71,7 +71,8 @@ app.use(
   cors({
     origin: [
       "https://frontend-eight-omega-86.vercel.app",
-      "https://frontend-6f00pf2nf-bwumca24133-5151s-projects.vercel.app"
+      "https://lens-box-azure.vercel.app",
+      "localhost:3000",
     ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
