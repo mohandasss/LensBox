@@ -307,7 +307,7 @@ const Login = () => {
 
               {/* Social Login */}
               <div className="flex justify-center space-x-4">
-                <Link to={`${BACKEND_BASE_API}/auth/google`}>
+                <Link to={`${BACKEND_BASE_API}auth/google`}>
                   <button
                     type="button"
                     className="p-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-300 transform hover:scale-110 active:scale-95"
