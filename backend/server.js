@@ -70,9 +70,11 @@ connectDB();
 app.use(
   cors({
     origin: [
-      "https://frontend-eight-omega-86.vercel.app",
-      "https://lens-box-azure.vercel.app",
-      "http://localhost:3000",
+      "https://www.buylensbox.tech",        // ✅ Main production frontend
+      "https://buylensbox.tech",            // ✅ Non-www version
+      "https://lens-box-azure.vercel.app",  // ✅ Vercel preview fallback
+      "https://frontend-eight-omega-86.vercel.app", // old vercel preview
+      "http://localhost:3000"               // ✅ Local development
     ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
