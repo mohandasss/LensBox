@@ -161,7 +161,18 @@ const getSellerProducts = async (req, res) => {
 // Get seller's orders
 const getSellerOrders = async (req, res) => {
   try {
-    const sellerId = req.user.userId;
+    // Use sellerId from query if provided, otherwise fallback to req.user.userId
+    const sellerId = req.query.sellerId || (req.user && req.user.userId);
+    
+    if (!sellerId || !mongoose.Types.ObjectId.isValid(sellerId)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid or missing sellerId.' 
+      });
+    }
+    
+    console.log('sellerId dekhke bhai', sellerId);
+    
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -170,24 +181,70 @@ const getSellerOrders = async (req, res) => {
     const products = await Product.find({ seller: sellerId });
     const productIds = products.map(p => p._id);
     
-    // Get orders containing seller's products
-    const orders = await Order.find({
-      'items.productId': { $in: productIds }
-    })
-    .populate('user', 'name email profilePic') // <-- Add profilePic here
-    .populate('items.productId', 'name price')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit);
+    if (productIds.length === 0) {
+      return res.json({
+        success: true,
+        data: [],
+        pagination: {
+          page,
+          pages: 0,
+          total: 0,
+          limit
+        }
+      });
+    }
     
-    // Filter orders to only include seller's items
+    // Get orders containing seller's products with proper aggregation
+    const orders = await Order.aggregate([
+      {
+        $match: {
+          'items.productId': { $in: productIds }
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'user',
+          foreignField: '_id',
+          as: 'userDetails'
+        }
+      },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'items.productId',
+          foreignField: '_id',
+          as: 'productDetails'
+        }
+      },
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit }
+    ]);
+    
+    // Process orders to filter seller's items and calculate correct totals
     const filteredOrders = orders.map(order => {
+      const userDetail = order.userDetails[0] || {};
+      
+      // Filter items to only include seller's products
       const sellerItems = order.items.filter(item => 
-        productIds.some(id => id.toString() === item.productId._id.toString())
+        productIds.some(id => id.toString() === item.productId.toString())
       );
-      // Build customerDetails with profilePic
+      
+      // Populate product details for seller items
+      const populatedItems = sellerItems.map(item => {
+        const productDetail = order.productDetails.find(p => 
+          p._id.toString() === item.productId.toString()
+        );
+        return {
+          ...item,
+          productId: productDetail || item.productId
+        };
+      });
+      
+      // Build customer details with profilePic
       const customerDetails = {
-        fullName: order.customerDetails?.fullName || order.user?.name || '',
+        fullName: order.customerDetails?.fullName || userDetail.name || '',
         phone: order.customerDetails?.phone || '',
         addressLine1: order.customerDetails?.addressLine1 || '',
         addressLine2: order.customerDetails?.addressLine2 || '',
@@ -195,16 +252,27 @@ const getSellerOrders = async (req, res) => {
         state: order.customerDetails?.state || '',
         country: order.customerDetails?.country || '',
         zipCode: order.customerDetails?.zipCode || '',
-        profilePic: order.user?.profilePic || '' // <-- Add profilePic here
+        profilePic: userDetail.profilePic || ''
       };
+      
+      // Calculate total for seller's items only
+      const sellerTotal = populatedItems.reduce((sum, item) => sum + (item.amount || 0), 0);
+      
       return {
-        ...order.toObject(),
-        customerDetails, // <-- Overwrite with new customerDetails
-        items: sellerItems,
-        total: sellerItems.reduce((sum, item) => sum + item.amount, 0)
+        _id: order._id,
+        user: userDetail._id,
+        items: populatedItems,
+        customerDetails,
+        total: sellerTotal,
+        orderStatus: order.orderStatus || order.status, // always include orderStatus
+        status: order.status || order.orderStatus, // always include status for frontend
+        paymentStatus: order.paymentStatus,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt
       };
     }).filter(order => order.items.length > 0);
     
+    // Get total count for pagination
     const totalOrders = await Order.countDocuments({
       'items.productId': { $in: productIds }
     });
