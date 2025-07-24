@@ -130,7 +130,6 @@ export const getSellerRecentOrders = async (limit = 5) => {
       params: { limit },
       headers: getAuthHeaders()
     });
-    console.log('dekho yaar', response.data);
     return response.data.data;
   } catch (error) {
     console.error('Error fetching recent orders:', error);

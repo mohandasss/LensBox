@@ -35,6 +35,7 @@ import {
   getSellerRecentOrders,
   getSellerProductPerformance
 } from '../APIs/SellerAPI';
+import { verifyToken } from '../APIs/AuthAPI';
 
 // Animated Counter Component
 const AnimatedCounter = ({ value, prefix = '', suffix = '' }) => {
@@ -128,12 +129,18 @@ export default function SellerPage() {
         
         // Fetch all required data in parallel
         console.log('🚀 Starting to fetch dashboard data...');
-        
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('No token found');
+        }
+        const {user} = await verifyToken(token);
+          console.log('user',user._id);
+
         const [stats, revenueData, categoryData, recentOrders, productPerformance] = await Promise.all([
           getSellerDashboardStats(),
           getSellerRevenueChart(),
           getSellerCategoryData(),
-          getSellerRecentOrders(5),
+          getSellerRecentOrders(), // removed user._id argument
           getSellerProductPerformance()
         ]);
         
