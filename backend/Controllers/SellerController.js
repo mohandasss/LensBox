@@ -455,13 +455,14 @@ const getSellerCategoryData = async (req, res) => {
 // Get recent orders
 const getSellerRecentOrders = async (req, res) => {
   try {
+    console.log("Fetching recent orders for seller");
+    // Use req.user.userId from auth middleware
     const sellerId = req.user.userId;
+    // Get limit from query (default 5)
     const limit = parseInt(req.query.limit) || 5;
-    
     // Get seller's products
     const products = await Product.find({ seller: sellerId });
     const productIds = products.map(p => p._id);
-    
     // Get recent orders
     const orders = await Order.find({
       'items.productId': { $in: productIds }
@@ -470,31 +471,35 @@ const getSellerRecentOrders = async (req, res) => {
     .populate('items.productId', 'name')
     .sort({ createdAt: -1 })
     .limit(limit);
-    
-    // Format orders for display
-    const formattedOrders = orders.map(order => {
-      const sellerItems = order.items.filter(item => 
-        productIds.some(id => id.toString() === item.productId._id.toString())
-      );
-      const totalAmount = sellerItems.reduce((sum, item) => sum + (item.amount * (item.quantity || 1)), 0);
-      const totalQuantity = sellerItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
-      return {
-        id: order._id.toString(),
-        customer: order.user.name,
-        customerProfilePic: order.user.profilePic || '',
-        customerEmail: order.user.email || '',
-        amount: totalAmount,
-        quantity: totalQuantity,
-        status: order.status || 'confirmed',
-        date: order.createdAt.toLocaleDateString()
-      };
-    });
-    
+    // Format orders for display with null checks
+    const formattedOrders = orders
+      .filter(order => order.user) // Filter out orders with deleted users
+      .map(order => {
+        // Filter seller items and ensure productId exists
+        const sellerItems = order.items.filter(item =>
+          item.productId && // Check if productId exists (not null)
+          productIds.some(id => id.toString() === item.productId._id.toString())
+        );
+        // Skip orders with no valid seller items
+        if (sellerItems.length === 0) return null;
+        const totalAmount = sellerItems.reduce((sum, item) => sum + (item.amount * (item.quantity || 1)), 0);
+        const totalQuantity = sellerItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        return {
+          id: order._id.toString(),
+          customer: order.user?.name || 'Unknown Customer',
+          customerProfilePic: order.user?.profilePic || '',
+          customerEmail: order.user?.email || '',
+          amount: totalAmount,
+          quantity: totalQuantity,
+          status: order.status || 'confirmed',
+          date: order.createdAt.toLocaleDateString()
+        };
+      })
+      .filter(order => order !== null); // Remove null entries
     res.json({
       success: true,
       data: formattedOrders
     });
-    
   } catch (error) {
     console.error("Error fetching recent orders:", error);
     res.status(500).json({
