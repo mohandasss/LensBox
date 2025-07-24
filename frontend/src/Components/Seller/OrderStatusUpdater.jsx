@@ -28,7 +28,8 @@ const OrderStatusUpdater = ({ order, onStatusUpdate }) => {
 
     setIsUpdating(true);
     try {
-      const response = await updateOrderStatus(order._id, newStatus);
+      console.log('order dekhke bhai', order);
+      const response = await updateOrderStatus(order.id, newStatus);
       console.log(order);
       
 

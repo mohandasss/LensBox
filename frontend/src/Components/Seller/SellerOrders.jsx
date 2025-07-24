@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getSellerOrders } from '../../APIs/SellerAPI';
 import { CheckCircle, Clock, XCircle, ShoppingCart, ChevronLeft, ChevronRight, User } from 'lucide-react';
 import OrderStatusUpdater from './OrderStatusUpdater';
-
+import { verifyToken } from '../../APIs/AuthAPI';
 const SellerOrders = () => {
   const [orders, setOrders] = useState([]);
   const [pagination, setPagination] = useState({
@@ -18,11 +18,28 @@ const SellerOrders = () => {
   const fetchOrders = async (page = 1) => {
     try {
       setLoading(true);
-      const response = await getSellerOrders(page, 10);
-      console.log('📋 Fetched orders for Orders tab:', response);
-      // Map orders to ensure both _id and id are present for each order
+      const token = localStorage.getItem('token');
+      const { user } = await verifyToken(token);
       
-      setOrders(response.data);
+      if (!user || !user._id) {
+        throw new Error('User not authenticated');
+      }
+      
+      const response = await getSellerOrders(page, 10, user._id);
+      console.log('📋 Fetched orders for Orders tab:', response);
+      
+      // Ensure orders have both _id and id if needed, and robustly normalize status
+      const processedOrders = response.data.map(order => {
+        // Prefer status, then orderStatus, then fallback to 'confirmed'
+        const normalizedStatus = order.status || order.orderStatus || 'confirmed';
+        return {
+          ...order,
+          id: order._id, // Add id field if your frontend expects it
+          status: normalizedStatus
+        };
+      });
+      
+      setOrders(processedOrders);
       setPagination(response.pagination);
       setError(null);
     } catch (error) {
@@ -43,10 +60,11 @@ const SellerOrders = () => {
     }
   };
 
+  // Add status update handler for local state update
   const handleStatusUpdate = (orderId, newStatus) => {
     setOrders(prevOrders =>
       prevOrders.map(order =>
-        order._id === orderId || order.id === orderId
+        (order.id === orderId || order._id === orderId)
           ? { ...order, status: newStatus }
           : order
       )
@@ -147,53 +165,64 @@ const SellerOrders = () => {
       {/* Orders List */}
       <div className="space-y-4 mb-6">
         {orders.map((order) => (
-          <div key={order._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+          <div key={order.id || order._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
             {/* Left Side - Profile + Customer Info */}
             <div className="flex items-center space-x-3 flex-1 min-w-0">
               {/* Profile Picture */}
-              {order.customerDetails.profilePic ? (
-                <img 
-                  src={order.customerDetails.profilePic} 
-                  alt={order.customer}
-                  className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
-                  }}
-                />
-              ) : null}
-              
-              
+              <div className="relative">
+                {order.customerDetails?.profilePic ? (
+                  <img 
+                    src={order.customerDetails.profilePic} 
+                    alt={order.customerDetails.fullName}
+                    className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      const fallback = e.target.nextElementSibling;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div 
+                  className={`w-10 h-10 rounded-full ${getProfileColor(order.customerDetails?.fullName || '')} flex items-center justify-center text-white font-semibold text-sm ${order.customerDetails?.profilePic ? 'hidden' : ''}`}
+                >
+                  {getInitials(order.customerDetails?.fullName || '')}
+                </div>
+              </div>
               {/* Customer & Product Info */}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">
-                  {order.customerDetails.fullName
-                  }
+                  {order.customerDetails?.fullName}
                 </p>
                 <p className="text-xs text-gray-500 truncate">
-                  {order.product}
+                  {order.items && order.items.length > 0 ? order.items[0].productId.name : ''}
                 </p>
-                {order.user.email && (
-                  <p className="text-xs text-gray-400 truncate">
-                    {order.user.email}
-                  </p>
-                )}
               </div>
             </div>
-            
-            {/* Total, Status, Date */}
-            <div className="flex flex-col items-end min-w-[120px]">
-              <div className="font-bold text-gray-900">
-                Total: ₹{order.items.reduce((sum, item) => sum + item.amount * item.quantity, 0)}
+            {/* Center - Amount */}
+            <div className="flex-shrink-0 mx-4">
+              <p className="text-sm font-semibold text-gray-900">
+                ₹{order.total?.toLocaleString()}
+              </p>
+            </div>
+            {/* Right Side - Status & Date */}
+            <div className="flex-shrink-0 text-right">
+              <div className="mb-2">
+                <OrderStatusUpdater 
+                  order={{
+                    ...order,
+                    id: order.id || order._id,
+                    status: order.status || order.orderStatus,
+                    customer: order.customerDetails?.fullName || '',
+                  }}
+                  onStatusUpdate={handleStatusUpdate}
+                />
               </div>
-              <div className="mb-1">
-                <OrderStatusUpdater order={order} onStatusUpdate={handleStatusUpdate} />
-              </div>
-              <div className="text-xs text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</div>
+              <p className="text-xs text-gray-500">
+                {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : ''}
+              </p>
             </div>
           </div>
         ))}
-        
         {/* Empty State */}
         {orders.length === 0 && (
           <div className="text-center py-8">

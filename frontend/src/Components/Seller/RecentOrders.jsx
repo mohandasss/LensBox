@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CheckCircle, Clock, XCircle, ShoppingCart } from 'lucide-react';
 import OrderStatusUpdater from './OrderStatusUpdater';
 
@@ -11,8 +11,11 @@ const RecentOrders = ({ data = [], showAll = false }) => {
     { id: '#12342', customer: 'Sarah Wilson', product: 'Fuji X-T4', amount: 279, status: 'active', date: '2 days ago' },
     { id: '#12341', customer: 'David Brown', product: 'Sony 24-70mm', amount: 99, status: 'completed', date: '3 days ago' },
   ];
-  
-  const orders = data.length > 0 ? data : fallbackOrders;
+  // Use local state for orders so we can update status in UI
+  const [orders, setOrders] = useState(data.length > 0 ? data : fallbackOrders);
+  useEffect(() => {
+    setOrders(data.length > 0 ? data : fallbackOrders);
+  }, [data]);
   console.log("recent orders",orders);
   
 
@@ -68,6 +71,17 @@ const RecentOrders = ({ data = [], showAll = false }) => {
     ];
     const index = name.length % colors.length;
     return colors[index];
+  };
+
+  // Add status update handler
+  const handleStatusUpdate = (orderId, newStatus) => {
+    setOrders(prevOrders =>
+      prevOrders.map(order =>
+        (order.id === orderId || order._id === orderId)
+          ? { ...order, status: newStatus }
+          : order
+      )
+    );
   };
 
   return (
@@ -131,7 +145,7 @@ const RecentOrders = ({ data = [], showAll = false }) => {
               <div className="mb-2">
                 <OrderStatusUpdater 
                   order={order} 
-                  onStatusUpdate={() => {}} // No callback needed for recent orders
+                  onStatusUpdate={handleStatusUpdate}
                 />
               </div>
               <p className="text-xs text-gray-500">

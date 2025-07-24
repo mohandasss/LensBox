@@ -52,10 +52,10 @@ export const getSellerProducts = async (page = 1, limit = 10) => {
 };
 
 // Get seller orders with pagination
-export const getSellerOrders = async (page = 1, limit = 10) => {
+export const getSellerOrders = async (page = 1, limit = 10, sellerId) => {
   try {
     const response = await axios.get(`${API_URL}/orders`, {
-      params: { page, limit },
+      params: { page, limit, sellerId },
       headers: getAuthHeaders()
     });
     return response.data;
@@ -63,7 +63,7 @@ export const getSellerOrders = async (page = 1, limit = 10) => {
     console.error('Error fetching seller orders:', error);
     throw error;
   }
-};
+}
 
 // Get seller reviews with pagination
 export const getSellerReviews = async (page = 1, limit = 10) => {
