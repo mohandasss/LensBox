@@ -4,7 +4,7 @@ import { verifyToken } from "../APIs/AuthAPI";
 import { FaHeart } from 'react-icons/fa';
 import { FaCartArrowDown } from "react-icons/fa6";
 import { useNotification } from "./NotificationSystem";
-
+import { X, Menu } from "lucide-react";
 const Navbar = ({ bgBlack }) => {
   const { showProfileNotification } = useNotification();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -100,23 +100,10 @@ const Navbar = ({ bgBlack }) => {
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-white p-2"
+              className="text-white p-2 focus:outline-none focus:ring-2 focus:ring-white rounded-md"
+              aria-label="Toggle mobile menu"
             >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                {isMobileMenuOpen ? (
-                  <path d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
 
@@ -242,45 +229,69 @@ const Navbar = ({ bgBlack }) => {
         <div
           className={`${
             isMobileMenuOpen ? "block" : "hidden"
-          } md:hidden bg-white rounded-lg mt-2 shadow-lg absolute left-0 right-0 z-50`}
+          } md:hidden bg-white rounded-lg mt-2 shadow-lg absolute left-0 right-0 z-50 mx-4`}
         >
           <div className="px-2 pt-2 pb-3 space-y-1">
             <Link
               to="/"
-              className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+              className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               Home
             </Link>
             <Link
-              to="/orders"
-              className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-            >
-              Orders
-            </Link>
-            <Link
               to="/products"
-              className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+              className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               Products
             </Link>
             <Link
+              to="/orders"
+              className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Orders
+            </Link>
+            <Link
               to="/about"
-              className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+              className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               About
             </Link>
             <Link
-              to="/services"
-              className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+              to="/services"  
+              className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               Services
             </Link>
             <Link
               to="/contact"
-              className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+              className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               Contact
             </Link>
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className="block px-3 py-2 rounded-md text-yellow-600 hover:text-yellow-700 hover:bg-gray-100 font-semibold transition-colors duration-200"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Admin
+              </Link>
+            )}
+            {isSeller && (
+              <Link
+                to="/seller"
+                className="block px-3 py-2 rounded-md text-green-600 hover:text-green-700 hover:bg-gray-100 font-semibold transition-colors duration-200"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Seller
+              </Link>
+            )}
           </div>
 
           {/* Mobile Auth Section */}
@@ -293,25 +304,31 @@ const Navbar = ({ bgBlack }) => {
                 </div>
                 <Link
                   to="/profile"
-                  className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Profile
                 </Link>
                 <Link
                   to="/settings"
-                  className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Settings
                 </Link>
                 <Link
                   to="/orders"
-                  className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Orders
                 </Link>
                 <button
-                  onClick={handleSignOut}
-                  className="block w-full text-left px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => {
+                    handleSignOut()
+                    setIsMobileMenuOpen(false)
+                  }}
+                  className="block w-full text-left px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
                 >
                   Sign out
                 </button>
@@ -320,13 +337,15 @@ const Navbar = ({ bgBlack }) => {
               <div className="space-y-1">
                 <Link
                   to="/login"
-                  className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Register
                 </Link>

@@ -232,21 +232,15 @@ const HeroProducts = () => {
           </Link>
         </div>
 
-        <div className="relative px-2">
-          <div className="overflow-hidden">
-            <div
-              ref={containerRef}
-              className="flex transition-transform duration-300 ease-in-out pb-4 gap-8"
-              style={{ transform: transformValue }}
-            >
-              {products.map((product) => (
-                <div key={product._id} className="flex-none w-64">
-                  <Link to={`/product/${product._id}`} className="block">
-                    <ProductCard product={product} />
-                  </Link>
-                </div>
-              ))}
-            </div>
+        <div className="overflow-x-auto scrollbar-hide -mx-2" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}>
+          <div className="flex flex-nowrap gap-8 px-2 scroll-snap-x scroll-smooth" style={{ scrollSnapType: 'x mandatory' }}>
+            {products.map((product) => (
+              <div key={product._id} className="flex-none w-64" style={{ scrollSnapAlign: 'start' }}>
+                <Link to={`/product/${product._id}`} className="block">
+                  <ProductCard product={product} />
+                </Link>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -336,38 +330,21 @@ export const MostPopularProducts = () => {
             className="text-white hover:text-indigo-800 text-sm font-medium flex items-center whitespace-nowrap"
           >
             See all
-            <svg
-              className="w-4 h-4 ml-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
+            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </Link>
         </div>
 
-        <div className="relative px-2">
-          <div className="overflow-hidden">
-            <div
-              ref={containerRef}
-              className="flex transition-transform duration-300 ease-in-out pb-4 gap-8"
-              style={{ transform: transformValue }}
-            >
-              {products.map((product) => (
-                <div key={product._id} className="flex-none w-64">
-                  <Link to={`/product/${product._id}`} className="block">
-                    <ProductCard product={product} />
-                  </Link>
-                </div>
-              ))}
-            </div>
+        <div className="overflow-x-auto scrollbar-hide -mx-2" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}>
+          <div className="flex flex-nowrap gap-8 px-2 scroll-snap-x scroll-smooth" style={{ scrollSnapType: 'x mandatory' }}>
+            {products.map((product) => (
+              <div key={product._id} className="flex-none w-64" style={{ scrollSnapAlign: 'start' }}>
+                <Link to={`/product/${product._id}`} className="block">
+                  <ProductCard product={product} />
+                </Link>
+              </div>
+            ))}
           </div>
         </div>
       </div>

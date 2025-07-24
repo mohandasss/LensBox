@@ -122,6 +122,10 @@ All colors MUST be HSL.
   }
 }
 
+html, body {
+  overflow-x: hidden;
+}
+
 /* Custom animations for pagination */
 @keyframes fade-in-ios {
   from {
