@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
+import LoadingSpinner from "../Components/LoadingSpinner";
 import CheckoutModal from "../Components/CheckoutModal";
 import { verifyToken } from "../APIs/AuthAPI";
 import { getCart, updateCartItem, RemoveCartItem } from "../APIs/CartAPI";
-import { Link } from "react-router-dom";
 import { loadRazorpay } from "../utils/razorpay";
 import { clearCart } from "../APIs/CartAPI";
 import { useNotification } from "../Components/NotificationSystem";
 import config from "../Components/secretfront";
+
 const CartPage = () => {
   const { showCartNotification, showError, showSuccess } = useNotification();
   const [cartItems, setCartItems] = useState([]);
@@ -245,36 +247,43 @@ const CartPage = () => {
       
     } catch (err) {
       console.error('Error during checkout:', err);
-      
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black">
+        <Navbar />
+        <div className="flex justify-center items-center h-96">
+          <LoadingSpinner />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black">
       <Navbar />
-      <div className={`flex-grow bg-white py-12 transition-opacity duration-300 ${isCheckoutOpen ? 'opacity-30' : 'opacity-100'}`}>
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-2xl font-medium text-gray-900 mb-8 text-center">
+      <div className={`flex-grow bg-white py-6 sm:py-8 md:py-12 transition-opacity duration-300 ${isCheckoutOpen ? 'opacity-30' : 'opacity-100'}`}>
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <h1 className="text-xl sm:text-2xl font-medium text-gray-900 mb-6 sm:mb-8 text-center">
             Your Cart {cartItems.length > 0 && `(${cartItems.length})`}
           </h1>
 
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="w-6 h-6 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
-            </div>
-          ) : cartItems.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm p-12 text-center border border-gray-200">
+          {cartItems.length === 0 ? (
+            <div className="bg-white rounded-lg shadow-sm p-8 sm:p-10 md:p-12 text-center border border-gray-200">
               <p className="text-gray-500">Your cart is empty.</p>
-              <button className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+              <Link to="/products" className="mt-4 sm:mt-6 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                 Continue Shopping
-              </button>
+              </Link>
             </div>
           ) : (
             <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
               <div>
                 {cartItems.map((item) => (
-                  <div key={item._id} className="p-6 flex border-b border-gray-200">
-                    <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
+                  <div key={item._id} className="p-4 sm:p-6 flex flex-col sm:flex-row border-b border-gray-200">
+                    <div className="h-40 w-full sm:h-24 sm:w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 mb-3 sm:mb-0">
                       <Link to={`/product/${item.productId._id}`}>
                         <img
                           src={item.productId.image[0]}
@@ -283,9 +292,9 @@ const CartPage = () => {
                         />
                       </Link>
                     </div>
-                    <div className="ml-6 flex-1 flex flex-col">
+                    <div className="mt-3 sm:mt-0 sm:ml-4 md:ml-6 flex-1 flex flex-col">
                       <div>
-                        <div className="flex justify-between">
+                        <div className="flex flex-col sm:flex-row sm:justify-between">
                           <Link to={`/product/${item.productId._id}`}>
                             <h3 className="text-base font-medium text-gray-900">
                               {item.productId.name}
@@ -295,62 +304,62 @@ const CartPage = () => {
                             ₹{item.productId.price.toLocaleString()}
                           </p>
                         </div>
-                        <Link to={`/product/${item.productId._id}`}>
-                          <p className="mt-1 text-sm text-gray-500 line-clamp-2">
-                            {item.productId.description}
-                          </p>
-                        </Link>
                       </div>
-                      <div className="flex-1 flex items-end justify-between">
-                        <div className="flex items-center space-x-4">
+                      <div className="mt-3 flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
+                        <div className="flex items-center">
+                          <span className="text-sm text-gray-500 mr-2">Qty:</span>
                           <div className="flex items-center">
                             <button 
-                              className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50"
+                              className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-l-md text-gray-600 hover:bg-gray-50 focus:outline-none"
                               onClick={() => handleUpdateQuantity(item._id, item.quantity - 1)}
                               disabled={item.quantity <= 1}
                             >
-                              <svg className="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                              <span className="sr-only">Decrease quantity</span>
+                              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
                               </svg>
                             </button>
-                            <span className="mx-2 text-gray-700 min-w-[20px] text-center">
+                            <span className="w-10 h-8 flex items-center justify-center border-t border-b border-gray-300 text-gray-700 text-sm">
                               {item.quantity}
                             </span>
                             <button 
-                              className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 transition-colors"
+                              className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-r-md text-gray-600 hover:bg-gray-50 focus:outline-none"
                               onClick={() => handleUpdateQuantity(item._id, item.quantity + 1)}
                               disabled={item.quantity >= (item.productId.stock || 0)}
                             >
-                              <svg className="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                              <span className="sr-only">Increase quantity</span>
+                              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                               </svg>
                             </button>
                           </div>
-                          
-                          {/* Stock Status Indicator */}
-                          <div className="flex items-center space-x-2">
-                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                              item.quantity > (item.productId.stock || 0)
-                                ? 'bg-red-100 text-red-800'
-                                : item.productId.stock < 5
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-green-100 text-green-800'
-                            }`}>
-                              {item.quantity > (item.productId.stock || 0)
-                                ? 'Out of Stock'
-                                : `${item.productId.stock || 0} available`
-                              }
-                            </span>
-                            {item.quantity > (item.productId.stock || 0) && (
-                              <span className="text-xs text-red-600">
-                                (Max: {item.productId.stock || 0})
-                              </span>
-                            )}
-                          </div>
                         </div>
+                        
+                        {/* Stock Status Indicator */}
+                        <div className="flex items-center space-x-2">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            item.quantity > (item.productId.stock || 0)
+                              ? 'bg-red-100 text-red-800'
+                              : item.productId.stock < 5
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-green-100 text-green-800'
+                          }`}>
+                            {item.quantity > (item.productId.stock || 0)
+                              ? 'Out of Stock'
+                              : `${item.productId.stock || 0} available`
+                            }
+                          </span>
+                          {item.quantity > (item.productId.stock || 0) && (
+                            <span className="text-xs text-red-600">
+                              (Max: {item.productId.stock || 0})
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mt-3">
                         <button 
                           type="button" 
-                          className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 transition-colors"
+                          className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 transition-colors"
                           onClick={() => handleRemoveItem(item.productId._id)}
                         >
                           Remove
@@ -360,7 +369,9 @@ const CartPage = () => {
                   </div>
                 ))}
               </div>
-              <div className="border-t border-gray-200 p-6 space-y-4">
+              
+              {/* Cart Summary */}
+              <div className="p-4 sm:p-6 bg-gray-50">
                 <div className="flex justify-between text-base font-medium text-gray-900">
                   <p>Subtotal</p>
                   <p>₹{calculateSubtotal()}</p>
@@ -373,16 +384,16 @@ const CartPage = () => {
                   <p>Total</p>
                   <p>₹{calculateSubtotal()}</p>
                 </div>
-                <div className="mt-6">
+                <div className="mt-4 sm:mt-6">
                   <button
                     onClick={handleCheckoutClick}
-                    className="w-full bg-black py-3 px-4 rounded-md text-white font-medium hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                    className="w-full bg-black py-2.5 sm:py-3 px-4 rounded-md text-white font-medium hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors text-sm sm:text-base"
                     disabled={cartItems.length === 0}
                   >
-                    {loading ? 'Loading...' : 'Proceed to Checkout'}
+                    {loading ? 'Processing...' : 'Proceed to Checkout'}
                   </button>
                 </div>
-                <div className="mt-6 flex justify-center text-sm text-gray-500">
+                <div className="mt-4 sm:mt-6 flex justify-center text-xs sm:text-sm text-gray-500">
                   <p>
                     or{' '}
                     <Link to="/products" className="font-medium text-indigo-600 hover:text-indigo-500">
@@ -404,7 +415,7 @@ const CartPage = () => {
         cartItems={cartItems}
         onCheckout={handleCheckoutSubmit}
         initialValues={user?.address ? {
-          fullName: user.name ,
+          fullName: user.name,
           phone: user.phone,
           addressLine1: `${user.address.city}, ${user.address.state}, ${user.address.zip}`,
           addressLine2: "",

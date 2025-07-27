@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { verifyToken } from "../APIs/AuthAPI";
-import { FaHeart } from 'react-icons/fa';
+import { FaHeart, FaUser, FaCog, FaSignOutAlt } from 'react-icons/fa';
 import { FaCartArrowDown } from "react-icons/fa6";
 import { useNotification } from "./NotificationSystem";
 import { X, Menu } from "lucide-react";
-const Navbar = ({ bgBlack }) => {
+
+const Navbar = ({ bgBlack = false, fixed = false, className = '' }) => {
   const { showProfileNotification } = useNotification();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
@@ -13,23 +14,35 @@ const Navbar = ({ bgBlack }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAdmin, setAdmin] = useState(false);
   const [isSeller, setSeller] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Close dropdowns when clicking outside
   useEffect(() => {
-    console.log(user);
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.dropdown-container')) {
+        setIsDropdownOpen(false);
+      }
+      if (!event.target.closest('.mobile-menu-container')) {
+        setIsMobileMenuOpen(false);
+      }
+    };
 
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem("token");
       if (token) {
         try {
           const response = await verifyToken(token);
-          console.log(response.user.profilePic);
-
-          if (
-            response.success ||
-            response.message === "User is authenticated"
-          ) {
+          
+          if (response.success || response.message === "User is authenticated") {
             setIsAuthenticated(true);
             setUser(response.user);
 
@@ -47,19 +60,20 @@ const Navbar = ({ bgBlack }) => {
             setIsAuthenticated(false);
             setUser(null);
             setAdmin(false);
+            setSeller(false);
           }
         } catch (error) {
           console.error("Token verification failed:", error);
-          if (error.response && error.response.status === 401) {
-            setIsAuthenticated(false);
-            setUser(null);
-            setAdmin(false);
-          }
+          setIsAuthenticated(false);
+          setUser(null);
+          setAdmin(false);
+          setSeller(false);
         }
       } else {
         setIsAuthenticated(false);
         setUser(null);
         setAdmin(false);
+        setSeller(false);
       }
     };
 
@@ -75,39 +89,48 @@ const Navbar = ({ bgBlack }) => {
     navigate("/login");
     setIsAuthenticated(false);
     setUser(null);
+    setIsDropdownOpen(false);
+    setIsMobileMenuOpen(false);
   };
 
-  // Check if we're on admin page for styling
   const isAdminPage = location.pathname === '/admin';
-  
-  // Dynamic navbar class based on location
-  const navbarClass = isAdminPage 
-    ? "px-4 bg-gray-800 text-white shadow-md" 
-    : "px-4 bg-transparent text-white";
+
+  const navLinks = [
+    { to: "/", label: "Home" },
+    { to: "/products", label: "Products" },
+    { to: "/orders", label: "Orders" },
+    { to: "/about", label: "About" },
+    { to: "/services", label: "Services" },
+    { to: "/contact", label: "Contact" },
+  ];
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const navbarClasses = `w-full transition-all duration-300 z-50 ${
+    bgBlack ? 'bg-black' : 'bg-transparent'
+  } ${isScrolled ? 'shadow-md' : ''} ${
+    fixed ? 'fixed top-0 left-0 right-0' : 'relative'
+  } ${className}`;
 
   return (
-    <nav className={bgBlack ? 'bg-black px-4 text-white' : navbarClass}>
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
-          {/* Left side - Logo/Brand */}
-          <div className="flex items-center">
-            <Link to="/" className="text-xl font-bold text-white">
+    <header className={navbarClasses}>
+      <nav className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${fixed ? 'py-2' : 'py-3'}`}>
+        <div className="flex justify-between items-center h-12">
+          {/* Logo/Brand */}
+          <Link to="/" className="flex-shrink-0 flex items-center">
+            <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
               LensBox
-            </Link>
-          </div>
+            </span>
+          </Link>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-white p-2 focus:outline-none focus:ring-2 focus:ring-white rounded-md"
-              aria-label="Toggle mobile menu"
-            >
-              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-          </div>
-
-          {/* Center - Navigation Links (Desktop) */}
+          {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center space-x-6">
             <Link to="/" className="text-white hover:text-gray-300">
               Home
@@ -128,6 +151,7 @@ const Navbar = ({ bgBlack }) => {
               Contact
             </Link>
 
+            {/* Admin/Seller Links */}
             {isAdmin && (
               <Link
                 to="/admin"
@@ -146,15 +170,15 @@ const Navbar = ({ bgBlack }) => {
             )}
           </div>
 
-          {/* Right side - User Auth */}
+          {/* Desktop Right Side - User Auth & Actions */}
           <div className="hidden md:flex items-center space-x-4 relative">
             {isAuthenticated ? (
               <>
                 <Link to="/cart" className="text-white hover:text-gray-300">
-                  <FaCartArrowDown className="text-xl" />
+                  <FaCartArrowDown className="text-lg" />
                 </Link>
                 <Link to="/wishlist" className="text-white hover:text-gray-300 ml-2">
-                  <FaHeart className="text-xl" />
+                  <FaHeart className="text-lg" />
                 </Link>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -164,11 +188,11 @@ const Navbar = ({ bgBlack }) => {
                     <img
                       src={user.profilePic}
                       alt="Profile"
-                      className="w-8 h-8 rounded-full border-2 border-white"
+                      className="w-7 h-7 rounded-full border border-white"
                     />
                   ) : (
-                    <span className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 border-2 border-white">
-                      {user?.name?.charAt(0) || "U"}
+                    <span className="w-7 h-7 text-sm rounded-full bg-gray-200 flex items-center justify-center text-gray-700 border border-white">
+                      {user?.name?.charAt(0)?.toUpperCase() || "U"}
                     </span>
                   )}
                 </button>
@@ -182,18 +206,21 @@ const Navbar = ({ bgBlack }) => {
                     <Link
                       to="/profile"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsDropdownOpen(false)}
                     >
                       Profile
                     </Link>
                     <Link
                       to="/settings"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsDropdownOpen(false)}
                     >
                       Settings
                     </Link>
                     <Link
                       to="/orders"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsDropdownOpen(false)}
                     >
                       Orders
                     </Link>
@@ -223,128 +250,117 @@ const Navbar = ({ bgBlack }) => {
               </div>
             )}
           </div>
-        </div>
 
-        {/* Mobile menu */}
-        <div
-          className={`${
-            isMobileMenuOpen ? "block" : "hidden"
-          } md:hidden bg-white rounded-lg mt-2 shadow-lg absolute left-0 right-0 z-50 mx-4`}
-        >
-          <div className="px-2 pt-2 pb-3 space-y-1">
-            <Link
-              to="/"
-              className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
-              onClick={() => setIsMobileMenuOpen(false)}
+          {/* Mobile Menu Button & Quick Actions */}
+          <div className="md:hidden flex items-center space-x-3">
+            {isAuthenticated && (
+              <>
+                <Link to="/wishlist" className="text-white hover:text-blue-300 transition-colors duration-200 p-2">
+                  <FaHeart className="w-5 h-5" />
+                </Link>
+                <Link to="/cart" className="text-white hover:text-blue-300 transition-colors duration-200 p-2">
+                  <FaCartArrowDown className="w-5 h-5" />
+                </Link>
+              </>
+            )}
+            
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-white p-2 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded-lg transition-all duration-200"
+              aria-label="Toggle mobile menu"
             >
-              Home
-            </Link>
-            <Link
-              to="/products"
-              className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Products
-            </Link>
-            <Link
-              to="/orders"
-              className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Orders
-            </Link>
-            <Link
-              to="/about"
-              className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              About
-            </Link>
-            <Link
-              to="/services"  
-              className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Services
-            </Link>
-            <Link
-              to="/contact"
-              className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Contact
-            </Link>
+              <div className="w-6 flex flex-col items-end space-y-1.5">
+                <span className={`block h-0.5 bg-white transition-all duration-300 ${isMobileMenuOpen ? 'w-6 rotate-45 translate-y-2' : 'w-6'}`}></span>
+                <span className={`block h-0.5 bg-white transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0' : 'w-5'}`}></span>
+                <span className={`block h-0.5 bg-white transition-all duration-300 ${isMobileMenuOpen ? 'w-6 -rotate-45 -translate-y-2' : 'w-4'}`}></span>
+              </div>
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden bg-white shadow-xl border-t border-gray-200 mobile-menu-container">
+          <div className="px-4 py-3 space-y-2">
+            {/* Navigation Links */}
+            {navLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className="block px-3 py-2 rounded-lg text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200 font-medium"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ))}
+
+            {/* Admin/Seller Links */}
             {isAdmin && (
               <Link
                 to="/admin"
-                className="block px-3 py-2 rounded-md text-yellow-600 hover:text-yellow-700 hover:bg-gray-100 font-semibold transition-colors duration-200"
+                className="block px-3 py-2 rounded-lg text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 transition-colors duration-200 font-semibold"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Admin
+                Admin Panel
               </Link>
             )}
             {isSeller && (
               <Link
                 to="/seller"
-                className="block px-3 py-2 rounded-md text-green-600 hover:text-green-700 hover:bg-gray-100 font-semibold transition-colors duration-200"
+                className="block px-3 py-2 rounded-lg text-green-600 hover:text-green-700 hover:bg-green-50 transition-colors duration-200 font-semibold"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Seller
+                Seller Dashboard
               </Link>
             )}
-          </div>
 
-          {/* Mobile Auth Section */}
-          <div className="px-2 pt-2 pb-3 border-t border-gray-200">
+            {/* User Section */}
             {isAuthenticated ? (
-              <div className="space-y-1">
-                <div className="px-3 py-2 text-sm text-gray-700">
-                  <div>{user?.name}</div>
-                  <div className="font-medium truncate">{user?.email}</div>
+              <div className="border-t border-gray-200 pt-3 mt-3">
+                <div className="px-3 py-2 text-sm text-gray-500">
+                  Signed in as <span className="font-medium text-gray-900">{user?.name}</span>
                 </div>
                 <Link
                   to="/profile"
-                  className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+                  className="block px-3 py-2 rounded-lg text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Profile
                 </Link>
                 <Link
                   to="/settings"
-                  className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+                  className="block px-3 py-2 rounded-lg text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Settings
                 </Link>
                 <Link
                   to="/orders"
-                  className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+                  className="block px-3 py-2 rounded-lg text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Orders
                 </Link>
                 <button
-                  onClick={() => {
-                    handleSignOut()
-                    setIsMobileMenuOpen(false)
-                  }}
-                  className="block w-full text-left px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+                  onClick={handleSignOut}
+                  className="block w-full text-left px-3 py-2 rounded-lg text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors duration-200 font-medium"
                 >
                   Sign out
                 </button>
               </div>
             ) : (
-              <div className="space-y-1">
+              <div className="border-t border-gray-200 pt-3 mt-3 space-y-2">
                 <Link
                   to="/login"
-                  className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+                  className="block px-3 py-2 rounded-lg text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200 font-medium"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="block px-3 py-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+                  className="block px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200 font-medium text-center"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Register
@@ -353,8 +369,8 @@ const Navbar = ({ bgBlack }) => {
             )}
           </div>
         </div>
-      </div>
-    </nav>
+      )}
+    </header>
   );
 };
 

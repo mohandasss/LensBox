@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
+import LoadingSpinner from "../Components/LoadingSpinner";
 import OrderDetails from "../Components/OrderDetails";
 import PaymentSuccess from "../Components/PaymentSuccess";
 import { verifyToken } from "../APIs/AuthAPI";
@@ -102,8 +103,8 @@ const OrderPage = () => {
         </div>
 
         {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="flex items-center justify-center min-h-[200px]">
+            <LoadingSpinner />
           </div>
         ) : error ? (
           <div className="text-center py-12 bg-gray-700 rounded-lg">

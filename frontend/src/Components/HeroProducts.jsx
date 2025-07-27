@@ -234,13 +234,13 @@ const HeroProducts = () => {
 
         <div className="overflow-x-auto scrollbar-hide -mx-2" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}>
           <div className="flex flex-nowrap gap-8 px-2 scroll-snap-x scroll-smooth" style={{ scrollSnapType: 'x mandatory' }}>
-            {products.map((product) => (
+              {products.map((product) => (
               <div key={product._id} className="flex-none w-64" style={{ scrollSnapAlign: 'start' }}>
-                <Link to={`/product/${product._id}`} className="block">
-                  <ProductCard product={product} />
-                </Link>
-              </div>
-            ))}
+                  <Link to={`/product/${product._id}`} className="block">
+                    <ProductCard product={product} />
+                  </Link>
+                </div>
+              ))}
           </div>
         </div>
       </div>
@@ -338,13 +338,13 @@ export const MostPopularProducts = () => {
 
         <div className="overflow-x-auto scrollbar-hide -mx-2" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}>
           <div className="flex flex-nowrap gap-8 px-2 scroll-snap-x scroll-smooth" style={{ scrollSnapType: 'x mandatory' }}>
-            {products.map((product) => (
+              {products.map((product) => (
               <div key={product._id} className="flex-none w-64" style={{ scrollSnapAlign: 'start' }}>
-                <Link to={`/product/${product._id}`} className="block">
-                  <ProductCard product={product} />
-                </Link>
-              </div>
-            ))}
+                  <Link to={`/product/${product._id}`} className="block">
+                    <ProductCard product={product} />
+                  </Link>
+                </div>
+              ))}
           </div>
         </div>
       </div>
