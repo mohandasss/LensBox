@@ -64,9 +64,9 @@ const AdminPage = () => {
       
       <div className="pt-24 px-4 sm:px-6 lg:px-8 pb-12 max-w-7xl mx-auto">
         {/* Tab Navigation - Sticky with Shadow */}
-        <div className={`sticky top-16 z-10 bg-white shadow-sm rounded-lg mb-8 transition-all duration-300 ${isScrolled ? 'py-2' : 'py-4'}`}>
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="flex flex-wrap justify-center gap-1">
+        <div className={`sticky top-16 z-10 bg-white shadow-sm rounded-lg mb-6 transition-all duration-300 ${isScrolled ? 'py-2' : 'py-3'}`}>
+          <div className="w-full overflow-x-auto no-scrollbar">
+            <div className="flex justify-start md:justify-center px-2 min-w-max">
               {[
                 { id: 'dashboard', label: 'Dashboard', icon: DollarSign },
                 { id: 'users', label: 'Users', icon: Users },
@@ -80,10 +80,10 @@ const AdminPage = () => {
                   <button
                     key={tab.id}
                     onClick={() => handleTabChange(tab.id)}
-                    className={`relative px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 flex items-center space-x-2 ${
+                    className={`relative px-3 sm:px-4 py-2 rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 flex items-center space-x-1 sm:space-x-2 ${
                       activeTab === tab.id
-                        ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-md'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                        ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-md flex-shrink-0'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 flex-shrink-0'
                     }`}
                   >
                     <Icon className="w-4 h-4 flex-shrink-0" />

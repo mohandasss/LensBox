@@ -120,7 +120,7 @@ const Navbar = ({ bgBlack = false, fixed = false, className = '' }) => {
   } ${className}`;
 
   return (
-    <header className={navbarClasses}>
+    <header className={`${navbarClasses} relative`} onClick={() => setIsDropdownOpen(false)}>
       <nav className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${fixed ? 'py-2' : 'py-3'}`}>
         <div className="flex justify-between items-center h-12">
           {/* Logo/Brand */}
@@ -171,68 +171,85 @@ const Navbar = ({ bgBlack = false, fixed = false, className = '' }) => {
           </div>
 
           {/* Desktop Right Side - User Auth & Actions */}
-          <div className="hidden md:flex items-center space-x-4 relative">
+          <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated ? (
-              <>
-                <Link to="/cart" className="text-white hover:text-gray-300">
-                  <FaCartArrowDown className="text-lg" />
-                </Link>
-                <Link to="/wishlist" className="text-white hover:text-gray-300 ml-2">
-                  <FaHeart className="text-lg" />
-                </Link>
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center focus:outline-none text-white"
-                >
-                  {user?.profilePic ? (
-                    <img
-                      src={user.profilePic}
-                      alt="Profile"
-                      className="w-7 h-7 rounded-full border border-white"
-                    />
-                  ) : (
-                    <span className="w-7 h-7 text-sm rounded-full bg-gray-200 flex items-center justify-center text-gray-700 border border-white">
-                      {user?.name?.charAt(0)?.toUpperCase() || "U"}
-                    </span>
-                  )}
-                </button>
-
+              <div className="relative dropdown-container">
+                <div className="flex items-center space-x-4">
+                  <Link to="/cart" className="text-white hover:text-gray-300 transition-colors duration-200">
+                    <FaCartArrowDown className="text-lg" />
+                  </Link>
+                  <Link to="/wishlist" className="text-white hover:text-gray-300 transition-colors duration-200">
+                    <FaHeart className="text-lg" />
+                  </Link>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsDropdownOpen(!isDropdownOpen);
+                    }}
+                    className="flex items-center focus:outline-none text-white transition-colors duration-200 hover:bg-white/10 rounded-full p-1"
+                    aria-expanded={isDropdownOpen}
+                    aria-haspopup="true"
+                  >
+                    {user?.profilePic ? (
+                      <img
+                        src={user.profilePic}
+                        alt="Profile"
+                        className="w-8 h-8 rounded-full border-2 border-white/80 hover:border-white transition-all duration-200"
+                      />
+                    ) : (
+                      <span className="w-8 h-8 text-sm rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white border border-white/50 hover:border-white transition-all duration-200">
+                        {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                      </span>
+                    )}
+                  </button>
+                </div>
                 {isDropdownOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200">
-                    <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-200">
-                      <div>{user?.name}</div>
-                      <div className="font-medium truncate">{user?.email}</div>
+                  <div 
+                    className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-xl py-1 z-50 border border-gray-200 animate-fadeIn"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 rounded-t-lg">
+                      <div className="font-medium text-gray-900">{user?.name}</div>
+                      <div className="text-sm text-gray-500 truncate">{user?.email}</div>
                     </div>
                     <Link
                       to="/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150"
                       onClick={() => setIsDropdownOpen(false)}
                     >
-                      Profile
+                      <FaUser className="w-4 h-4 mr-3 text-gray-400" />
+                      <span>Profile</span>
                     </Link>
                     <Link
                       to="/settings"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150"
                       onClick={() => setIsDropdownOpen(false)}
                     >
-                      Settings
+                      <FaCog className="w-4 h-4 mr-3 text-gray-400" />
+                      <span>Settings</span>
                     </Link>
                     <Link
                       to="/orders"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150"
                       onClick={() => setIsDropdownOpen(false)}
                     >
-                      Orders
+                      <FaCartArrowDown className="w-4 h-4 mr-3 text-gray-400" />
+                      <span>Orders</span>
                     </Link>
+                    <div className="border-t border-gray-100 my-1"></div>
                     <button
-                      onClick={handleSignOut}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSignOut();
+                      }}
+                      className="flex items-center w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors duration-150 rounded-b-lg"
                     >
-                      Sign out
+                      <FaSignOutAlt className="w-4 h-4 mr-3" />
+                      <span>Sign out</span>
                     </button>
                   </div>
                 )}
-              </>
+              </div>
             ) : (
               <div className="flex items-center space-x-4">
                 <Link

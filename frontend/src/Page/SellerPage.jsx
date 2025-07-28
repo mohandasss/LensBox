@@ -291,9 +291,9 @@ export default function SellerPage() {
         
         <div className="relative bg-white/80 backdrop-blur-xl border-b border-white/20 shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Centered Tab Navigation */}
-            <div className="flex justify-center py-6">
-              <nav className="flex items-center space-x-1 bg-gray-100/80 backdrop-blur-md rounded-2xl p-2 shadow-lg border border-white/30" aria-label="Tabs">
+            {/* Responsive Tab Navigation */}
+            <div className="py-4 px-2">
+              <div className="flex flex-wrap justify-center gap-2">
                 {tabs.map((tab) => {
                   const TabIcon = tab.icon;
                   const isActive = activeTab === tab.id;
@@ -302,41 +302,29 @@ export default function SellerPage() {
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
                       className={`
-                        relative px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 ease-out
+                        relative px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200
                         flex items-center space-x-2 group overflow-hidden
                         ${isActive 
-                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg transform scale-105' 
-                          : 'text-gray-600 hover:text-gray-900 hover:bg-white/60 hover:shadow-md hover:scale-102'
+                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-white/80 hover:shadow-sm border border-gray-200'
                         }
                       `}
-                      style={{
-                        transform: isActive ? 'scale(1.05)' : 'scale(1)',
-                        zIndex: isActive ? 10 : 1
-                      }}
                     >
-                      {/* Active background glow */}
-                      {isActive && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl animate-pulse opacity-75"></div>
-                      )}
-                      
-                      {/* Content */}
-                      <div className="relative flex items-center space-x-2">
-                        <TabIcon className={`w-5 h-5 transition-all duration-300 ${
+                      <TabIcon 
+                        className={`w-5 h-5 transition-transform duration-200 ${
                           isActive 
-                            ? 'text-white transform rotate-12' 
+                            ? 'text-white' 
                             : 'text-gray-500 group-hover:text-gray-700 group-hover:scale-110'
-                        }`} />
-                        <span className="font-medium tracking-wide">{tab.label}</span>
-                      </div>
-                      
-                      {/* Hover effect */}
-                      {!isActive && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 to-purple-500/0 group-hover:from-blue-500/10 group-hover:to-purple-500/10 rounded-xl transition-all duration-300"></div>
+                        }`} 
+                      />
+                      <span className="whitespace-nowrap">{tab.label}</span>
+                      {isActive && (
+                        <span className="absolute -bottom-1 left-1/2 w-4 h-0.5 bg-white rounded-full -translate-x-1/2"></span>
                       )}
                     </button>
                   );
                 })}
-              </nav>
+              </div>
             </div>
           </div>
         </div>
